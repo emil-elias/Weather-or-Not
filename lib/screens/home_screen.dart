@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,27 +364,20 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               // Outfit cards
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildOutfitCard(context, isLarge: true),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildOutfitCard(context),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildOutfitCard(context),
-                          ),
-                        ],
-                      ),
-                    ],
+              _buildOutfitCard(context, isLarge: true),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildOutfitCard(context),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildOutfitCard(context),
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
