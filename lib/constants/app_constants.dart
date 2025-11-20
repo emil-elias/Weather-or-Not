@@ -9,6 +9,19 @@ class AppConstants {
 
   /// Bright Sky API Base URL
   static const String brightSkyApiBaseUrl = 'https://api.brightsky.dev';
+
+  static const String DWDApiBaseUrl = 'https://dwd.api.proxy.bund.dev/v30';
+  static const String DWDApiBaseUrlAlt = 'https://app-prod-ws.warnwetter.de/v30';
+
+  static const String DWDWarnwetterApiBaseUrl = "https://s3.eu-central-1.amazonaws.com/app-prod-static.warnwetter.de/v16";
+
+  final Map<String, String> stationIDs = {
+    'Bremen, Germany': "10224",
+    'Hamburg, Germany': "P0489", //(Innenstadt); Fuhlsbüttel: 10147, Neuwiedenthal: C720
+    'Berlin, Germany': "10389", //(Alexanderplatz); Brandenburg: 10385, Buch: G002, Kaniswall: G006, Tempelhof: 10384, ...
+    'München, Germany': "10865", //(Stadt); Flughafen: 10870
+    'Köln, Germany': "10513" //(Köln/Bonn); Stammheim: H744
+  };
 }
 
 /// Weather condition constants from Bright Sky API
