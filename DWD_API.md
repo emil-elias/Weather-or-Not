@@ -58,7 +58,7 @@ Response looks like this:
                     "icon2": null most of the time
                 },
                 {
-                    usually the days of the following week
+                    usually the 7 days of the following week
                 }
             ]
         }
@@ -89,10 +89,6 @@ Response looks like this:
 ```
 
 we can get a detailed day forecast here, also the weeks forecast, however, the days are not that detailed. the hourly values usually exceed the 24 hour mark though, so there are hourly forecast for the next one or two days.
-
-## isolated warnings: `/warningOverview?points=`
-
-`points` has to be followed by station id
 
 # DWD Warnwetter API
 
@@ -167,35 +163,37 @@ Response looks like this
 
 according to https://listed.to/@DieSieben/7851/api-des-deutschen-wetterdienstes, following IDs correspond to following weather types:
 
-1: sunny
-2: sunny, partly/slightly cloudy
-3: sunny, cloudy
-4: clouds
-5: fog
-6: fog, danger of slipping
-7: light rain
-8: rain
-9: heavy rain
-10: slight rain, danger of slipping
-11: heavy rain, danger of slipping
-12: rain, occasional snowfall
-13: rain, increased snowfall
-14: light snowfall
-15: snowfall
-16: heavy snowfall
-17: clouds, (hail)
-18: sunny, light rain
-19: sunny, heavy rain
-20: sun, rain, occasional snowfall
-21: sun, rain, increased snowfall
-22: sunny, occasional snowfall
-23: sunny, increased snowfall
-24: sunny, (hail)
-25: sunny, (heavy hail)
-26: thunderstorm
-27: thunderstorm, rain
-28: thunderstorm, heavy rain
-29: thunderstorm, (hail)
-30: thunderstorm, (heavy hail)
-31: (wind)
+| icon id | weather |
+| ------- | ------- |
+| 1 | sunny |
+| 2 | sunny, partly/slightly cloudy |
+| 3 | sunny, cloudy |
+| 4 | clouds |
+| 5 | fog | 
+| 6 | fog, slippery |
+| 7 | light rain | 
+| 8 | rain |
+| 9 | heavy rain |
+| 10 | slight rain, slippery |
+| 11 | heavy rain, slippery |
+| 12 | rain, occasional snowfall |
+| 13 | rain, increased snowfall |
+| 14 | light snowfall |
+| 15 | snowfall |
+| 16 | heavy snowfall |
+| 17 | clouds, (hail) |
+| 18 | sunny, light rain |
+| 19 | sunny, heavy rain |
+| 20 | sun, rain, occasional snowfall |
+| 21 | sun, rain, increased snowfall |
+| 22 | sunny, occasional snowfall |
+| 23 | sunny, increased snowfall |
+| 24 | sunny, (hail) |
+| 25 | sunny, (heavy hail) |
+| 26 | thunderstorm |
+| 27 | thunderstorm, rain |
+| 28 | thunderstorm, heavy rain |
+| 29 | thunderstorm, (hail) |
+| 30 | thunderstorm, (heavy hail) |
+| 31 | (wind) |
 
