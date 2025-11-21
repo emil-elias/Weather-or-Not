@@ -17,43 +17,43 @@ Response looks like this:
 {
     Stationskennung: {
         "forecast1": {
-            "stationId": Stationskennung,
-            "start": start time of this forecast in Unix Time (meaning in milliseconds since 1.1.1970 00:00). Should be midnight/00:00 of the current day (has to be adjusted to timezone),
-            "timestep": time between the listed measurings in milliseconds. usually 3600000 ms = 1h,
-            "temperature": [list of temperature values in 10*Celsius, meaning 24 = 2.4 degrees Celcius, 250 = 25 degrees Celcius, etc.],
+            "stationId": *(String)* Stationskennung,
+            "start": *(Int)* start time of this forecast in Unix Time (meaning in milliseconds since 1.1.1970 00:00). Should be midnight/00:00 of the current day (has to be adjusted to timezone),
+            "timestep": *(Int)* time between the listed measurings in milliseconds. usually 3600000 ms = 1h,
+            "temperature": [*(Int)* list of temperature values in 10*Celsius, meaning 24 = 2.4 degrees Celcius, 250 = 25 degrees Celcius, etc.],
             "windSpeed": null most of the time,
             "windDirection": null most of the time,
             "windGust": null most of the time,
-            "precipitationTotal": [list of precipitation values throughout the day, probably in mm],
-            "sunshine": [list of sunshine/UV indices, presumably also in 10x, meaning 250 = 2.5, 410 = 4.1],
-            "dewPoint2m": [list of dew point temperatures throughout the day, also in 10s],
-            "surfacePressure": [list of surface pressure values in 10*mbar],
-            "humidity": [list of humidity values in 10*percent, meaning 801 = 80.1%],
-            "isDay": [boolean values if sun is up or down],
+            "precipitationTotal": [*(Int)* list of precipitation values throughout the day, probably in mm],
+            "sunshine": [*(Int)* list of sunshine/UV indices, presumably also in 10x, meaning 250 = 2.5, 410 = 4.1],
+            "dewPoint2m": [*(Int)* list of dew point temperatures throughout the day, also in 10s],
+            "surfacePressure": [*(Int)* list of surface pressure values in 10*mbar],
+            "humidity": [*(Int)* list of humidity values in 10*percent, meaning 801 = 80.1%],
+            "isDay": [*(Bool)* boolean values if sun is up or down],
             "cloudCoverTotal": [empty most of the time],
-            "icon": [icon mapping values throughout the day, see icon map below],
+            "icon": [*(Int)* icon mapping values throughout the day, see icon map below],
             "precipitationProbablity": null most of the time,
             "precipitationProbablityIndex": null most of the time,
             "days": [
                 {
-                    "dayDate": date as string, like "2025-11-20", starts with the current day,
-                    "temperatureMin": min. temperature of the day in 10*Celsius,
-                    "temperatureMax": max. temperature of the day in 10*Celcius,
-                    "precipitation": 0,
-                    "windSpeed": (highest?) wind speed in 10*km/h,
-                    "windGust": (highest?) wind gust speed in 10*km/h,
-                    "windDirection": (average?) wind direction in 10*degrees (3060 = 306),
-                    "sunshine": (highest?) UV index in 10x,
-                    "sunrise": unix timestamp of sunrise,
-                    "sunset": unix timestamp of sunset,
-                    "moonrise": unix timestamp of moonrise,
-                    "moonset": unix timestamp of moonset,
-                    "moonriseOnThisDay": idk the difference to moonrise,
-                    "moonsetOnThisDay": idk the difference to moonset,
-                    "sunriseOnThisDay": idk the difference to sunrise,
-                    "sunsetOnThisDay": idk the difference to sunset,
-                    "moonPhase": numerical moon phase value i haven't figured out yet,
-                    "icon": icon for the day, see icon map below,
+                    "dayDate": *(String)* date as string, like "2025-11-20", starts with the current day,
+                    "temperatureMin": *(Int)* min. temperature of the day in 10*Celsius,
+                    "temperatureMax": *(Int)* max. temperature of the day in 10*Celcius,
+                    "precipitation": *(Int)* precipitation, probably in mm,
+                    "windSpeed": *(Int)* (highest?) wind speed in 10*km/h,
+                    "windGust": *(Int)* (highest?) wind gust speed in 10*km/h,
+                    "windDirection": *(Int)* (average?) wind direction in 10*degrees (3060 = 306),
+                    "sunshine": *(Int)* (highest?) UV index in 10x,
+                    "sunrise": *(Int)* unix timestamp of sunrise,
+                    "sunset": *(Int)* unix timestamp of sunset,
+                    "moonrise": *(Int)* unix timestamp of moonrise,
+                    "moonset": *(Int)* unix timestamp of moonset,
+                    "moonriseOnThisDay": *(Int)* idk the difference to moonrise,
+                    "moonsetOnThisDay": *(Int)* idk the difference to moonset,
+                    "sunriseOnThisDay": *(Int)* idk the difference to sunrise,
+                    "sunsetOnThisDay": *(Int)* idk the difference to sunset,
+                    "moonPhase": *(Int)* numerical moon phase value i haven't figured out yet,
+                    "icon": *(Int)* icon for the day, see icon map below,
                     "icon1": null most of the time,
                     "icon2": null most of the time
                 },
@@ -66,17 +66,17 @@ Response looks like this:
             another forecast which might have slightly different values, but is missing temperature values most of the time. however, it has a field:
             "warnings": [
                 {
-                    "warnId": id of the warning (string),
-                    "type": numerical category i haven't figured out yet,
-                    "level": numerical category i haven't figured out yet,
-                    "start": unix timestamp of start time,
-                    "end": unix timestamp of end time,
-                    "bn": boolean value i don't know the meaning of,
-                    "description": text description in german like "Es tritt leichter Frost zwischen 0 °C und -3 °C auf.",
-                    "event": category like "FROST",
-                    "headline": text headline like "Amtliche WARNUNG vor FROST",
-                    "instruction": advised instructions like "Hinweis auf: mögliche Frostschäden. Handlungsempfehlungen: ggf. Frostschutzmaßnahmen ergreifen",
-                    "instructionHtml": same instructions in HTML format,
+                    "warnId": *(String)* id of the warning,
+                    "type": *(Int)* numerical category i haven't figured out yet,
+                    "level": *(Int)* numerical category i haven't figured out yet,
+                    "start": *(Int)* unix timestamp of start time,
+                    "end": *(Int)* unix timestamp of end time,
+                    "bn": *(Bool)* boolean value i don't know the meaning of,
+                    "description": *(String)* text description in german like "Es tritt leichter Frost zwischen 0 °C und -3 °C auf.",
+                    "event": *(String)* category like "FROST",
+                    "headline": *(String)* text headline like "Amtliche WARNUNG vor FROST",
+                    "instruction": *(String)* advised instructions like "Hinweis auf: mögliche Frostschäden. Handlungsempfehlungen: ggf. Frostschutzmaßnahmen ergreifen",
+                    "instructionHtml": *(String)* same instructions in HTML format,
                 },
                 {
                     ...
@@ -105,26 +105,26 @@ However, some requests can result in an "access denied" response at many endpoin
 Response looks like this:
 ```
 {
-    "precipitation3h": precipitation over the last 3h, probably in mm,
-    "totalsnow": snow, probably in mm,
-    "dewpoint": current dewpoint in 10*Celcius,
-    "sunshine": current UV-index in 10x,
-    "cloud_cover_total": cloud cover measure unsure, maybe 10*Okta, maybe percent,
-    "icon": numerical value for current icon, see icon map below,
-    "pressure": current pressure in 10*mbar,
-    "meanwind": mean wind speed in 10*km/h,
-    "maxwind": max wind speed in 10*km/h,
-    "winddirection": current wind direction in 10*degrees,
-    "precipitation": current precipitation, probably in mm,
-    "temperature": current temperature in 10*degrees,
-    "humidity": current humidity in 10*percent,
-    "time": unix timestamp of time of measurement,
+    "precipitation3h": *(Int)* precipitation over the last 3h, probably in mm,
+    "totalsnow": *(Int)* snow, probably in mm,
+    "dewpoint": *(Int)* current dewpoint in 10*Celcius,
+    "sunshine": *(Int)* current UV-index in 10x,
+    "cloud_cover_total": *(Int)* cloud cover measure unsure, maybe 10*Okta, maybe percent,
+    "icon": *(Int)* numerical value for current icon, see icon map below,
+    "pressure": *(Int)* current pressure in 10*mbar,
+    "meanwind": *(Int)* mean wind speed in 10*km/h,
+    "maxwind": *(Int)* max wind speed in 10*km/h,
+    "winddirection": *(Int)* current wind direction in 10*degrees,
+    "precipitation": *(Int)* current precipitation, probably in mm,
+    "temperature": *(Int)* current temperature in 10*degrees,
+    "humidity": *(Int)* current humidity in 10*percent,
+    "time": *(Int)* unix timestamp of time of measurement,
     "history": [
-        history of every field, starting a few days back. probably not relevant for us. looks like this though:
+        *history of every field, starting a few days back. probably not relevant for us. looks like this though:*
         field (like "temperature"): {
-            "start": unix timestamp of start time,
-            "timestep": timestep in ms,
-            "data": [list of values every timestep]
+            "start": *(Int)* unix timestamp of start time,
+            "timestep": *(Int)* timestep in ms,
+            "data": [*(Int)* list of values every timestep]
         }
     ]
 
@@ -143,13 +143,13 @@ Response looks like this
 ```
 {
     "forecast": {
-        "start": unix timestamp of start time, usually midnight of the current day,
-        "temperature": [list of temperatures in 10*Celsius, timestep is not specified but most probably 3600000 ms = 1h],
-        "windDirection": [list of wind direction values in 10*degrees],
-        "windGust": [list of wind gust speeds in 10*km/h],
-        "windSpeed": [list of wind speeds in 10*km/h],
-        "icon": [list of icon values, see icon map below],
-        "precipitationTotal": [list of precipitation values, probably in mm]
+        "start": *(Int)* unix timestamp of start time, usually midnight of the current day,
+        "temperature": [*(Int)* list of temperatures in 10*Celsius, timestep is not specified but most probably 3600000 ms = 1h],
+        "windDirection": [*(Int)* list of wind direction values in 10*degrees],
+        "windGust": [*(Int)* list of wind gust speeds in 10*km/h],
+        "windSpeed": [*(Int)* list of wind speeds in 10*km/h],
+        "icon": [*(Int)* list of icon values, see icon map below],
+        "precipitationTotal": [*(Int)* list of precipitation values, probably in mm]
     },
     "trend": {
         this looks the same, but "start" is 4 days in the future for some reason. hoever it has the fields
