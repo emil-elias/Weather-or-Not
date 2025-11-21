@@ -24,8 +24,8 @@ Response looks like this:
             "windSpeed": null most of the time,
             "windDirection": null most of the time,
             "windGust": null most of the time,
-            "precipitationTotal": [*(Int)* list of precipitation values throughout the day, probably in mm],
-            "sunshine": [*(Int)* list of sunshine/UV indices, presumably also in 10x, meaning 250 = 2.5, 410 = 4.1],
+            "precipitationTotal": [*(Int)* list of precipitation values throughout the day, probably in 10*mm],
+            "sunshine": [*(Int)* list of sunshine values, in 10*minutes, meaning 250 = 25 minutes, 410 = 41 minutes],
             "dewPoint2m": [*(Int)* list of dew point temperatures throughout the day, also in 10s],
             "surfacePressure": [*(Int)* list of surface pressure values in 10*mbar],
             "humidity": [*(Int)* list of humidity values in 10*percent, meaning 801 = 80.1%],
@@ -39,11 +39,11 @@ Response looks like this:
                     "dayDate": *(String)* date as string, like "2025-11-20", starts with the current day,
                     "temperatureMin": *(Int)* min. temperature of the day in 10*Celsius,
                     "temperatureMax": *(Int)* max. temperature of the day in 10*Celcius,
-                    "precipitation": *(Int)* precipitation, probably in mm,
+                    "precipitation": *(Int)* precipitation, probably in 10*mm,
                     "windSpeed": *(Int)* (highest?) wind speed in 10*km/h,
                     "windGust": *(Int)* (highest?) wind gust speed in 10*km/h,
                     "windDirection": *(Int)* (average?) wind direction in 10*degrees (3060 = 306),
-                    "sunshine": *(Int)* (highest?) UV index in 10x,
+                    "sunshine": *(Int)* sunshine in 10*minutes,
                     "sunrise": *(Int)* unix timestamp of sunrise,
                     "sunset": *(Int)* unix timestamp of sunset,
                     "moonrise": *(Int)* unix timestamp of moonrise,
@@ -96,7 +96,7 @@ there are other available endpoints under the base URL `https://s3.eu-central-1.
 
 Documentation: https://listed.to/@DieSieben/7851/api-des-deutschen-wetterdienstes
 
-However, some requests can result in an "access denied" response at many endpoints and sometimes for specific stations (mostly outside of germany)
+However, some requests can result in an "access denied" response at many endpoints and sometimes for specific stations
 
 ## most relevant enpoint: `/current_measurement_%s.json`
 
@@ -105,17 +105,17 @@ However, some requests can result in an "access denied" response at many endpoin
 Response looks like this:
 ```
 {
-    "precipitation3h": *(Int)* precipitation over the last 3h, probably in mm,
-    "totalsnow": *(Int)* snow, probably in mm,
+    "precipitation3h": *(Int)* precipitation over the last 3h, probably in 10*mm,
+    "totalsnow": *(Int)* snow, probably in 10*mm,
     "dewpoint": *(Int)* current dewpoint in 10*Celcius,
-    "sunshine": *(Int)* current UV-index in 10x,
+    "sunshine": *(Int)* sunshine for current hour in 10*minutes,
     "cloud_cover_total": *(Int)* cloud cover measure unsure, maybe 10*Okta, maybe percent,
     "icon": *(Int)* numerical value for current icon, see icon map below,
     "pressure": *(Int)* current pressure in 10*mbar,
     "meanwind": *(Int)* mean wind speed in 10*km/h,
     "maxwind": *(Int)* max wind speed in 10*km/h,
     "winddirection": *(Int)* current wind direction in 10*degrees,
-    "precipitation": *(Int)* current precipitation, probably in mm,
+    "precipitation": *(Int)* current precipitation, probably in 10*mm,
     "temperature": *(Int)* current temperature in 10*degrees,
     "humidity": *(Int)* current humidity in 10*percent,
     "time": *(Int)* unix timestamp of time of measurement,

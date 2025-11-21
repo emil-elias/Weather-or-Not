@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weatherornot/models/forecast.dart';
 import '../services/weather_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
@@ -15,6 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
   String _selectedLocation = 'Bremen, Germany';
   Weather? _currentWeather;
+  Forecast? _forecast;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -25,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'Berlin, Germany',
     'München, Germany',
     'Köln, Germany',
+    'Lisbon, Portugal',
   ];
 
   // Location coordinates
@@ -34,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'Berlin, Germany': {'lat': 52.5200, 'lon': 13.4050},
     'München, Germany': {'lat': 48.1351, 'lon': 11.5820},
     'Köln, Germany': {'lat': 50.9375, 'lon': 6.9603},
+    'Lisbon, Portugal': {'lat': 38.47, 'lon': -9.08},
   };
 
   List<Activity> _todayActivities = [];
@@ -51,17 +55,37 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final coords = _locationCoordinates[_selectedLocation] ?? 
-                     {'lat': AppConstants.bremenLatitude, 'lon': AppConstants.bremenLongitude};
-      
-      final weather = await _weatherService.getWeatherByCoordinates(
+      final coords =
+          _locationCoordinates[_selectedLocation] ??
+          {
+            'lat': AppConstants.bremenLatitude,
+            'lon': AppConstants.bremenLongitude,
+          };
+
+      final stationID = AppConstants.stationIDs[_selectedLocation];
+
+      /*final weather = await _weatherService.getWeatherByCoordinates(
         coords['lat']!,
         coords['lon']!,
         locationName: _selectedLocation,
+      );*/
+
+      final weather = await _weatherService.getCurrentDWDWeatherByStationID(
+        stationID!,
+        locationName: _selectedLocation,
+        fallbackLat: coords['lat'],
+        fallbackLon: coords['lon'],
       );
-      
+
+      final forecast = await _weatherService.getForecastDWDWeatherByStationID(
+        stationID,
+      );
+
+      print(forecast.days);
+
       setState(() {
         _currentWeather = weather;
+        _forecast = forecast;
         _isLoading = false;
       });
     } catch (e) {
@@ -93,50 +117,61 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
-              Text(
-                'Today',
-                style: theme.textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Location Dropdown
-              GestureDetector(
-                onTap: () => _showLocationPicker(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Title
+                  Text(
+                    'Today',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 20,
-                        color: theme.colorScheme.onSurfaceVariant,
+                  const SizedBox(height: 16),
+
+                  // Location Dropdown
+                  GestureDetector(
+                    onTap: () => _showLocationPicker(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _selectedLocation,
-                        style: theme.textTheme.bodyMedium,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant,
+                        ),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: theme.colorScheme.onSurfaceVariant,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 20,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _selectedLocation,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 20,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
+
               const SizedBox(height: 24),
 
               // Weather Card
@@ -177,62 +212,54 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       // Weather Icon and Temperature
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Weather Icon
                           Icon(
-                            _getWeatherIcon(_currentWeather!.condition),
+                            _currentWeather!.icon != null ? _getWeatherIconById(_currentWeather!.icon) : _getWeatherIcon(_currentWeather!.condition),
                             size: 80,
                             color: Colors.white,
                           ),
                           const SizedBox(width: 16),
                           // Temperature
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${_currentWeather!.temperature?.toStringAsFixed(0) ?? '--'}°',
-                                style: const TextStyle(
-                                  fontSize: 72,
-                                  fontWeight: FontWeight.w300,
-                                  color: Colors.white,
-                                  height: 1,
-                                ),
-                              ),
-                              // High/Low
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.arrow_upward_rounded,
-                                    size: 16,
-                                    color: Color(0xFF4AFF8C),
-                                  ),
-                                  Text(
-                                    ' ${(_currentWeather!.temperature ?? 0 + 2).toStringAsFixed(0)}°',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Color(0xFF4AFF8C),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Icon(
-                                    Icons.arrow_downward_rounded,
-                                    size: 16,
-                                    color: Color(0xFFFF6B6B),
-                                  ),
-                                  Text(
-                                    ' ${(_currentWeather!.temperature ?? 0 - 3).toStringAsFixed(0)}°',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Color(0xFFFF6B6B),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                          Text(
+                            '${_currentWeather!.temperature?.toStringAsFixed(0) ?? '--'}°',
+                            style: const TextStyle(
+                              fontSize: 72,
+                              fontWeight: FontWeight.w300,
+                              color: Colors.white,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // High/Low
+                          const Icon(
+                            Icons.arrow_upward_rounded,
+                            size: 16,
+                            color: Color(0xFF4AFF8C),
+                          ),
+                          Text(
+                            ' ${((_forecast?.days?.isNotEmpty == true ? (_forecast!.days![0].maxTemperature ?? _currentWeather!.temperature ?? 0) : (_currentWeather!.temperature ?? 0))).toStringAsFixed(0)}°',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF4AFF8C),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Icon(
+                            Icons.arrow_downward_rounded,
+                            size: 16,
+                            color: Color(0xFFFF6B6B),
+                          ),
+                          Text(
+                            ' ${((_forecast?.days?.isNotEmpty == true ? (_forecast!.days![0].minTemperature ?? _currentWeather!.temperature ?? 0) : (_currentWeather!.temperature ?? 0))).toStringAsFixed(0)}°',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFFFF6B6B),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           const SizedBox(width: 16),
                           // Arrow
@@ -255,7 +282,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _getWeatherDescription(_currentWeather!.condition),
+                              _currentWeather!.icon != null
+                                  ? _getWeatherDescriptionById(_currentWeather!.icon)
+                                  : _getWeatherDescription(_currentWeather!.condition),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -286,10 +315,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      //Source
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Source: ${_currentWeather!.source}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Add activities button
               GestureDetector(
@@ -297,7 +339,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withOpacity(0.3),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -368,13 +411,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildOutfitCard(context),
-                  ),
+                  Expanded(child: _buildOutfitCard(context)),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildOutfitCard(context),
-                  ),
+                  Expanded(child: _buildOutfitCard(context)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -427,7 +466,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   IconData _getWeatherIcon(String? condition) {
     if (condition == null) return Icons.wb_cloudy_outlined;
-    
+
     final lowerCondition = condition.toLowerCase();
     if (lowerCondition.contains('sun') || lowerCondition.contains('clear')) {
       return Icons.wb_sunny_outlined;
@@ -441,6 +480,77 @@ class _HomeScreenState extends State<HomeScreen> {
     return Icons.wb_cloudy_outlined;
   }
 
+  IconData _getWeatherIconById(int? iconId) {
+  if (iconId == null) return Icons.wb_cloudy_outlined;
+
+  switch (iconId) {
+    case 1: // sunny
+      return Icons.wb_sunny_outlined;
+    case 2: // sunny, partly/slightly cloudy, need to find a better icon
+      return Icons.wb_sunny_outlined;
+    case 3: // sunny, cloudy, need to find a better icon
+      return Icons.cloud_outlined;
+    case 4: // clouds
+      return Icons.cloud_outlined;
+    case 5: // fog
+      return Icons.blur_on;
+    case 6: // fog, slippery
+      return Icons.blur_on;
+    case 7: // light rain
+      return Icons.water_drop_outlined;
+    case 8: // rain
+      return Icons.umbrella_outlined;
+    case 9: // heavy rain
+      return Icons.water_outlined;
+    case 10: // slight rain, slippery
+      return Icons.water_drop_outlined;
+    case 11: // heavy rain, slippery
+      return Icons.water_outlined;
+    case 12: // rain, occasional snowfall
+      return Icons.umbrella_outlined;
+    case 13: // rain, increased snowfall
+      return Icons.ac_unit_rounded;
+    case 14: // light snowfall
+      return Icons.ac_unit_rounded;
+    case 15: // snowfall
+      return Icons.snowing;
+    case 16: // heavy snowfall
+      return Icons.snowing;
+    case 17: // clouds, (hail)
+      return Icons.cloud;
+    case 18: // sunny, light rain
+      return Icons.wb_sunny_outlined;
+    case 19: // sunny, heavy rain
+      return Icons.wb_sunny_outlined;
+    case 20: // sun, rain, occasional snowfall
+      return Icons.wb_sunny_outlined;
+    case 21: // sun, rain, increased snowfall
+      return Icons.sunny_snowing;
+    case 22: // sunny, occasional snowfall
+      return Icons.wb_sunny_outlined;
+    case 23: // sunny, increased snowfall
+      return Icons.sunny_snowing;
+    case 24: // sunny, (hail)
+      return Icons.sunny_snowing;
+    case 25: // sunny, (heavy hail)
+      return Icons.sunny_snowing;
+    case 26: // thunderstorm
+      return Icons.flash_on;
+    case 27: // thunderstorm, rain
+      return Icons.thunderstorm_outlined;
+    case 28: // thunderstorm, heavy rain
+      return Icons.thunderstorm_outlined;
+    case 29: // thunderstorm, (hail)
+      return Icons.thunderstorm_outlined;
+    case 30: // thunderstorm, (heavy hail)
+      return Icons.thunderstorm_outlined;
+    case 31: // (wind)
+      return Icons.air;
+    default:
+      return Icons.wb_cloudy_outlined;
+  }
+}
+
   String _getWeatherDescription(String? condition) {
     return WeatherConditions.getGermanDescription(
       condition,
@@ -448,6 +558,110 @@ class _HomeScreenState extends State<HomeScreen> {
       windSpeed: _currentWeather?.windSpeed,
       cloudCover: _currentWeather?.cloudCover,
     );
+  }
+
+  String _getWeatherDescriptionById(int? iconId) {
+    String condition;
+    switch (iconId) {
+      case 1:
+        condition = 'sunny';
+        break;
+      case 2:
+        condition = 'partly cloudy';
+        break;
+      case 3:
+        condition = 'cloudy';
+        break;
+      case 4:
+        condition = 'overcast';
+        break;
+      case 5:
+        condition = 'fog';
+        break;
+      case 6:
+        condition = 'foggy';
+        break;
+      case 7:
+        condition = 'light rain';
+        break;
+      case 8:
+        condition = 'rain';
+        break;
+      case 9:
+        condition = 'heavy rain';
+        break;
+      case 10:
+        condition = 'light rain, slippery';
+        break;
+      case 11:
+        condition = 'heavy rain, slippery';
+        break;
+      case 12:
+        condition = 'rain, occasional snowfall';
+        break;
+      case 13:
+        condition = 'rain, increased snowfall';
+        break;
+      case 14:
+        condition = 'light snowfall';
+        break;
+      case 15:
+        condition = 'snowfall';
+        break;
+      case 16:
+        condition = 'heavy snowfall';
+        break;
+      case 17:
+        condition = 'clouds, hail';
+        break;
+      case 18:
+        condition = 'sunny, light rain';
+        break;
+      case 19:
+        condition = 'sunny, heavy rain';
+        break;
+      case 20:
+        condition = 'sun, rain, occasional snowfall';
+        break;
+      case 21:
+        condition = 'sun, rain, increased snowfall';
+        break;
+      case 22:
+        condition = 'sunny, occasional snowfall';
+        break;
+      case 23:
+        condition = 'sunny, increased snowfall';
+        break;
+      case 24:
+        condition = 'sunny, hail';
+        break;
+      case 25:
+        condition = 'sunny, heavy hail';
+        break;
+      case 26:
+        condition = 'thunderstorm';
+        break;
+      case 27:
+        condition = 'thunderstorm, rain';
+        break;
+      case 28:
+        condition = 'thunderstorm, heavy rain';
+        break;
+      case 29:
+        condition = 'thunderstorm, hail';
+        break;
+      case 30:
+        condition = 'thunderstorm, heavy hail';
+        break;
+      case 31:
+        condition = 'windy';
+        break;
+      default:
+        condition = 'unknown';
+        break;
+    }
+
+    return condition;
   }
 
   void _showLocationPicker(BuildContext context) {
@@ -490,25 +704,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   return ListTile(
                     leading: Icon(
                       Icons.location_on,
-                      color: isSelected 
-                        ? Theme.of(context).colorScheme.primary 
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     title: Text(
                       location,
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: isSelected 
-                          ? Theme.of(context).colorScheme.primary 
-                          : null,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
                       ),
                     ),
-                    trailing: isSelected 
-                      ? Icon(
-                          Icons.check_circle,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
                     onTap: () {
                       _onLocationChanged(location);
                       Navigator.pop(context);
@@ -600,8 +816,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           setState(() {
                             _todayActivities.add(
                               Activity(
-                                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                                name: '${selectedStyle!.displayName} - ${selectedType!.displayName}',
+                                id: DateTime.now().millisecondsSinceEpoch
+                                    .toString(),
+                                name:
+                                    '${selectedStyle!.displayName} - ${selectedType!.displayName}',
                                 style: selectedStyle!,
                                 type: selectedType!,
                               ),
@@ -623,11 +841,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildWeatherDetail(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: Colors.white70,
-          size: 20,
-        ),
+        Icon(icon, color: Colors.white70, size: 20),
         const SizedBox(height: 4),
         Text(
           value,
@@ -639,10 +853,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
         ),
       ],
     );
