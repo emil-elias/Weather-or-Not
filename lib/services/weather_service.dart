@@ -226,6 +226,7 @@ class WeatherService {
 
         final forecast = data['forecast1'];
         final forecast2 = data['forecast2'];
+        final days = data['days'];
 
         // Parse the forecast data here and return a Forecast object
         // the parsing of the days and warnings field does not work yet, still returns empty lists
@@ -263,14 +264,14 @@ class WeatherService {
             forecast['precipitationProbability'],
           ),
           icon: _toIntList(forecast['icon']),
-          days: forecast['days'] != null
-              ? (forecast['days'] as List).map((dayData) {
+          days: days != null
+              ? (days as List).map((dayData) {
                   return DayForecast(
                     date: dayData['dayDate'] != null
                         ? DateTime.parse(dayData['dayDate'])
                         : DateTime.now(),
                     minTemperature: dayData['temperatureMin'] != null
-                        ? dayData['emperatureMin'].toDouble() / 10
+                        ? dayData['temperatureMin'].toDouble() / 10
                         : null,
                     maxTemperature: dayData['temperatureMax'] != null
                         ? dayData['temperatureMax'].toDouble() / 10
