@@ -1,0 +1,68 @@
+{
+  "categories": [
+    {
+      "id": "tops",
+      "label": "Tops",
+      "groups": [
+        { "id": "tshirts", "label": "T-Shirts" },
+        { "id": "shirts_blouses", "label": "Shirts & Blouses" },
+        { "id": "knitwear", "label": "Knitwear" },
+        { "id": "sweat", "label": "Sweat" },
+        { "id": "sportswear", "label": "Sportswear" },
+        { "id": "women_specific", "label": "Women Specific Tops" }
+      ]
+    },
+    {
+      "id": "bottoms",
+      "label": "Bottoms",
+      "groups": [
+        { "id": "trousers", "label": "Trousers" },
+        { "id": "shorts", "label": "Shorts" },
+        { "id": "skirts", "label": "Skirts" },
+        { "id": "sports_bottoms", "label": "Sports Bottoms" }
+      ]
+    },
+    {
+      "id": "outerwear",
+      "label": "Outerwear",
+      "groups": [
+        { "id": "jackets", "label": "Jackets" },
+        { "id": "coats", "label": "Coats" },
+        { "id": "technical_outerwear", "label": "Technical Outerwear" }
+      ]
+    },
+    {
+      "id": "shoes",
+      "label": "Shoes",
+      "groups": [
+        { "id": "casual_shoes", "label": "Casual Shoes" },
+        { "id": "dress_shoes", "label": "Dress Shoes" },
+        { "id": "sport_shoes", "label": "Sport Shoes" },
+        { "id": "boots", "label": "Boots" }
+      ]
+    },
+    {
+      "id": "accessories",
+      "label": "Accessories",
+      "groups": [
+        { "id": "headwear", "label": "Headwear" },
+        { "id": "neckwear", "label": "Scarves & Neckwear" },
+        { "id": "handwear", "label": "Gloves & Handwear" },
+        { "id": "belts", "label": "Belts" },
+        { "id": "jewelry", "label": "Jewelry" },
+        { "id": "eyewear", "label": "Eyewear" },
+        { "id": "bags", "label": "Bags" }
+      ]
+    },
+    {
+      "id": "underwear",
+      "label": "Underwear",
+      "groups": [
+        { "id": "socks", "label": "Socks" },
+        { "id": "underwear_men", "label": "Men's Underwear" },
+        { "id": "underwear_women", "label": "Women's Underwear" },
+        { "id": "functional_underwear", "label": "Functional Underwear" }
+      ]
+    }
+  ]
+}

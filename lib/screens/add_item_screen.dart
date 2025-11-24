@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../widgets/image_picker_section.dart';
@@ -7,6 +9,8 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/custom_dropdown.dart';
 import '../models/wardrobe_item.dart';
 import '../services/wardrobe_service.dart';
+
+
 
 class AddItemScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -31,26 +35,24 @@ class _AddItemScreenState extends State<AddItemScreen> {
   String _selectedCategory = 'Tops';
   String _selectedSubcategory = 'T-Shirts';
   String _selectedFormality = 'Casual';
+  List<dynamic> _rawCategories = [];
+  List<String> _categories = [];
+  List<String> _subcategories = [];
 
-  final List<String> _categories = [
-    'Tops',
-    'Bottoms',
-    'Outerwear',
-    'Footwear',
-    'Accessories',
-  ];
-  final List<String> _subcategories = [
-    'T-Shirts',
-    'Shirts',
-    'Sweaters',
-    'Blouses',
-  ];
+  
+  
   final List<String> _formalityLevels = [
     'Casual',
     'Smart Casual',
     'Business',
     'Formal',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategoryData();
+  }
 
   @override
   void dispose() {
@@ -201,6 +203,62 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
+  Future<void> _loadCategoryData() async {
+    // Load both JSON files
+    final categoriesData = await loadCategoriesJson();
+    final subtypesData = await loadSubtypesJson();
+
+    final categoriesJson = categoriesData['categories'] as List;
+
+    // Flatten all groups into a single list
+    final allGroups = categoriesJson
+      .expand((category) => category['groups'] as List)
+      .toList();
+
+    setState(() {
+      // Save raw groups so we can map back label → id
+      _rawCategories = allGroups;
+
+      // TOP-LEVEL CATEGORIES = all group labels
+      _categories = allGroups
+        .map((g) => g['label'] as String)
+        .toList();
+
+      // Select first group as default
+      _selectedCategory = _categories.first;
+
+      // Get selected group ID
+      final selectedGroup = allGroups.firstWhere(
+        (g) => g['label'] == _selectedCategory,
+      );
+      final selectedGroupId = selectedGroup['id'];
+
+      // SUBCATEGORIES = entries in subtypes.json for the group id
+      _subcategories = (subtypesData['subtypes'][selectedGroupId] as List)
+        .map((s) => s['label'] as String)
+        .toList();
+
+      _selectedSubcategory = _subcategories.first;
+    });
+  }
+
+
+  
+  Future<Map<String, dynamic>> loadCategoriesJson() async {
+    final String response =
+        await rootBundle.loadString('assets/categories.json'); // adjust path if needed
+    final data = json.decode(response) as Map<String, dynamic>;
+    return data;
+  }
+
+  Future<Map<String, dynamic>> loadSubtypesJson() async {
+    final String response = 
+      await rootBundle.loadString('assets/subcategories.json');
+    return json.decode(response);
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -255,9 +313,29 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       value: _selectedCategory,
                       items: _categories,
                       prefixIcon: Icons.category_outlined,
-                      onChanged: (value) {
+                      onChanged: (value) async {
                         setState(() {
                           _selectedCategory = value!;
+                        });
+
+                        // Find the matching group
+                        final selectedGroup =
+                            _rawCategories.firstWhere((g) => g['label'] == value);
+
+                        final selectedGroupId = selectedGroup['id'];
+
+                        // Load subtypes.json
+                        final subtypesData = await loadSubtypesJson();
+
+                        // Update subcategories for this selected top-level category
+                        final subtypes =
+                            (subtypesData['subtypes'][selectedGroupId] as List)
+                                .map((s) => s['label'] as String)
+                                .toList();
+
+                        setState(() {
+                          _subcategories = subtypes;
+                          _selectedSubcategory = _subcategories.first;
                         });
                       },
                     ),

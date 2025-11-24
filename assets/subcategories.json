@@ -1,0 +1,219 @@
+{
+  "subtypes": {
+    "tshirts": [
+      { "id": "basic_tee", "label": "Basic Tee" },
+      { "id": "graphic_tee", "label": "Graphic Tee" },
+      { "id": "oversized_tshirt", "label": "Oversized T-Shirt" },
+      { "id": "slim_fit_tshirt", "label": "Slim Fit T-Shirt" },
+      { "id": "vneck_tshirt", "label": "V-Neck T-Shirt" },
+      { "id": "longline_tshirt", "label": "Longline T-Shirt" },
+      { "id": "tank_top", "label": "Tank Top" },
+      { "id": "sleeveless_top", "label": "Sleeveless Top" },
+      { "id": "crop_top", "label": "Crop Top" }
+    ],
+
+    "shirts_blouses": [
+      { "id": "dress_shirt", "label": "Dress Shirt" },
+      { "id": "oxford_shirt", "label": "Oxford Shirt" },
+      { "id": "flannel_shirt", "label": "Flannel Shirt" },
+      { "id": "short_sleeve_shirt", "label": "Short Sleeve Shirt" },
+      { "id": "blouse", "label": "Blouse" },
+      { "id": "tunic", "label": "Tunic" },
+      { "id": "wrap_blouse", "label": "Wrap Blouse" },
+      { "id": "peplum_blouse", "label": "Peplum Blouse" }
+    ],
+
+    "knitwear": [
+      { "id": "sweater", "label": "Sweater" },
+      { "id": "crewneck_sweater", "label": "Crewneck Sweater" },
+      { "id": "vneck_pullover", "label": "V-Neck Pullover" },
+      { "id": "turtleneck_pullover", "label": "Turtleneck Pullover" },
+      { "id": "turtleneck", "label": "Turtleneck" },
+      { "id": "cardigan", "label": "Cardigan" },
+      { "id": "knit_jacket", "label": "Knit Jacket" },
+      { "id": "poncho", "label": "Poncho" },
+      { "id": "cape", "label": "Cape" }
+    ],
+
+    "sweat": [
+      { "id": "hoodie", "label": "Hoodie" },
+      { "id": "zip_hoodie", "label": "Zip Hoodie" },
+      { "id": "sweatshirt", "label": "Sweatshirt" },
+      { "id": "quarter_zip", "label": "Quarter Zip" },
+      { "id": "fleece_pullover", "label": "Fleece Pullover" }
+    ],
+
+    "sportswear": [
+      { "id": "performance_shirt", "label": "Performance Shirt" },
+      { "id": "running_shirt", "label": "Running Shirt" },
+      { "id": "training_top", "label": "Training Top" },
+      { "id": "compression_shirt", "label": "Compression Shirt" }
+    ],
+
+    "women_specific": [
+      { "id": "bodysuit", "label": "Bodysuit" },
+      { "id": "bralette", "label": "Bralette" },
+      { "id": "tube_top", "label": "Tube Top" },
+      { "id": "bustier", "label": "Bustier" },
+      { "id": "corsage", "label": "Corsage" }
+    ],
+
+    "trousers": [
+      { "id": "jeans", "label": "Jeans" },
+      { "id": "chinos", "label": "Chinos" },
+      { "id": "dress_trousers", "label": "Dress Trousers" },
+      { "id": "cargo_pants", "label": "Cargo Pants" },
+      { "id": "sweatpants", "label": "Sweatpants" },
+      { "id": "joggers", "label": "Joggers" },
+      { "id": "leggings", "label": "Leggings" }
+    ],
+
+    "shorts": [
+      { "id": "denim_shorts", "label": "Denim Shorts" },
+      { "id": "casual_shorts", "label": "Casual Shorts" },
+      { "id": "sport_shorts", "label": "Sport Shorts" },
+      { "id": "chino_shorts", "label": "Chino Shorts" },
+      { "id": "bike_shorts", "label": "Bike Shorts" }
+    ],
+
+    "skirts": [
+      { "id": "mini_skirt", "label": "Mini Skirt" },
+      { "id": "midi_skirt", "label": "Midi Skirt" },
+      { "id": "maxi_skirt", "label": "Maxi Skirt" },
+      { "id": "pencil_skirt", "label": "Pencil Skirt" },
+      { "id": "pleated_skirt", "label": "Pleated Skirt" }
+    ],
+
+    "sports_bottoms": [
+      { "id": "running_tights", "label": "Running Tights" },
+      { "id": "training_pants", "label": "Training Pants" },
+      { "id": "compression_tights", "label": "Compression Tights" },
+      { "id": "track_pants", "label": "Track Pants" }
+    ],
+
+    "jackets": [
+      { "id": "denim_jacket", "label": "Denim Jacket" },
+      { "id": "bomber_jacket", "label": "Bomber Jacket" },
+      { "id": "leather_jacket", "label": "Leather Jacket" },
+      { "id": "varsity_jacket", "label": "Varsity Jacket" },
+      { "id": "fleece_jacket", "label": "Fleece Jacket" }
+    ],
+
+    "coats": [
+      { "id": "trench_coat", "label": "Trench Coat" },
+      { "id": "wool_coat", "label": "Wool Coat" },
+      { "id": "puffer_coat", "label": "Puffer Coat" },
+      { "id": "overcoat", "label": "Overcoat" }
+    ],
+
+    "technical_outerwear": [
+      { "id": "rain_jacket", "label": "Rain Jacket" },
+      { "id": "windbreaker", "label": "Windbreaker" },
+      { "id": "parka", "label": "Parka" },
+      { "id": "softshell_jacket", "label": "Softshell Jacket" },
+      { "id": "hardshell_jacket", "label": "Hardshell Jacket" }
+    ],
+
+    "casual_shoes": [
+      { "id": "sneakers", "label": "Sneakers" },
+      { "id": "slip_ons", "label": "Slip-Ons" },
+      { "id": "canvas_shoes", "label": "Canvas Shoes" }
+    ],
+
+    "dress_shoes": [
+      { "id": "oxfords", "label": "Oxfords" },
+      { "id": "derbies", "label": "Derbies" },
+      { "id": "loafers", "label": "Loafers" },
+      { "id": "heels", "label": "Heels" },
+      { "id": "ballet_flats", "label": "Ballet Flats" }
+    ],
+
+    "sport_shoes": [
+      { "id": "running_shoes", "label": "Running Shoes" },
+      { "id": "training_shoes", "label": "Training Shoes" },
+      { "id": "basketball_shoes", "label": "Basketball Shoes" },
+      { "id": "football_boots", "label": "Football Boots" }
+    ],
+
+    "boots": [
+      { "id": "chelsea_boots", "label": "Chelsea Boots" },
+      { "id": "combat_boots", "label": "Combat Boots" },
+      { "id": "winter_boots", "label": "Winter Boots" },
+      { "id": "hiking_boots", "label": "Hiking Boots" }
+    ],
+
+    "headwear": [
+      { "id": "cap", "label": "Cap" },
+      { "id": "beanie", "label": "Beanie" },
+      { "id": "bucket_hat", "label": "Bucket Hat" },
+      { "id": "fedora", "label": "Fedora" },
+      { "id": "sun_hat", "label": "Sun Hat" }
+    ],
+
+    "neckwear": [
+      { "id": "scarf", "label": "Scarf" },
+      { "id": "tube_scarf", "label": "Tube Scarf" },
+      { "id": "shawl", "label": "Shawl" }
+    ],
+
+    "handwear": [
+      { "id": "gloves", "label": "Gloves" },
+      { "id": "mittens", "label": "Mittens" },
+      { "id": "fingerless_gloves", "label": "Fingerless Gloves" }
+    ],
+
+    "belts": [
+      { "id": "leather_belt", "label": "Leather Belt" },
+      { "id": "fabric_belt", "label": "Fabric Belt" },
+      { "id": "dress_belt", "label": "Dress Belt" }
+    ],
+
+    "jewelry": [
+      { "id": "necklace", "label": "Necklace" },
+      { "id": "bracelet", "label": "Bracelet" },
+      { "id": "ring", "label": "Ring" },
+      { "id": "earrings", "label": "Earrings" },
+      { "id": "watch", "label": "Watch" }
+    ],
+
+    "eyewear": [
+      { "id": "sunglasses", "label": "Sunglasses" },
+      { "id": "optical_glasses", "label": "Optical Glasses" }
+    ],
+
+    "bags": [
+      { "id": "backpack", "label": "Backpack" },
+      { "id": "tote_bag", "label": "Tote Bag" },
+      { "id": "messenger_bag", "label": "Messenger Bag" },
+      { "id": "crossbody_bag", "label": "Crossbody Bag" },
+      { "id": "handbag", "label": "Handbag" }
+    ],
+
+    "socks": [
+      { "id": "ankle_socks", "label": "Ankle Socks" },
+      { "id": "crew_socks", "label": "Crew Socks" },
+      { "id": "no_show_socks", "label": "No-Show Socks" },
+      { "id": "wool_socks", "label": "Wool Socks" }
+    ],
+
+    "underwear_men": [
+      { "id": "boxers", "label": "Boxers" },
+      { "id": "briefs", "label": "Briefs" },
+      { "id": "trunks", "label": "Trunks" }
+    ],
+
+    "underwear_women": [
+      { "id": "panties", "label": "Panties" },
+      { "id": "bikini_cut", "label": "Bikini Cut" },
+      { "id": "boyshorts", "label": "Boyshorts" },
+      { "id": "thong", "label": "Thong" }
+    ],
+
+    "functional_underwear": [
+      { "id": "thermal_top", "label": "Thermal Top" },
+      { "id": "thermal_bottom", "label": "Thermal Bottom" },
+      { "id": "base_layer_top", "label": "Base Layer Top" },
+      { "id": "base_layer_bottom", "label": "Base Layer Bottom" }
+    ]
+  }
+}
