@@ -9,6 +9,7 @@ class WardrobeItem {
   final List<String> tags;
   final String? imagePath;
   final DateTime createdAt;
+  final bool isFavorite;
 
   WardrobeItem({
     required this.id,
@@ -21,6 +22,7 @@ class WardrobeItem {
     required this.tags,
     this.imagePath,
     required this.createdAt,
+    this.isFavorite = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -35,6 +37,7 @@ class WardrobeItem {
       'tags': tags,
       'imagePath': imagePath,
       'createdAt': createdAt.toIso8601String(),
+      'isFavorite': isFavorite,
     };
   }
 
@@ -50,6 +53,7 @@ class WardrobeItem {
       tags: List<String>.from(json['tags'] as List),
       imagePath: json['imagePath'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      isFavorite: json['isFavorite'] as bool? ?? false,
     );
   }
 }
