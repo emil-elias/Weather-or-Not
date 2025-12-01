@@ -4,6 +4,8 @@ import '../services/weather_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
 import '../constants/app_constants.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import '../services/location_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,11 +16,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
+  final LocationService _locationService = LocationService();
   String _selectedLocation = 'Bremen, Germany';
   Weather? _currentWeather;
   Forecast? _forecast;
   bool _isLoading = false;
   String? _errorMessage;
+  String closestLocation = 'Fetching...';
 
   // Available locations
   final List<String> _locations = [
@@ -45,7 +49,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _getClosestLocation();
     _loadWeather();
+  }
+
+  Future<void> _getClosestLocation() async {
+    try {
+      final geo.Position userPosition = await _locationService.getCurrentLocation();
+      final Map<String, dynamic> closest = await _locationService.findClosestLocation(userPosition);
+
+      setState(() {
+        closestLocation = 'Closest Location: ${closest['name']}';
+      });
+    } catch (e) {
+      setState(() {
+        closestLocation = 'Error: $e';
+      });
+    }
+
+    print(closestLocation);
   }
 
   Future<void> _loadWeather() async {
