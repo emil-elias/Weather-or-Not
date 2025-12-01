@@ -23,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   String closestLocation = 'Fetching...';
+  List<Map<String, dynamic>>? _closestLocations;
+  //String stationID = '';
 
   // Available locations
   final List<String> _locations = [
@@ -30,8 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
     'Hamburg, Germany',
     'Berlin, Germany',
     'München, Germany',
-    'Köln, Germany',
-    'Lisbon, Portugal',
+    /*'Köln, Germany',*/
+    'Lisboa, Portugal',
   ];
 
   // Location coordinates
@@ -41,8 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
     'Berlin, Germany': {'lat': 52.5200, 'lon': 13.4050},
     'München, Germany': {'lat': 48.1351, 'lon': 11.5820},
     'Köln, Germany': {'lat': 50.9375, 'lon': 6.9603},
-    'Lisbon, Portugal': {'lat': 38.47, 'lon': -9.08},
+    'Lisboa, Portugal': {'lat': 38.47, 'lon': -9.08},
   };
+
+  final Map<String, String> stationIDs = Map<String, String>.from(AppConstants.stationIDs);
 
   List<Activity> _todayActivities = [];
 
@@ -50,20 +54,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _getClosestLocation();
-    _loadWeather();
+    //_loadWeather();
   }
 
   Future<void> _getClosestLocation() async {
     try {
       final geo.Position userPosition = await _locationService.getCurrentLocation();
-      final Map<String, dynamic> closest = await _locationService.findClosestLocation(userPosition);
+      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(userPosition);
+      //print(closestList);
+      final closest = closestList.first;
 
       setState(() {
-        closestLocation = 'Closest Location: ${closest['name']}';
+        closestLocation = 'Closest Location: ${closest['name']} with id ${closest['id']}';
+        _selectedLocation = closest['name'];
+        _locations.insert(0, closest['name']);
+        //stationID = closest['id'];
+        stationIDs[closest['name']] = closest['id'];
+        _closestLocations = closestList;
+        _loadWeather();
       });
     } catch (e) {
       setState(() {
         closestLocation = 'Error: $e';
+        _loadWeather();
       });
     }
 
@@ -84,7 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
             'lon': AppConstants.bremenLongitude,
           };
 
-      final stationID = AppConstants.stationIDs[_selectedLocation];
+      /*if (stationID.isEmpty) {
+        stationID = AppConstants.stationIDs[_selectedLocation] ?? '';
+      }*/
+
+      //final stationID = stationIDs[_selectedLocation];
 
       /*final weather = await _weatherService.getWeatherByCoordinates(
         coords['lat']!,
@@ -93,14 +110,28 @@ class _HomeScreenState extends State<HomeScreen> {
       );*/
 
       final weather = await _weatherService.getCurrentDWDWeatherByStationID(
-        stationID!,
+        stationIDs[_selectedLocation]!,
         locationName: _selectedLocation,
+        fallbackStations: _closestLocations != null
+            ? _closestLocations!
+                .where((loc) => loc['name'] != _selectedLocation)
+                .toList()
+            : null,
         fallbackLat: coords['lat'],
         fallbackLon: coords['lon'],
       );
 
+      if (weather != null && weather.stationName != _selectedLocation) {
+        setState(() {
+          _locations.remove(_selectedLocation);
+          _selectedLocation = weather.stationName;
+          _locations.insert(0, weather.stationName);
+          stationIDs[weather.stationName] = weather.stationId;
+        });
+      }
+
       final forecast = await _weatherService.getForecastDWDWeatherByStationID(
-        stationID,
+        stationIDs[_selectedLocation]!,
       );
 
       print(forecast.days);
@@ -343,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Source: ${_currentWeather!.source}',
+                            'Quelle: ${_currentWeather!.source}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: Colors.white70,
                             ),
@@ -704,7 +735,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Location wählen',
+                      'Ort wählen',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),

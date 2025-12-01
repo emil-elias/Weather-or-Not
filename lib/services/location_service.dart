@@ -52,13 +52,14 @@ class LocationService {
     return R * c; // Distance in kilometers
   }
 
-  Future<Map<String, dynamic>> findClosestLocation(Position userPosition) async {
+  Future<List<Map<String, dynamic>>> findClosestLocation(Position userPosition) async {
   // Load the JSON file
-  final String response = await rootBundle.loadString('/lib/constants/stations.json');
+  final String response = await rootBundle.loadString('stations.json');
   final List<dynamic> locations = json.decode(response);
 
   Map<String, dynamic>? closestLocation;
   double shortestDistance = double.infinity;
+  List<Map<String, dynamic>> closestLocations = [];
 
   for (var location in locations) {
     final double distance = calculateDistance(
@@ -68,12 +69,24 @@ class LocationService {
       location['lon'],
     );
 
+    if (distance < 25) {
+      closestLocations.add(location);
+      closestLocations.last['distance'] = distance;
+    } 
+    
     if (distance < shortestDistance) {
       shortestDistance = distance;
       closestLocation = location;
     }
   }
 
-  return closestLocation!;
+  if (closestLocations.isEmpty && closestLocation != null) {
+    closestLocations.add(closestLocation);
+    closestLocations.last['distance'] = shortestDistance;
+  }
+
+  closestLocations.sort((a, b) => a['distance'].compareTo(b['distance']));
+
+  return closestLocations;
 }
 }
