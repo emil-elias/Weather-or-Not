@@ -140,7 +140,7 @@ class WeatherService {
                 : null,
             fallbackLat: fallbackLat,
             fallbackLon: fallbackLon,
-            message: 'Hinweis: Daten der nächsten verfügbaren Station \n- keine verfügbaren Daten an Ihrem aktuellen Standort'
+            message: 'Hinweis: Daten der nächsten verfügbaren Station - \nKeine verfügbaren Daten an Ihrem aktuellen Standort'
           );
         } else if (fallbackLat != null && fallbackLon != null) { //if nothing helps, just use BrightSky
           return getWeatherByCoordinates(

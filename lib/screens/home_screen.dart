@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:weatherornot/models/forecast.dart';
+import 'package:weatherornot/providers/main_provider.dart';
 import '../services/weather_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
 import '../constants/app_constants.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import '../services/location_service.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,17 +19,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
   final LocationService _locationService = LocationService();
+
+  MainProvider _provider = MainProvider();
+
   String _selectedLocation = 'Bremen, Germany';
   Weather? _currentWeather;
   Forecast? _forecast;
   bool _isLoading = false;
   String? _errorMessage;
-  String closestLocation = 'Fetching...';
-  List<Map<String, dynamic>>? _closestLocations;
+  List<String> _locations = [];
   //String stationID = '';
 
   // Available locations
-  final List<String> _locations = [
+  /*final List<String> _locations = [
     'Bremen, Germany',
     'Hamburg, Germany',
     'Berlin, Germany',
@@ -46,32 +50,40 @@ class _HomeScreenState extends State<HomeScreen> {
     'Lisboa, Portugal': {'lat': 38.47, 'lon': -9.08},
   };
 
-  final Map<String, String> stationIDs = Map<String, String>.from(AppConstants.stationIDs);
+  final Map<String, String> stationIDs = Map<String, String>.from(AppConstants.stationIDs);*/
 
   List<Activity> _todayActivities = [];
 
   @override
   void initState() {
     super.initState();
-    _getClosestLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MainProvider>().getClosestLocation();
+    });
     //_loadWeather();
   }
 
-  Future<void> _getClosestLocation() async {
+  /*Future<void> _getClosestLocation() async {
     try {
       final geo.Position userPosition = await _locationService.getCurrentLocation();
       final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(userPosition);
       //print(closestList);
       final closest = closestList.first;
 
+      
+
       setState(() {
         closestLocation = 'Closest Location: ${closest['name']} with id ${closest['id']}';
-        _selectedLocation = closest['name'];
+        _provider.setSelectedLocation(closest['name']);
         _locations.insert(0, closest['name']);
-        //stationID = closest['id'];
         stationIDs[closest['name']] = closest['id'];
         _closestLocations = closestList;
-        _loadWeather();
+        _provider.loadWeather(
+          closest['id'],
+          closest['name'],
+          fallbackStations: closestList.sublist(1)
+
+        );
       });
     } catch (e) {
       setState(() {
@@ -81,9 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     print(closestLocation);
-  }
+  }*/
 
-  Future<void> _loadWeather() async {
+  /*Future<void> _loadWeather() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -147,20 +159,35 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
     }
-  }
+  }*/
 
   void _onLocationChanged(String? newLocation) {
-    if (newLocation != null && newLocation != _selectedLocation) {
-      setState(() {
-        _selectedLocation = newLocation;
-      });
-      _loadWeather();
+    if (newLocation != null && newLocation != _provider.selectedLocation) {
+      _provider.setSelectedLocation(newLocation);
+      _provider.loadWeather(
+        _provider.stationIDs[newLocation]!,
+        newLocation,
+        fallbackStations: _provider.closestLocations != null
+            ? _provider.closestLocations!
+                  .where((loc) => loc['name'] != newLocation)
+                  .toList()
+            : null,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    _provider = context.watch<MainProvider>();
+
+    _currentWeather = context.watch<MainProvider>().currentWeather;
+    _forecast = context.watch<MainProvider>().forecast;
+    _isLoading = context.watch<MainProvider>().isLoading;
+    _errorMessage = context.watch<MainProvider>().errorMessage;
+    _selectedLocation = context.watch<MainProvider>().selectedLocation;
+    _locations = context.watch<MainProvider>().locations;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -270,7 +297,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           // Weather Icon
                           Icon(
-                            _currentWeather!.icon != null ? _getWeatherIconById(_currentWeather!.icon) : _getWeatherIcon(_currentWeather!.condition),
+                            _currentWeather!.icon != null
+                                ? _getWeatherIconById(_currentWeather!.icon)
+                                : _getWeatherIcon(_currentWeather!.condition),
                             size: 80,
                             color: Colors.white,
                           ),
@@ -336,8 +365,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               _currentWeather!.icon != null
-                                  ? _getWeatherDescriptionById(_currentWeather!.icon)
-                                  : _getWeatherDescription(_currentWeather!.condition),
+                                  ? _getWeatherDescriptionById(
+                                      _currentWeather!.icon,
+                                    )
+                                  : _getWeatherDescription(
+                                      _currentWeather!.condition,
+                                    ),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -534,75 +567,75 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   IconData _getWeatherIconById(int? iconId) {
-  if (iconId == null) return Icons.wb_cloudy_outlined;
+    if (iconId == null) return Icons.wb_cloudy_outlined;
 
-  switch (iconId) {
-    case 1: // sunny
-      return Icons.wb_sunny_outlined;
-    case 2: // sunny, partly/slightly cloudy, need to find a better icon
-      return Icons.wb_sunny_outlined;
-    case 3: // sunny, cloudy, need to find a better icon
-      return Icons.cloud_outlined;
-    case 4: // clouds
-      return Icons.cloud_outlined;
-    case 5: // fog
-      return Icons.blur_on;
-    case 6: // fog, slippery
-      return Icons.blur_on;
-    case 7: // light rain
-      return Icons.water_drop_outlined;
-    case 8: // rain
-      return Icons.umbrella_outlined;
-    case 9: // heavy rain
-      return Icons.water_outlined;
-    case 10: // slight rain, slippery
-      return Icons.water_drop_outlined;
-    case 11: // heavy rain, slippery
-      return Icons.water_outlined;
-    case 12: // rain, occasional snowfall
-      return Icons.umbrella_outlined;
-    case 13: // rain, increased snowfall
-      return Icons.ac_unit_rounded;
-    case 14: // light snowfall
-      return Icons.ac_unit_rounded;
-    case 15: // snowfall
-      return Icons.snowing;
-    case 16: // heavy snowfall
-      return Icons.snowing;
-    case 17: // clouds, (hail)
-      return Icons.cloud;
-    case 18: // sunny, light rain
-      return Icons.wb_sunny_outlined;
-    case 19: // sunny, heavy rain
-      return Icons.wb_sunny_outlined;
-    case 20: // sun, rain, occasional snowfall
-      return Icons.wb_sunny_outlined;
-    case 21: // sun, rain, increased snowfall
-      return Icons.sunny_snowing;
-    case 22: // sunny, occasional snowfall
-      return Icons.wb_sunny_outlined;
-    case 23: // sunny, increased snowfall
-      return Icons.sunny_snowing;
-    case 24: // sunny, (hail)
-      return Icons.sunny_snowing;
-    case 25: // sunny, (heavy hail)
-      return Icons.sunny_snowing;
-    case 26: // thunderstorm
-      return Icons.flash_on;
-    case 27: // thunderstorm, rain
-      return Icons.thunderstorm_outlined;
-    case 28: // thunderstorm, heavy rain
-      return Icons.thunderstorm_outlined;
-    case 29: // thunderstorm, (hail)
-      return Icons.thunderstorm_outlined;
-    case 30: // thunderstorm, (heavy hail)
-      return Icons.thunderstorm_outlined;
-    case 31: // (wind)
-      return Icons.air;
-    default:
-      return Icons.wb_cloudy_outlined;
+    switch (iconId) {
+      case 1: // sunny
+        return Icons.wb_sunny_outlined;
+      case 2: // sunny, partly/slightly cloudy, need to find a better icon
+        return Icons.wb_sunny_outlined;
+      case 3: // sunny, cloudy, need to find a better icon
+        return Icons.cloud_outlined;
+      case 4: // clouds
+        return Icons.cloud_outlined;
+      case 5: // fog
+        return Icons.blur_on;
+      case 6: // fog, slippery
+        return Icons.blur_on;
+      case 7: // light rain
+        return Icons.water_drop_outlined;
+      case 8: // rain
+        return Icons.umbrella_outlined;
+      case 9: // heavy rain
+        return Icons.water_outlined;
+      case 10: // slight rain, slippery
+        return Icons.water_drop_outlined;
+      case 11: // heavy rain, slippery
+        return Icons.water_outlined;
+      case 12: // rain, occasional snowfall
+        return Icons.umbrella_outlined;
+      case 13: // rain, increased snowfall
+        return Icons.ac_unit_rounded;
+      case 14: // light snowfall
+        return Icons.ac_unit_rounded;
+      case 15: // snowfall
+        return Icons.snowing;
+      case 16: // heavy snowfall
+        return Icons.snowing;
+      case 17: // clouds, (hail)
+        return Icons.cloud;
+      case 18: // sunny, light rain
+        return Icons.wb_sunny_outlined;
+      case 19: // sunny, heavy rain
+        return Icons.wb_sunny_outlined;
+      case 20: // sun, rain, occasional snowfall
+        return Icons.wb_sunny_outlined;
+      case 21: // sun, rain, increased snowfall
+        return Icons.sunny_snowing;
+      case 22: // sunny, occasional snowfall
+        return Icons.wb_sunny_outlined;
+      case 23: // sunny, increased snowfall
+        return Icons.sunny_snowing;
+      case 24: // sunny, (hail)
+        return Icons.sunny_snowing;
+      case 25: // sunny, (heavy hail)
+        return Icons.sunny_snowing;
+      case 26: // thunderstorm
+        return Icons.flash_on;
+      case 27: // thunderstorm, rain
+        return Icons.thunderstorm_outlined;
+      case 28: // thunderstorm, heavy rain
+        return Icons.thunderstorm_outlined;
+      case 29: // thunderstorm, (hail)
+        return Icons.thunderstorm_outlined;
+      case 30: // thunderstorm, (heavy hail)
+        return Icons.thunderstorm_outlined;
+      case 31: // (wind)
+        return Icons.air;
+      default:
+        return Icons.wb_cloudy_outlined;
+    }
   }
-}
 
   String _getWeatherDescription(String? condition) {
     return WeatherConditions.getGermanDescription(
