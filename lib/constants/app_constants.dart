@@ -21,7 +21,7 @@ class AppConstants {
     'Berlin, Germany': "10389", //(Alexanderplatz); Brandenburg: 10385, Buch: G002, Kaniswall: G006, Tempelhof: 10384, ...
     'München, Germany': "10865", //(Stadt); Flughafen: 10870
     'Köln, Germany': "10513", //(Köln/Bonn); Stammheim: H744
-    'Lisbon, Portugal': "08536", 
+    'Lisboa, Portugal': "08536", 
   };
 }
 
