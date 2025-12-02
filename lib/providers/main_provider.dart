@@ -59,6 +59,8 @@ class MainProvider extends ChangeNotifier {
       //print(closestList);
       final closest = closestList.first;
 
+      print('User position: ${userPosition.latitude}, ${userPosition.longitude}');
+
       _locations.insert(0, closest['name']);
       stationIDs[closest['name']] = closest['id'];
       _closestLocations = closestList;
@@ -74,6 +76,13 @@ class MainProvider extends ChangeNotifier {
 
     } catch (e) {
       print('Error getting location: $e');
+      setSelectedLocation('Bremen, Germany');
+      loadWeather(
+        stationIDs['Bremen, Germany']!,
+        'Bremen, Germany',
+        fallbackLat: _locationCoordinates['Bremen, Germany']!['lat'],
+        fallbackLon: _locationCoordinates['Bremen, Germany']!['lon'],
+      );
     } finally {
       notifyListeners();
     }

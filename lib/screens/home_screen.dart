@@ -28,138 +28,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   List<String> _locations = [];
-  //String stationID = '';
-
-  // Available locations
-  /*final List<String> _locations = [
-    'Bremen, Germany',
-    'Hamburg, Germany',
-    'Berlin, Germany',
-    'München, Germany',
-    /*'Köln, Germany',*/
-    'Lisboa, Portugal',
-  ];
-
-  // Location coordinates
-  final Map<String, Map<String, double>> _locationCoordinates = {
-    'Bremen, Germany': {'lat': 53.0793, 'lon': 8.8017},
-    'Hamburg, Germany': {'lat': 53.5511, 'lon': 9.9937},
-    'Berlin, Germany': {'lat': 52.5200, 'lon': 13.4050},
-    'München, Germany': {'lat': 48.1351, 'lon': 11.5820},
-    'Köln, Germany': {'lat': 50.9375, 'lon': 6.9603},
-    'Lisboa, Portugal': {'lat': 38.47, 'lon': -9.08},
-  };
-
-  final Map<String, String> stationIDs = Map<String, String>.from(AppConstants.stationIDs);*/
 
   List<Activity> _todayActivities = [];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MainProvider>().getClosestLocation();
-    });
-    //_loadWeather();
   }
-
-  /*Future<void> _getClosestLocation() async {
-    try {
-      final geo.Position userPosition = await _locationService.getCurrentLocation();
-      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(userPosition);
-      //print(closestList);
-      final closest = closestList.first;
-
-      
-
-      setState(() {
-        closestLocation = 'Closest Location: ${closest['name']} with id ${closest['id']}';
-        _provider.setSelectedLocation(closest['name']);
-        _locations.insert(0, closest['name']);
-        stationIDs[closest['name']] = closest['id'];
-        _closestLocations = closestList;
-        _provider.loadWeather(
-          closest['id'],
-          closest['name'],
-          fallbackStations: closestList.sublist(1)
-
-        );
-      });
-    } catch (e) {
-      setState(() {
-        closestLocation = 'Error: $e';
-        _loadWeather();
-      });
-    }
-
-    print(closestLocation);
-  }*/
-
-  /*Future<void> _loadWeather() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final coords =
-          _locationCoordinates[_selectedLocation] ??
-          {
-            'lat': AppConstants.bremenLatitude,
-            'lon': AppConstants.bremenLongitude,
-          };
-
-      /*if (stationID.isEmpty) {
-        stationID = AppConstants.stationIDs[_selectedLocation] ?? '';
-      }*/
-
-      //final stationID = stationIDs[_selectedLocation];
-
-      /*final weather = await _weatherService.getWeatherByCoordinates(
-        coords['lat']!,
-        coords['lon']!,
-        locationName: _selectedLocation,
-      );*/
-
-      final weather = await _weatherService.getCurrentDWDWeatherByStationID(
-        stationIDs[_selectedLocation]!,
-        locationName: _selectedLocation,
-        fallbackStations: _closestLocations != null
-            ? _closestLocations!
-                .where((loc) => loc['name'] != _selectedLocation)
-                .toList()
-            : null,
-        fallbackLat: coords['lat'],
-        fallbackLon: coords['lon'],
-      );
-
-      if (weather != null && weather.stationName != _selectedLocation) {
-        setState(() {
-          _locations.remove(_selectedLocation);
-          _selectedLocation = weather.stationName;
-          _locations.insert(0, weather.stationName);
-          stationIDs[weather.stationName] = weather.stationId;
-        });
-      }
-
-      final forecast = await _weatherService.getForecastDWDWeatherByStationID(
-        stationIDs[_selectedLocation]!,
-      );
-
-      print(forecast.days);
-
-      setState(() {
-        _currentWeather = weather;
-        _forecast = forecast;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Wetter konnte nicht geladen werden';
-        _isLoading = false;
-      });
-    }
-  }*/
 
   void _onLocationChanged(String? newLocation) {
     if (newLocation != null && newLocation != _provider.selectedLocation) {
