@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:weatherornot/models/forecast.dart';
 import 'package:weatherornot/services/outfit_generator.dart';
+import 'package:weatherornot/providers/main_provider.dart';
 import '../services/weather_service.dart';
 import '../services/wardrobe_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
 import '../models/outfit.dart';
 import '../constants/app_constants.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import '../services/location_service.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +25,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
   final WardrobeService _wardrobeService = WardrobeService();
   
+  final LocationService _locationService = LocationService();
+
+  MainProvider _provider = MainProvider();
+
   String _selectedLocation = 'Bremen, Germany';
   Weather? _currentWeather;
   Forecast? _forecast;
@@ -32,16 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> _activitiesData = {};
   List<String> _availableActivities = [];
 
-  // Available locations
-  final List<String> _locations = [
-    'Bremen, Germany',
-    'Hamburg, Germany',
-    'Berlin, Germany',
-    'München, Germany',
-    'Köln, Germany',
-    'Lisbon, Portugal',
-  ];
-
   // Location coordinates
   final Map<String, Map<String, double>> _locationCoordinates = {
     'Bremen, Germany': {'lat': 53.0793, 'lon': 8.8017},
@@ -51,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'Köln, Germany': {'lat': 50.9375, 'lon': 6.9603},
     'Lisbon, Portugal': {'lat': 38.47, 'lon': -9.08},
   };
+  List<String> _locations = [];
 
   List<Activity> _todayActivities = [];
 
@@ -362,17 +361,32 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
   }
 
   void _onLocationChanged(String? newLocation) {
-    if (newLocation != null && newLocation != _selectedLocation) {
-      setState(() {
-        _selectedLocation = newLocation;
-      });
-      _loadWeather();
+    if (newLocation != null && newLocation != _provider.selectedLocation) {
+      _provider.setSelectedLocation(newLocation);
+      _provider.loadWeather(
+        _provider.stationIDs[newLocation]!,
+        newLocation,
+        fallbackStations: _provider.closestLocations != null
+            ? _provider.closestLocations!
+                  .where((loc) => loc['name'] != newLocation)
+                  .toList()
+            : null,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    _provider = context.watch<MainProvider>();
+
+    _currentWeather = context.watch<MainProvider>().currentWeather;
+    _forecast = context.watch<MainProvider>().forecast;
+    _isLoading = context.watch<MainProvider>().isLoading;
+    _errorMessage = context.watch<MainProvider>().errorMessage;
+    _selectedLocation = context.watch<MainProvider>().selectedLocation;
+    _locations = context.watch<MainProvider>().locations;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -482,7 +496,9 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                         children: [
                           // Weather Icon
                           Icon(
-                            _currentWeather!.icon != null ? _getWeatherIconById(_currentWeather!.icon) : _getWeatherIcon(_currentWeather!.condition),
+                            _currentWeather!.icon != null
+                                ? _getWeatherIconById(_currentWeather!.icon)
+                                : _getWeatherIcon(_currentWeather!.condition),
                             size: 80,
                             color: Colors.white,
                           ),
@@ -548,8 +564,12 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                           children: [
                             Text(
                               _currentWeather!.icon != null
-                                  ? _getWeatherDescriptionById(_currentWeather!.icon)
-                                  : _getWeatherDescription(_currentWeather!.condition),
+                                  ? _getWeatherDescriptionById(
+                                      _currentWeather!.icon,
+                                    )
+                                  : _getWeatherDescription(
+                                      _currentWeather!.condition,
+                                    ),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -586,7 +606,7 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Source: ${_currentWeather!.source}',
+                            'Quelle: ${_currentWeather!.source}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: Colors.white70,
                             ),
@@ -1064,67 +1084,67 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
     if (iconId == null) return Icons.wb_cloudy_outlined;
 
     switch (iconId) {
-      case 1:
+      case 1: // sunny
         return Icons.wb_sunny_outlined;
-      case 2:
+      case 2: // sunny, partly/slightly cloudy, need to find a better icon
         return Icons.wb_sunny_outlined;
-      case 3:
+      case 3: // sunny, cloudy, need to find a better icon
         return Icons.cloud_outlined;
-      case 4:
+      case 4: // clouds
         return Icons.cloud_outlined;
-      case 5:
+      case 5: // fog
         return Icons.blur_on;
-      case 6:
+      case 6: // fog, slippery
         return Icons.blur_on;
-      case 7:
+      case 7: // light rain
         return Icons.water_drop_outlined;
-      case 8:
+      case 8: // rain
         return Icons.umbrella_outlined;
-      case 9:
+      case 9: // heavy rain
         return Icons.water_outlined;
-      case 10:
+      case 10: // slight rain, slippery
         return Icons.water_drop_outlined;
-      case 11:
+      case 11: // heavy rain, slippery
         return Icons.water_outlined;
-      case 12:
+      case 12: // rain, occasional snowfall
         return Icons.umbrella_outlined;
-      case 13:
+      case 13: // rain, increased snowfall
         return Icons.ac_unit_rounded;
-      case 14:
+      case 14: // light snowfall
         return Icons.ac_unit_rounded;
-      case 15:
+      case 15: // snowfall
         return Icons.snowing;
-      case 16:
+      case 16: // heavy snowfall
         return Icons.snowing;
-      case 17:
+      case 17: // clouds, (hail)
         return Icons.cloud;
-      case 18:
+      case 18: // sunny, light rain
         return Icons.wb_sunny_outlined;
-      case 19:
+      case 19: // sunny, heavy rain
         return Icons.wb_sunny_outlined;
-      case 20:
+      case 20: // sun, rain, occasional snowfall
         return Icons.wb_sunny_outlined;
-      case 21:
+      case 21: // sun, rain, increased snowfall
         return Icons.sunny_snowing;
-      case 22:
+      case 22: // sunny, occasional snowfall
         return Icons.wb_sunny_outlined;
-      case 23:
+      case 23: // sunny, increased snowfall
         return Icons.sunny_snowing;
-      case 24:
+      case 24: // sunny, (hail)
         return Icons.sunny_snowing;
-      case 25:
+      case 25: // sunny, (heavy hail)
         return Icons.sunny_snowing;
-      case 26:
+      case 26: // thunderstorm
         return Icons.flash_on;
-      case 27:
+      case 27: // thunderstorm, rain
         return Icons.thunderstorm_outlined;
-      case 28:
+      case 28: // thunderstorm, heavy rain
         return Icons.thunderstorm_outlined;
-      case 29:
+      case 29: // thunderstorm, (hail)
         return Icons.thunderstorm_outlined;
-      case 30:
+      case 30: // thunderstorm, (heavy hail)
         return Icons.thunderstorm_outlined;
-      case 31:
+      case 31: // (wind)
         return Icons.air;
       default:
         return Icons.wb_cloudy_outlined;
@@ -1262,7 +1282,7 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Location wählen',
+                      'Ort wählen',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),

@@ -56,8 +56,10 @@ class WeatherService {
   Future<Weather> getCurrentDWDWeatherByStationID(
     String stationID, {
     String? locationName,
+    List<Map<String, dynamic>>? fallbackStations,
     double? fallbackLat,
     double? fallbackLon,
+    String? message,
   }) async {
     try {
       final currentWeatherUrl =
@@ -76,7 +78,7 @@ class WeatherService {
           return Weather(
             stationName: locationName ?? 'DWD Station $stationID',
             stationId: stationID,
-            source: 'DWD (station $stationID - current measurement)',
+            source: 'DWD (Station $stationID - aktuelle Messung) ${message != null ? '\n$message' : ''}',
             temperature: weatherData['temperature'] != null
                 ? weatherData['temperature'].toDouble() / 10
                 : null,
@@ -127,7 +129,20 @@ class WeatherService {
 
       if (forecast.temperature == null || forecast.temperature!.isEmpty) {
         print('DWD forecast data missing, using Bright Sky'); // Debug
-        if (fallbackLat != null && fallbackLon != null) {
+
+        //recursive fallback to next closest station if available
+        if (fallbackStations != null && fallbackStations.isNotEmpty) {
+          return getCurrentDWDWeatherByStationID( 
+            fallbackStations.first["id"],
+            locationName: fallbackStations.first["name"],
+            fallbackStations: fallbackStations.length > 1
+                ? fallbackStations.sublist(1)
+                : null,
+            fallbackLat: fallbackLat,
+            fallbackLon: fallbackLon,
+            message: 'Hinweis: Daten der nächsten verfügbaren Station - \nKeine verfügbaren Daten an Ihrem aktuellen Standort'
+          );
+        } else if (fallbackLat != null && fallbackLon != null) { //if nothing helps, just use BrightSky
           return getWeatherByCoordinates(
             fallbackLat,
             fallbackLon,
@@ -148,7 +163,7 @@ class WeatherService {
       return Weather(
         stationName: locationName ?? 'DWD Station $stationID',
         stationId: stationID,
-        source: 'DWD (station $stationID - overview extended forecast)',
+        source: 'DWD (Station $stationID - basierend auf Vorhersage) ${message != null ? '\n$message' : ''}',
         temperature: (forecast.temperature != null &&
                 hourIndex < forecast.temperature!.length)
             ? forecast.temperature![hourIndex]

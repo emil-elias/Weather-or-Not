@@ -3,6 +3,8 @@ import 'home_screen.dart';
 import 'planner_screen.dart';
 import 'wardrobe_screen.dart';
 import 'account_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:weatherornot/providers/main_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,12 +16,22 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  MainProvider _provider = MainProvider();
+
   final List<Widget> _screens = [
     const HomeScreen(),
     const PlannerScreen(),
     const WardrobeScreen(),
     const AccountScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MainProvider>().getClosestLocation();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
