@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:weatherornot/models/forecast.dart';
+import 'package:weatherornot/services/outfit_generator.dart';
 import '../services/weather_service.dart';
+import '../services/wardrobe_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
+import '../models/outfit.dart';
 import '../constants/app_constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,11 +19,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
+  final WardrobeService _wardrobeService = WardrobeService();
+  
   String _selectedLocation = 'Bremen, Germany';
   Weather? _currentWeather;
   Forecast? _forecast;
+  Outfit? _generatedOutfit;
   bool _isLoading = false;
   String? _errorMessage;
+  Map<String, dynamic> _subtypesAttributesData = {};
+  // Activities loaded from JSON
+  Map<String, dynamic> _activitiesData = {};
+  List<String> _availableActivities = [];
 
   // Available locations
   final List<String> _locations = [
@@ -45,7 +57,116 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadActivitiesFromAssets();
+    _loadSubtypesAttributesFromAssets();  // Add this line
     _loadWeather();
+  }
+
+  /// Load activities from assets/activities.json
+  Future<void> _loadActivitiesFromAssets() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/activities.json');
+      final jsonData = jsonDecode(jsonString);
+      
+      setState(() {
+        _activitiesData = jsonData;
+      });
+
+      // Update available activities based on wardrobe
+      await _updateAvailableActivities();
+    } catch (e) {
+      print('Error loading activities: $e');
+    }
+  }
+
+  /// Update available activities based on wardrobe items
+  Future<void> _updateAvailableActivities() async {
+    try {
+      final wardrobeItems = await _wardrobeService.getWardrobeItems();
+      
+      if (wardrobeItems.isEmpty) {
+        setState(() {
+          _availableActivities = [];
+        });
+        return;
+      }
+
+      // Extract categories from wardrobe
+      final wardrobeCategories = wardrobeItems
+          .map((item) => item.category.toLowerCase())
+          .toSet()
+          .toList();
+
+      // Map wardrobe categories to activities
+      final activities = _mapWardrobeToActivities(wardrobeCategories);
+
+      setState(() {
+        _availableActivities = activities;
+      });
+    } catch (e) {
+      print('Error updating activities: $e');
+    }
+  }
+
+  /// Map wardrobe categories to relevant activities
+  List<String> _mapWardrobeToActivities(List<String> wardrobeCategories) {
+    final List<String> relevantActivities = [];
+
+    // Define mappings between wardrobe categories and activity keys
+    const categoryActivityMap = {
+      'tops': ['casual', 'work', 'events', 'outdoor'],
+      'bottoms': ['casual', 'work', 'events', 'outdoor'],
+      'outerwear': ['casual', 'outdoor', 'sports'],
+      'shoes': ['casual', 'work', 'events', 'outdoor', 'sports'],
+      'accessories': ['all'],
+      'sportswear': ['sports'],
+    };
+
+    // Check for sport shoes or sportswear -> add sports activities
+    final hasSportEquipment = wardrobeCategories.any((cat) => 
+        cat.contains('sport') || cat.contains('gym'));
+
+    if (hasSportEquipment) {
+      relevantActivities.add('sports');
+    }
+
+    // Check for formal/dress shoes -> add events
+    final hasFormalShoes = wardrobeCategories.any((cat) => 
+        cat.contains('dress') || cat.contains('formal'));
+
+    if (hasFormalShoes) {
+      relevantActivities.add('events');
+    }
+
+    // Check for outdoor/technical gear -> add outdoor
+    final hasOutdoorGear = wardrobeCategories.any((cat) => 
+        cat.contains('technical') || cat.contains('hiking'));
+
+    if (hasOutdoorGear) {
+      relevantActivities.add('outdoor');
+    }
+
+    // Always add casual and work
+    relevantActivities.addAll(['casual', 'work', 'home']);
+
+    return relevantActivities.toSet().toList();
+  }
+
+  /// Get subcategories for a given activity category
+  List<String> _getSubcategoriesForActivity(String activityKey) {
+    final List<String> subcategories = [];
+
+    if (_activitiesData.containsKey('activities') &&
+        _activitiesData['activities'].containsKey(activityKey)) {
+      final Map<String, dynamic> activityGroups = _activitiesData['activities'][activityKey];
+      activityGroups.forEach((group, subList) {
+        if (subList is List) {
+          subcategories.addAll(List<String>.from(subList));
+        }
+      });
+    }
+
+    return subcategories;
   }
 
   Future<void> _loadWeather() async {
@@ -64,12 +185,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final stationID = AppConstants.stationIDs[_selectedLocation];
 
-      /*final weather = await _weatherService.getWeatherByCoordinates(
-        coords['lat']!,
-        coords['lon']!,
-        locationName: _selectedLocation,
-      );*/
-
       final weather = await _weatherService.getCurrentDWDWeatherByStationID(
         stationID!,
         locationName: _selectedLocation,
@@ -83,6 +198,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       print(forecast.days);
 
+      // Generate outfit with weather and activities
+      await _generateOutfit(weather);
+
       setState(() {
         _currentWeather = weather;
         _forecast = forecast;
@@ -93,6 +211,153 @@ class _HomeScreenState extends State<HomeScreen> {
         _errorMessage = 'Wetter konnte nicht geladen werden';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _generateOutfit(Weather weather) async {
+    try {
+      // Fetch wardrobe items from storage
+      final wardrobeItems = await _wardrobeService.getWardrobeItems();
+
+      if (wardrobeItems.isEmpty) {
+        print('No wardrobe items available');
+        return;
+      }
+
+      // Convert WardrobeItem to ClothingItem
+      final clothingItems = _convertToClothingItems(wardrobeItems);
+
+      // Create outfit engine
+      final outfitEngine = OutfitEngine(clothingItems);
+
+      // Get activity string (combine all activities or use first one)
+      String activityString = 'daily';
+      if (_todayActivities.isNotEmpty) {
+        activityString = _todayActivities.first.type.displayName.toLowerCase();
+      }
+
+      // Generate outfit
+      final outfit = outfitEngine.generate(
+        temperature: weather.temperature ?? 20.0,
+        activity: activityString,
+      );
+
+      setState(() {
+        _generatedOutfit = outfit;
+      });
+    } catch (e) {
+      print('Error generating outfit: $e');
+    }
+  }
+
+/// Load subtypes attributes from assets/subtypes_attributes.json
+  Future<void> _loadSubtypesAttributesFromAssets() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/subtypes_attributes.json');
+      final jsonData = jsonDecode(jsonString);
+      
+      setState(() {
+        _subtypesAttributesData = jsonData;
+      });
+    } catch (e) {
+      print('Error loading subtypes attributes: $e');
+    }
+  }
+
+ 
+  /// Convert WardrobeItem to ClothingItem for the outfit engine
+/// Uses attributes from subtypes_attributes.json if available
+List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
+  return wardrobeItems.map((item) {
+    // Raw values from stored WardrobeItem
+    final rawCategory = (item.category ?? '').toString().toLowerCase();
+    final rawSubtype = (item.subcategory ?? '').toString().toLowerCase();
+    final name = item.name ?? '';
+    final imagePath = item.imagePath;
+
+    // Try to look up attributes from JSON using the subcategory as key
+    Map<String, dynamic>? foundSubtypeData = _subtypesAttributesData[rawSubtype];
+    
+    // If not found, try normalizing spaces/hyphens to underscores
+    if (foundSubtypeData == null) {
+      final normalizedSubtype = rawSubtype.replaceAll(' ', '_').replaceAll('-', '_');
+      foundSubtypeData = _subtypesAttributesData[normalizedSubtype];
+      
+      if (foundSubtypeData != null) {
+        print('Found subtype via normalization: "$rawSubtype" -> "$normalizedSubtype"');
+      }
+    }
+
+    // If still not found, log a warning
+    if (foundSubtypeData == null) {
+      print('Warning: Subtype "$rawSubtype" not found in subtypes_attributes.json (tried normalized: ${rawSubtype.replaceAll(' ', '_').replaceAll('-', '_')}), using defaults');
+    } else {
+      print('Loaded attributes for "$rawSubtype" from JSON');
+    }
+
+    // Extract attributes from JSON or use defaults
+    final attributesData = foundSubtypeData?['attributes'] ?? {};
+    final usageConstraintsData = foundSubtypeData?['usage_constraints'] ?? {};
+
+    // Parse attributes with fallback defaults
+    final materials = List<String>.from(attributesData['materials'] ?? []);
+    final warmthLevel = attributesData['warmth_level'] ?? 5;
+    final waterResistance = attributesData['water_resistance'] ?? 5;
+    final windResistance = attributesData['wind_resistance'] ?? 5;
+    final breathability = attributesData['breathability'] ?? 5;
+    final stretch = attributesData['stretch'] ?? 5;
+    final formality = attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
+    final styleTags = List<String>.from(attributesData['style_tags'] ?? []);
+    final fit = attributesData['fit'] ?? 'regular';
+
+    // Parse usage constraints with fallback defaults
+    final weatherMinTemp = usageConstraintsData['weather_min_temp'] ?? -40;
+    final weatherMaxTemp = usageConstraintsData['weather_max_temp'] ?? 45;
+    final optimalActivities = List<String>.from(usageConstraintsData['optimal_activities'] ?? ['daily', 'casual']);
+    final unsuitableFor = List<String>.from(usageConstraintsData['unsuitable_for'] ?? []);
+
+    // Build ClothingItem using data from JSON
+    return ClothingItem(
+      id: item.id,
+      category: rawCategory,
+      subtype: rawSubtype,
+      attributes: ClothingAttributes(
+        materials: materials,
+        warmthLevel: warmthLevel,
+        waterResistance: waterResistance,
+        windResistance: windResistance,
+        breathability: breathability,
+        stretch: stretch,
+        formality: formality,
+        styleTags: styleTags,
+        fit: fit,
+      ),
+      usageConstraints: UsageConstraints(
+        weatherMinTemp: weatherMinTemp,
+        weatherMaxTemp: weatherMaxTemp,
+        optimalActivities: optimalActivities,
+        unsuitableFor: unsuitableFor,
+      ),
+      extractedColors: [],
+      metadata: {
+        'imagePath': imagePath,
+        'name': name,
+      },
+    );
+  }).toList();
+}
+
+  /// Estimate warmth level from formality level
+  int _getWarmthLevel(String formalityLevel) {
+    switch (formalityLevel.toLowerCase()) {
+      case 'casual':
+        return 5;
+      case 'business':
+        return 6;
+      case 'formal':
+        return 7;
+      default:
+        return 5;
     }
   }
 
@@ -374,6 +639,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
 
               // Activities list
+              // Activities list
               if (_todayActivities.isNotEmpty) ...[
                 Wrap(
                   spacing: 8,
@@ -386,6 +652,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         setState(() {
                           _todayActivities.remove(activity);
                         });
+                        // Regenerate outfit when activity is removed
+                        if (_currentWeather != null) {
+                          _generateOutfit(_currentWeather!);
+                        }
                       },
                       backgroundColor: theme.colorScheme.primaryContainer,
                       labelStyle: TextStyle(
@@ -406,16 +676,64 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Outfit cards
-              _buildOutfitCard(context, isLarge: true),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(child: _buildOutfitCard(context)),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildOutfitCard(context)),
-                ],
+              // Generate Outfit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _currentWeather != null
+                      ? () => _generateOutfit(_currentWeather!)
+                      : null,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Generate New Outfit'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
+              const SizedBox(height: 16),
+
+                           // Outfit cards - Display all pieces
+                            // Outfit cards - Display all pieces (Outerwear → Shirt/Pullover → Bottom → Shoes)
+              if (_generatedOutfit != null)
+                Column(
+                  children: [
+                    // Outerwear (top)
+                    _buildOutfitCard(context, _generatedOutfit!.outerwear, label: 'Outerwear', isLarge: true),
+                    const SizedBox(height: 16),
+                    // Shirt and Pullover row
+                    Row(
+                      children: [
+                        Expanded(child: _buildOutfitCard(context, _generatedOutfit!.shirt, label: 'Shirt')),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildOutfitCard(context, _generatedOutfit!.pullover, label: 'Pullover')),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Bottom
+                    _buildOutfitCard(context, _generatedOutfit!.bottom, label: 'Bottom', isLarge: true),
+                    const SizedBox(height: 16),
+                    // Shoes
+                    _buildOutfitCard(context, _generatedOutfit!.shoes, label: 'Shoes', isLarge: true),
+                  ],
+                )
+              else
+                Column(
+                  children: [
+                    _buildOutfitCard(context, null, label: 'Outerwear', isLarge: true),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: _buildOutfitCard(context, null, label: 'Shirt')),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildOutfitCard(context, null, label: 'Pullover')),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildOutfitCard(context, null, label: 'Bottom', isLarge: true),
+                    const SizedBox(height: 16),
+                    _buildOutfitCard(context, null, label: 'Shoes', isLarge: true),
+                  ],
+                ),
               const SizedBox(height: 24),
             ],
           ),
@@ -424,43 +742,305 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildOutfitCard(BuildContext context, {bool isLarge = false}) {
-    final theme = Theme.of(context);
-    return Container(
-      height: isLarge ? 120 : 140,
+  Widget _buildOutfitCard(BuildContext context, ClothingItem? item, {bool isLarge = false, String label = ''}) {
+  final theme = Theme.of(context);
+  return GestureDetector(
+    onTap: item != null
+        ? () => _showItemDetails(context, item)
+        : null,
+    child: Container(
+      height: isLarge ? 180 : 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.checkroom_outlined,
-            size: 32,
+      child: item != null
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Item Image
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                    child: item.metadata != null && item.metadata!['imagePath'] != null
+                        ? Image.asset(
+                            item.metadata!['imagePath'] as String,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildPlaceholderIcon(theme);
+                            },
+                          )
+                        : _buildPlaceholderIcon(theme),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Item details: Name, Category, Subcategory
+                Column(
+                  children: [
+                    // Item Name
+                    Text(
+                      item.metadata?['name'] as String? ?? item.subtype,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // Category & Subcategory
+                    Text(
+                      '${item.category} • ${item.subtype}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // Label (e.g., "Shirt", "Outerwear")
+                    if (label.isNotEmpty)
+                      Text(
+                        label,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                  ],
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.checkroom_outlined,
+                  size: 32,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 8),
+                if (label.isNotEmpty)
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  )
+                else
+                  Column(
+                    children: [
+                      Container(
+                        height: 4,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        height: 4,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+    ),
+  );
+}
+
+  Widget _buildPlaceholderIcon(ThemeData theme) {
+    return Center(
+      child: Icon(
+        Icons.checkroom_outlined,
+        size: 40,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  void _showItemDetails(BuildContext context, ClothingItem item) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Item Image
+                Container(
+                  width: double.infinity,
+                  height: 250,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                  child: item.metadata != null && item.metadata!['imagePath'] != null
+                      ? Image.asset(
+                          item.metadata!['imagePath'] as String,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildPlaceholderIcon(theme);
+                          },
+                        )
+                      : _buildPlaceholderIcon(theme),
+                ),
+                const SizedBox(height: 20),
+                // Item Name
+                Text(
+                  item.subtype,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Category
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    item.category,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Item Details
+                Text(
+                  'Details',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildDetailRow('Formality', item.attributes.formality, theme),
+                const SizedBox(height: 8),
+                _buildDetailRow('Warmth Level', item.attributes.warmthLevel.toString(), theme),
+                const SizedBox(height: 8),
+                _buildDetailRow('Water Resistance', item.attributes.waterResistance.toString(), theme),
+                const SizedBox(height: 8),
+                _buildDetailRow('Wind Resistance', item.attributes.windResistance.toString(), theme),
+                const SizedBox(height: 8),
+                _buildDetailRow('Breathability', item.attributes.breathability.toString(), theme),
+                const SizedBox(height: 8),
+                _buildDetailRow('Stretch', item.attributes.stretch.toString(), theme),
+                const SizedBox(height: 20),
+                // Materials
+                if (item.attributes.materials.isNotEmpty) ...[
+                  Text(
+                    'Materials',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: item.attributes.materials.map((material) {
+                      return Chip(
+                        label: Text(material),
+                        backgroundColor: theme.colorScheme.secondaryContainer,
+                        labelStyle: TextStyle(
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                // Style Tags
+                if (item.attributes.styleTags.isNotEmpty) ...[
+                  Text(
+                    'Style Tags',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: item.attributes.styleTags.map((tag) {
+                      return Chip(
+                        label: Text(tag),
+                        backgroundColor: theme.colorScheme.tertiaryContainer,
+                        labelStyle: TextStyle(
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                // Usage Constraints
+                Text(
+                  'Weather Suitability',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildDetailRow(
+                  'Temperature Range',
+                  '${item.usageConstraints.weatherMinTemp}°C - ${item.usageConstraints.weatherMaxTemp}°C',
+                  theme,
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, ThemeData theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(height: 8),
-          Container(
-            height: 4,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.outlineVariant,
-              borderRadius: BorderRadius.circular(2),
-            ),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 4),
-          Container(
-            height: 4,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.outlineVariant,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -481,75 +1061,75 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   IconData _getWeatherIconById(int? iconId) {
-  if (iconId == null) return Icons.wb_cloudy_outlined;
+    if (iconId == null) return Icons.wb_cloudy_outlined;
 
-  switch (iconId) {
-    case 1: // sunny
-      return Icons.wb_sunny_outlined;
-    case 2: // sunny, partly/slightly cloudy, need to find a better icon
-      return Icons.wb_sunny_outlined;
-    case 3: // sunny, cloudy, need to find a better icon
-      return Icons.cloud_outlined;
-    case 4: // clouds
-      return Icons.cloud_outlined;
-    case 5: // fog
-      return Icons.blur_on;
-    case 6: // fog, slippery
-      return Icons.blur_on;
-    case 7: // light rain
-      return Icons.water_drop_outlined;
-    case 8: // rain
-      return Icons.umbrella_outlined;
-    case 9: // heavy rain
-      return Icons.water_outlined;
-    case 10: // slight rain, slippery
-      return Icons.water_drop_outlined;
-    case 11: // heavy rain, slippery
-      return Icons.water_outlined;
-    case 12: // rain, occasional snowfall
-      return Icons.umbrella_outlined;
-    case 13: // rain, increased snowfall
-      return Icons.ac_unit_rounded;
-    case 14: // light snowfall
-      return Icons.ac_unit_rounded;
-    case 15: // snowfall
-      return Icons.snowing;
-    case 16: // heavy snowfall
-      return Icons.snowing;
-    case 17: // clouds, (hail)
-      return Icons.cloud;
-    case 18: // sunny, light rain
-      return Icons.wb_sunny_outlined;
-    case 19: // sunny, heavy rain
-      return Icons.wb_sunny_outlined;
-    case 20: // sun, rain, occasional snowfall
-      return Icons.wb_sunny_outlined;
-    case 21: // sun, rain, increased snowfall
-      return Icons.sunny_snowing;
-    case 22: // sunny, occasional snowfall
-      return Icons.wb_sunny_outlined;
-    case 23: // sunny, increased snowfall
-      return Icons.sunny_snowing;
-    case 24: // sunny, (hail)
-      return Icons.sunny_snowing;
-    case 25: // sunny, (heavy hail)
-      return Icons.sunny_snowing;
-    case 26: // thunderstorm
-      return Icons.flash_on;
-    case 27: // thunderstorm, rain
-      return Icons.thunderstorm_outlined;
-    case 28: // thunderstorm, heavy rain
-      return Icons.thunderstorm_outlined;
-    case 29: // thunderstorm, (hail)
-      return Icons.thunderstorm_outlined;
-    case 30: // thunderstorm, (heavy hail)
-      return Icons.thunderstorm_outlined;
-    case 31: // (wind)
-      return Icons.air;
-    default:
-      return Icons.wb_cloudy_outlined;
+    switch (iconId) {
+      case 1:
+        return Icons.wb_sunny_outlined;
+      case 2:
+        return Icons.wb_sunny_outlined;
+      case 3:
+        return Icons.cloud_outlined;
+      case 4:
+        return Icons.cloud_outlined;
+      case 5:
+        return Icons.blur_on;
+      case 6:
+        return Icons.blur_on;
+      case 7:
+        return Icons.water_drop_outlined;
+      case 8:
+        return Icons.umbrella_outlined;
+      case 9:
+        return Icons.water_outlined;
+      case 10:
+        return Icons.water_drop_outlined;
+      case 11:
+        return Icons.water_outlined;
+      case 12:
+        return Icons.umbrella_outlined;
+      case 13:
+        return Icons.ac_unit_rounded;
+      case 14:
+        return Icons.ac_unit_rounded;
+      case 15:
+        return Icons.snowing;
+      case 16:
+        return Icons.snowing;
+      case 17:
+        return Icons.cloud;
+      case 18:
+        return Icons.wb_sunny_outlined;
+      case 19:
+        return Icons.wb_sunny_outlined;
+      case 20:
+        return Icons.wb_sunny_outlined;
+      case 21:
+        return Icons.sunny_snowing;
+      case 22:
+        return Icons.wb_sunny_outlined;
+      case 23:
+        return Icons.sunny_snowing;
+      case 24:
+        return Icons.sunny_snowing;
+      case 25:
+        return Icons.sunny_snowing;
+      case 26:
+        return Icons.flash_on;
+      case 27:
+        return Icons.thunderstorm_outlined;
+      case 28:
+        return Icons.thunderstorm_outlined;
+      case 29:
+        return Icons.thunderstorm_outlined;
+      case 30:
+        return Icons.thunderstorm_outlined;
+      case 31:
+        return Icons.air;
+      default:
+        return Icons.wb_cloudy_outlined;
+    }
   }
-}
 
   String _getWeatherDescription(String? condition) {
     return WeatherConditions.getGermanDescription(
@@ -740,14 +1320,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddActivityDialog(BuildContext context) {
-    ActivityStyle? selectedStyle;
-    ActivityType? selectedType;
+    String? selectedActivityCategory;
+    String? selectedActivitySubcategory;
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final List<String> allSubcategories = _getAllActivitySubcategories();
+
             return AlertDialog(
               title: const Text('Aktivität hinzufügen'),
               content: SingleChildScrollView(
@@ -756,7 +1338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Stil',
+                      'Aktivitäten',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -765,38 +1347,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: ActivityStyle.values.map((style) {
-                        final isSelected = selectedStyle == style;
+                      children: allSubcategories.map((activity) {
+                        final isSelected = selectedActivitySubcategory == activity;
                         return FilterChip(
-                          label: Text(style.displayName),
+                          label: Text(_formatActivityKey(activity)),
                           selected: isSelected,
                           onSelected: (selected) {
                             setDialogState(() {
-                              selectedStyle = selected ? style : null;
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Aktivität',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: ActivityType.values.map((type) {
-                        final isSelected = selectedType == type;
-                        return FilterChip(
-                          label: Text(type.displayName),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setDialogState(() {
-                              selectedType = selected ? type : null;
+                              selectedActivitySubcategory = selected ? activity : null;
                             });
                           },
                         );
@@ -811,20 +1369,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Text('Abbrechen'),
                 ),
                 FilledButton(
-                  onPressed: selectedStyle != null && selectedType != null
+                  onPressed: selectedActivitySubcategory != null
                       ? () {
                           setState(() {
                             _todayActivities.add(
                               Activity(
                                 id: DateTime.now().millisecondsSinceEpoch
                                     .toString(),
-                                name:
-                                    '${selectedStyle!.displayName} - ${selectedType!.displayName}',
-                                style: selectedStyle!,
-                                type: selectedType!,
+                                name: _formatActivityKey(selectedActivitySubcategory!),
+                                style: ActivityStyle.casual,
+                                type: ActivityType.other,
                               ),
                             );
                           });
+                          if (_currentWeather != null) {
+                            _generateOutfit(_currentWeather!);
+                          }
                           Navigator.pop(context);
                         }
                       : null,
@@ -836,6 +1396,66 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  /// Get all subcategories from all activity categories
+  List<String> _getAllActivitySubcategories() {
+    final List<String> allSubcategories = [];
+
+    if (_activitiesData.containsKey('activities')) {
+      final activities = _activitiesData['activities'];
+      if (activities is Map<String, dynamic>) {
+        activities.forEach((category, subcategoriesMap) {
+          if (subcategoriesMap is Map<String, dynamic>) {
+            subcategoriesMap.forEach((group, subList) {
+              if (subList is List) {
+                allSubcategories.addAll(List<String>.from(subList));
+              }
+            });
+          }
+        });
+      }
+    }
+
+    return allSubcategories.toSet().toList(); // Remove duplicates and return
+  }
+  
+
+  /// Get all activity categories from JSON
+  List<String> _getAllActivityCategories() {
+    if (_activitiesData.containsKey('activities')) {
+      final activities = _activitiesData['activities'];
+      if (activities is Map<String, dynamic>) {
+        return activities.keys.toList();
+      }
+    }
+    return [];
+  }
+
+  /// Format activity key to readable string
+  String _formatActivityKey(String key) {
+    return key
+        .split('_')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+  }
+
+  /// Map activity category to ActivityType
+  ActivityType _mapActivityToType(String activityKey) {
+    switch (activityKey.toLowerCase()) {
+      case 'sports':
+        return ActivityType.sport;
+      case 'events':
+        return ActivityType.feiern;
+      case 'outdoor':
+        return ActivityType.spazierengehen;
+      case 'work':
+        return ActivityType.meetings;
+      case 'casual':
+        return ActivityType.other;
+      default:
+        return ActivityType.other;
+    }
   }
 
   Widget _buildWeatherDetail(IconData icon, String value, String label) {

@@ -762,7 +762,7 @@
   "jeans": {
     "attributes": {
       "materials": ["cotton", "elastane", "denim"],
-      "warmth_level": 2,
+      "warmth_level": 4,
       "water_resistance": 0,
       "wind_resistance": 1,
       "breathability": 3,
@@ -772,7 +772,7 @@
       "fit": "Slim"
     },
     "usage_constraints": {
-      "weather_min_temp": 10,
+      "weather_min_temp": -10,
       "weather_max_temp": 30,
       "optimal_activities": ["casual", "walk", "work"],
       "unsuitable_for": ["sports", "swimming"]
