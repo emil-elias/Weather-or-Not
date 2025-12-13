@@ -116,7 +116,10 @@ class _AccountScreenState extends State<AccountScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account'),
-        centerTitle: true,
+        centerTitle: false,
+        titleTextStyle: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+        )
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),

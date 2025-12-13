@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/weather.dart';
 import '../models/forecast.dart';
@@ -249,7 +250,7 @@ class WeatherService {
           stationName: 'DWD Station $stationID',
           stationId: forecast["stationId"] ?? stationID,
           source:
-              'DWD (station $stationID - overview extended forecast)',
+              'DWD (station $stationID)',
           start: forecast['start'] != null
               ? DateTime.fromMillisecondsSinceEpoch(forecast['start'])
               : DateTime(
@@ -442,5 +443,211 @@ class WeatherService {
       condition: ['dry', 'fog', 'rain', 'snow'][random.nextInt(4)],
       timestamp: DateTime.now(),
     );
+  }
+
+  IconData getWeatherIcon(String? condition) {
+    if (condition == null) return Icons.wb_cloudy_outlined;
+
+    final lowerCondition = condition.toLowerCase();
+    if (lowerCondition.contains('sun') || lowerCondition.contains('clear')) {
+      return Icons.wb_sunny_outlined;
+    } else if (lowerCondition.contains('rain')) {
+      return Icons.umbrella_outlined;
+    } else if (lowerCondition.contains('cloud')) {
+      return Icons.cloud_outlined;
+    } else if (lowerCondition.contains('snow')) {
+      return Icons.ac_unit_rounded;
+    }
+    return Icons.wb_cloudy_outlined;
+  }
+
+  IconData getWeatherIconById(int? iconId) {
+    if (iconId == null) return Icons.wb_cloudy_outlined;
+
+    switch (iconId) {
+      case 1: // sunny
+        return Icons.wb_sunny_outlined;
+      case 2: // sunny, partly/slightly cloudy, need to find a better icon
+        return Icons.wb_sunny_outlined;
+      case 3: // sunny, cloudy, need to find a better icon
+        return Icons.cloud_outlined;
+      case 4: // clouds
+        return Icons.cloud_outlined;
+      case 5: // fog
+        return Icons.blur_on;
+      case 6: // fog, slippery
+        return Icons.blur_on;
+      case 7: // light rain
+        return Icons.water_drop_outlined;
+      case 8: // rain
+        return Icons.umbrella_outlined;
+      case 9: // heavy rain
+        return Icons.water_outlined;
+      case 10: // slight rain, slippery
+        return Icons.water_drop_outlined;
+      case 11: // heavy rain, slippery
+        return Icons.water_outlined;
+      case 12: // rain, occasional snowfall
+        return Icons.umbrella_outlined;
+      case 13: // rain, increased snowfall
+        return Icons.ac_unit_rounded;
+      case 14: // light snowfall
+        return Icons.ac_unit_rounded;
+      case 15: // snowfall
+        return Icons.snowing;
+      case 16: // heavy snowfall
+        return Icons.snowing;
+      case 17: // clouds, (hail)
+        return Icons.cloud;
+      case 18: // sunny, light rain
+        return Icons.wb_sunny_outlined;
+      case 19: // sunny, heavy rain
+        return Icons.wb_sunny_outlined;
+      case 20: // sun, rain, occasional snowfall
+        return Icons.wb_sunny_outlined;
+      case 21: // sun, rain, increased snowfall
+        return Icons.sunny_snowing;
+      case 22: // sunny, occasional snowfall
+        return Icons.wb_sunny_outlined;
+      case 23: // sunny, increased snowfall
+        return Icons.sunny_snowing;
+      case 24: // sunny, (hail)
+        return Icons.sunny_snowing;
+      case 25: // sunny, (heavy hail)
+        return Icons.sunny_snowing;
+      case 26: // thunderstorm
+        return Icons.flash_on;
+      case 27: // thunderstorm, rain
+        return Icons.thunderstorm_outlined;
+      case 28: // thunderstorm, heavy rain
+        return Icons.thunderstorm_outlined;
+      case 29: // thunderstorm, (hail)
+        return Icons.thunderstorm_outlined;
+      case 30: // thunderstorm, (heavy hail)
+        return Icons.thunderstorm_outlined;
+      case 31: // (wind)
+        return Icons.air;
+      default:
+        return Icons.wb_cloudy_outlined;
+    }
+  }
+
+  
+
+  String getWeatherDescriptionById(int? iconId) {
+    String condition;
+    switch (iconId) {
+      case 1:
+        condition = 'Sunny';
+        break;
+      case 2:
+        condition = 'Partly cloudy';
+        break;
+      case 3:
+        condition = 'Cloudy';
+        break;
+      case 4:
+        condition = 'Overcast';
+        break;
+      case 5:
+        condition = 'Fog';
+        break;
+      case 6:
+        condition = 'Foggy';
+        break;
+      case 7:
+        condition = 'Light rain';
+        break;
+      case 8:
+        condition = 'Rain';
+        break;
+      case 9:
+        condition = 'Heavy rain';
+        break;
+      case 10:
+        condition = 'Light rain, slippery';
+        break;
+      case 11:
+        condition = 'Heavy rain, slippery';
+        break;
+      case 12:
+        condition = 'Rain, occasional snowfall';
+        break;
+      case 13:
+        condition = 'Rain, increased snowfall';
+        break;
+      case 14:
+        condition = 'Light snowfall';
+        break;
+      case 15:
+        condition = 'Snowfall';
+        break;
+      case 16:
+        condition = 'Heavy snowfall';
+        break;
+      case 17:
+        condition = 'Clouds, hail';
+        break;
+      case 18:
+        condition = 'Sunny, light rain';
+        break;
+      case 19:
+        condition = 'Sunny, heavy rain';
+        break;
+      case 20:
+        condition = 'Sun, rain, occasional snowfall';
+        break;
+      case 21:
+        condition = 'Sun, rain, increased snowfall';
+        break;
+      case 22:
+        condition = 'Sunny, occasional snowfall';
+        break;
+      case 23:
+        condition = 'Sunny, increased snowfall';
+        break;
+      case 24:
+        condition = 'Sunny, hail';
+        break;
+      case 25:
+        condition = 'Sunny, heavy hail';
+        break;
+      case 26:
+        condition = 'Thunderstorm';
+        break;
+      case 27:
+        condition = 'Thunderstorm, rain';
+        break;
+      case 28:
+        condition = 'Thunderstorm, heavy rain';
+        break;
+      case 29:
+        condition = 'Thunderstorm, hail';
+        break;
+      case 30:
+        condition = 'Thunderstorm, heavy hail';
+        break;
+      case 31:
+        condition = 'Windy';
+        break;
+      default:
+        condition = '';
+        break;
+    }
+
+    return condition;
+  }
+
+  List<Color> getGradientColors() {
+    final hour = DateTime.now().hour;
+    if (hour >= 6 && hour < 12) {
+      return [Color(0xFF4A90E2), Color(0xFF50C9FF)]; // Morning
+    } else if (hour >= 12 && hour < 18) {
+      return [Color(0xFF56CCF2), Color(0xFF2F80ED)]; // Afternoon
+    } else if (hour >= 18 && hour < 21) {
+      return [Color(0xFFFF6B6B), Color(0xFFFFB347)]; // Evening
+    } else {
+      return [Color(0xFF2C3E50), Color(0xFF3E5266)]; // Night
+    }
   }
 }

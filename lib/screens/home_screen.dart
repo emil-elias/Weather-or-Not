@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:weatherornot/models/forecast.dart';
+import 'package:weatherornot/screens/weather_screen.dart';
 import 'package:weatherornot/services/outfit_generator.dart';
 import 'package:weatherornot/providers/main_provider.dart';
+import 'package:weatherornot/widgets/location_dropdown.dart';
+import 'package:weatherornot/widgets/weather_card.dart';
 import '../services/weather_service.dart';
 import '../services/wardrobe_service.dart';
 import '../models/weather.dart';
@@ -24,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
   final WardrobeService _wardrobeService = WardrobeService();
-  
+
   final LocationService _locationService = LocationService();
 
   MainProvider _provider = MainProvider();
@@ -33,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Weather? _currentWeather;
   Forecast? _forecast;
   Outfit? _generatedOutfit;
-  bool _isLoading = false;
+  bool _isLoading = true;
   String? _errorMessage;
   Map<String, dynamic> _subtypesAttributesData = {};
   // Activities loaded from JSON
@@ -56,17 +59,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _isLoading = true;
     _loadActivitiesFromAssets();
-    _loadSubtypesAttributesFromAssets();  // Add this line
+    _loadSubtypesAttributesFromAssets(); // Add this line
     _loadWeather();
   }
 
   /// Load activities from assets/activities.json
   Future<void> _loadActivitiesFromAssets() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/activities.json');
+      final String jsonString = await rootBundle.loadString(
+        'assets/activities.json',
+      );
       final jsonData = jsonDecode(jsonString);
-      
+
       setState(() {
         _activitiesData = jsonData;
       });
@@ -82,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _updateAvailableActivities() async {
     try {
       final wardrobeItems = await _wardrobeService.getWardrobeItems();
-      
+
       if (wardrobeItems.isEmpty) {
         setState(() {
           _availableActivities = [];
@@ -122,24 +128,27 @@ class _HomeScreenState extends State<HomeScreen> {
     };
 
     // Check for sport shoes or sportswear -> add sports activities
-    final hasSportEquipment = wardrobeCategories.any((cat) => 
-        cat.contains('sport') || cat.contains('gym'));
+    final hasSportEquipment = wardrobeCategories.any(
+      (cat) => cat.contains('sport') || cat.contains('gym'),
+    );
 
     if (hasSportEquipment) {
       relevantActivities.add('sports');
     }
 
     // Check for formal/dress shoes -> add events
-    final hasFormalShoes = wardrobeCategories.any((cat) => 
-        cat.contains('dress') || cat.contains('formal'));
+    final hasFormalShoes = wardrobeCategories.any(
+      (cat) => cat.contains('dress') || cat.contains('formal'),
+    );
 
     if (hasFormalShoes) {
       relevantActivities.add('events');
     }
 
     // Check for outdoor/technical gear -> add outdoor
-    final hasOutdoorGear = wardrobeCategories.any((cat) => 
-        cat.contains('technical') || cat.contains('hiking'));
+    final hasOutdoorGear = wardrobeCategories.any(
+      (cat) => cat.contains('technical') || cat.contains('hiking'),
+    );
 
     if (hasOutdoorGear) {
       relevantActivities.add('outdoor');
@@ -157,7 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (_activitiesData.containsKey('activities') &&
         _activitiesData['activities'].containsKey(activityKey)) {
-      final Map<String, dynamic> activityGroups = _activitiesData['activities'][activityKey];
+      final Map<String, dynamic> activityGroups =
+          _activitiesData['activities'][activityKey];
       activityGroups.forEach((group, subList) {
         if (subList is List) {
           subcategories.addAll(List<String>.from(subList));
@@ -198,13 +208,15 @@ class _HomeScreenState extends State<HomeScreen> {
       print(forecast.days);
 
       // Generate outfit with weather and activities
-      await _generateOutfit(weather);
+      
 
       setState(() {
         _currentWeather = weather;
         _forecast = forecast;
         _isLoading = false;
       });
+
+      await _generateOutfit(weather);
     } catch (e) {
       setState(() {
         _errorMessage = 'Wetter konnte nicht geladen werden';
@@ -249,12 +261,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-/// Load subtypes attributes from assets/subtypes_attributes.json
+  /// Load subtypes attributes from assets/subtypes_attributes.json
   Future<void> _loadSubtypesAttributesFromAssets() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/subtypes_attributes.json');
+      final String jsonString = await rootBundle.loadString(
+        'assets/subtypes_attributes.json',
+      );
       final jsonData = jsonDecode(jsonString);
-      
+
       setState(() {
         _subtypesAttributesData = jsonData;
       });
@@ -263,88 +277,96 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
- 
   /// Convert WardrobeItem to ClothingItem for the outfit engine
-/// Uses attributes from subtypes_attributes.json if available
-List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
-  return wardrobeItems.map((item) {
-    // Raw values from stored WardrobeItem
-    final rawCategory = (item.category ?? '').toString().toLowerCase();
-    final rawSubtype = (item.subcategory ?? '').toString().toLowerCase();
-    final name = item.name ?? '';
-    final imagePath = item.imagePath;
+  /// Uses attributes from subtypes_attributes.json if available
+  List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
+    return wardrobeItems.map((item) {
+      // Raw values from stored WardrobeItem
+      final rawCategory = (item.category ?? '').toString().toLowerCase();
+      final rawSubtype = (item.subcategory ?? '').toString().toLowerCase();
+      final name = item.name ?? '';
+      final imagePath = item.imagePath;
 
-    // Try to look up attributes from JSON using the subcategory as key
-    Map<String, dynamic>? foundSubtypeData = _subtypesAttributesData[rawSubtype];
-    
-    // If not found, try normalizing spaces/hyphens to underscores
-    if (foundSubtypeData == null) {
-      final normalizedSubtype = rawSubtype.replaceAll(' ', '_').replaceAll('-', '_');
-      foundSubtypeData = _subtypesAttributesData[normalizedSubtype];
-      
-      if (foundSubtypeData != null) {
-        print('Found subtype via normalization: "$rawSubtype" -> "$normalizedSubtype"');
+      // Try to look up attributes from JSON using the subcategory as key
+      Map<String, dynamic>? foundSubtypeData =
+          _subtypesAttributesData[rawSubtype];
+
+      // If not found, try normalizing spaces/hyphens to underscores
+      if (foundSubtypeData == null) {
+        final normalizedSubtype = rawSubtype
+            .replaceAll(' ', '_')
+            .replaceAll('-', '_');
+        foundSubtypeData = _subtypesAttributesData[normalizedSubtype];
+
+        if (foundSubtypeData != null) {
+          print(
+            'Found subtype via normalization: "$rawSubtype" -> "$normalizedSubtype"',
+          );
+        }
       }
-    }
 
-    // If still not found, log a warning
-    if (foundSubtypeData == null) {
-      print('Warning: Subtype "$rawSubtype" not found in subtypes_attributes.json (tried normalized: ${rawSubtype.replaceAll(' ', '_').replaceAll('-', '_')}), using defaults');
-    } else {
-      print('Loaded attributes for "$rawSubtype" from JSON');
-    }
+      // If still not found, log a warning
+      if (foundSubtypeData == null) {
+        print(
+          'Warning: Subtype "$rawSubtype" not found in subtypes_attributes.json (tried normalized: ${rawSubtype.replaceAll(' ', '_').replaceAll('-', '_')}), using defaults',
+        );
+      } else {
+        print('Loaded attributes for "$rawSubtype" from JSON');
+      }
 
-    // Extract attributes from JSON or use defaults
-    final attributesData = foundSubtypeData?['attributes'] ?? {};
-    final usageConstraintsData = foundSubtypeData?['usage_constraints'] ?? {};
+      // Extract attributes from JSON or use defaults
+      final attributesData = foundSubtypeData?['attributes'] ?? {};
+      final usageConstraintsData = foundSubtypeData?['usage_constraints'] ?? {};
 
-    // Parse attributes with fallback defaults
-    final materials = List<String>.from(attributesData['materials'] ?? []);
-    final warmthLevel = attributesData['warmth_level'] ?? 5;
-    final waterResistance = attributesData['water_resistance'] ?? 5;
-    final windResistance = attributesData['wind_resistance'] ?? 5;
-    final breathability = attributesData['breathability'] ?? 5;
-    final stretch = attributesData['stretch'] ?? 5;
-    final formality = attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
-    final styleTags = List<String>.from(attributesData['style_tags'] ?? []);
-    final fit = attributesData['fit'] ?? 'regular';
+      // Parse attributes with fallback defaults
+      final materials = List<String>.from(attributesData['materials'] ?? []);
+      final warmthLevel = attributesData['warmth_level'] ?? 5;
+      final waterResistance = attributesData['water_resistance'] ?? 5;
+      final windResistance = attributesData['wind_resistance'] ?? 5;
+      final breathability = attributesData['breathability'] ?? 5;
+      final stretch = attributesData['stretch'] ?? 5;
+      final formality =
+          attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
+      final styleTags = List<String>.from(attributesData['style_tags'] ?? []);
+      final fit = attributesData['fit'] ?? 'regular';
 
-    // Parse usage constraints with fallback defaults
-    final weatherMinTemp = usageConstraintsData['weather_min_temp'] ?? -40;
-    final weatherMaxTemp = usageConstraintsData['weather_max_temp'] ?? 45;
-    final optimalActivities = List<String>.from(usageConstraintsData['optimal_activities'] ?? ['daily', 'casual']);
-    final unsuitableFor = List<String>.from(usageConstraintsData['unsuitable_for'] ?? []);
+      // Parse usage constraints with fallback defaults
+      final weatherMinTemp = usageConstraintsData['weather_min_temp'] ?? -40;
+      final weatherMaxTemp = usageConstraintsData['weather_max_temp'] ?? 45;
+      final optimalActivities = List<String>.from(
+        usageConstraintsData['optimal_activities'] ?? ['daily', 'casual'],
+      );
+      final unsuitableFor = List<String>.from(
+        usageConstraintsData['unsuitable_for'] ?? [],
+      );
 
-    // Build ClothingItem using data from JSON
-    return ClothingItem(
-      id: item.id,
-      category: rawCategory,
-      subtype: rawSubtype,
-      attributes: ClothingAttributes(
-        materials: materials,
-        warmthLevel: warmthLevel,
-        waterResistance: waterResistance,
-        windResistance: windResistance,
-        breathability: breathability,
-        stretch: stretch,
-        formality: formality,
-        styleTags: styleTags,
-        fit: fit,
-      ),
-      usageConstraints: UsageConstraints(
-        weatherMinTemp: weatherMinTemp,
-        weatherMaxTemp: weatherMaxTemp,
-        optimalActivities: optimalActivities,
-        unsuitableFor: unsuitableFor,
-      ),
-      extractedColors: [],
-      metadata: {
-        'imagePath': imagePath,
-        'name': name,
-      },
-    );
-  }).toList();
-}
+      // Build ClothingItem using data from JSON
+      return ClothingItem(
+        id: item.id,
+        category: rawCategory,
+        subtype: rawSubtype,
+        attributes: ClothingAttributes(
+          materials: materials,
+          warmthLevel: warmthLevel,
+          waterResistance: waterResistance,
+          windResistance: windResistance,
+          breathability: breathability,
+          stretch: stretch,
+          formality: formality,
+          styleTags: styleTags,
+          fit: fit,
+        ),
+        usageConstraints: UsageConstraints(
+          weatherMinTemp: weatherMinTemp,
+          weatherMaxTemp: weatherMaxTemp,
+          optimalActivities: optimalActivities,
+          unsuitableFor: unsuitableFor,
+        ),
+        extractedColors: [],
+        metadata: {'imagePath': imagePath, 'name': name},
+      );
+    }).toList();
+  }
 
   /// Estimate warmth level from formality level
   int _getWarmthLevel(String formalityLevel) {
@@ -378,6 +400,8 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final GlobalKey<NavigatorState> _homeNavigatorKey =
+        GlobalKey<NavigatorState>();
 
     _provider = context.watch<MainProvider>();
 
@@ -390,498 +414,379 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
+      body: Navigator(
+        key: _homeNavigatorKey,
+        onGenerateRoute: (settings) => MaterialPageRoute(
+          builder: (_) => SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Title
+                      Text(
+                        'Today',
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      LocationDropdown(
+                        selectedLocation: _selectedLocation,
+                        locations: _locations,
+                        onLocationChanged: _onLocationChanged,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  WeatherCard(
+                    isLoading: _isLoading,
+                    errorMessage: _errorMessage,
+                    currentWeather: _currentWeather,
+                    forecast: _forecast,
+                    onTap: () {
+                      _homeNavigatorKey.currentState?.push(
+                        MaterialPageRoute(
+                          builder: (_) => const WeatherScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Add activities button
+                  GestureDetector(
+                    onTap: () => _showAddActivityDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.show_chart_rounded,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Add activities for today',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              size: 20,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Activities list
+                  // Activities list
+                  if (_todayActivities.isNotEmpty) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _todayActivities.map((activity) {
+                        return Chip(
+                          label: Text(activity.name),
+                          deleteIcon: const Icon(Icons.close, size: 18),
+                          onDeleted: () {
+                            setState(() {
+                              _todayActivities.remove(activity);
+                            });
+                            // Regenerate outfit when activity is removed
+                            if (_currentWeather != null) {
+                              _generateOutfit(_currentWeather!);
+                            }
+                          },
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          labelStyle: TextStyle(
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Your outfit section
                   Text(
-                    'Today',
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    'Your outfit',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Location Dropdown
-                  GestureDetector(
-                    onTap: () => _showLocationPicker(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: theme.colorScheme.outlineVariant,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 20,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _selectedLocation,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            size: 20,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ],
+                  // Generate Outfit Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _currentWeather != null
+                          ? () => _generateOutfit(_currentWeather!)
+                          : null,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Generate New Outfit'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
-                ],
-              ),
+                  const SizedBox(height: 16),
 
-              const SizedBox(height: 24),
-
-              // Weather Card
-              if (_isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (_errorMessage != null)
-                Center(
-                  child: Text(
-                    _errorMessage!,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-                )
-              else if (_currentWeather != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF6B9FFF),
-                        const Color(0xFF5855D6),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF5855D6).withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Weather Icon and Temperature
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Weather Icon
-                          Icon(
-                            _currentWeather!.icon != null
-                                ? _getWeatherIconById(_currentWeather!.icon)
-                                : _getWeatherIcon(_currentWeather!.condition),
-                            size: 80,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 16),
-                          // Temperature
-                          Text(
-                            '${_currentWeather!.temperature?.toStringAsFixed(0) ?? '--'}°',
-                            style: const TextStyle(
-                              fontSize: 72,
-                              fontWeight: FontWeight.w300,
-                              color: Colors.white,
-                              height: 1,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          // High/Low
-                          const Icon(
-                            Icons.arrow_upward_rounded,
-                            size: 16,
-                            color: Color(0xFF4AFF8C),
-                          ),
-                          Text(
-                            ' ${((_forecast?.days?.isNotEmpty == true ? (_forecast!.days![0].maxTemperature ?? _currentWeather!.temperature ?? 0) : (_currentWeather!.temperature ?? 0))).toStringAsFixed(0)}°',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF4AFF8C),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Icon(
-                            Icons.arrow_downward_rounded,
-                            size: 16,
-                            color: Color(0xFFFF6B6B),
-                          ),
-                          Text(
-                            ' ${((_forecast?.days?.isNotEmpty == true ? (_forecast!.days![0].minTemperature ?? _currentWeather!.temperature ?? 0) : (_currentWeather!.temperature ?? 0))).toStringAsFixed(0)}°',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFFFF6B6B),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Arrow
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white70,
-                            size: 28,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      // Weather description
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
+                  // Outfit cards - Display all pieces
+                  // Outfit cards - Display all pieces (Outerwear → Shirt/Pullover → Bottom → Shoes)
+                  if (_generatedOutfit != null)
+                    Column(
+                      children: [
+                        // Outerwear (top)
+                        _buildOutfitCard(
+                          context,
+                          _generatedOutfit!.outerwear,
+                          label: 'Outerwear',
+                          isLarge: true,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 16),
+                        // Shirt and Pullover row
+                        Row(
                           children: [
-                            Text(
-                              _currentWeather!.icon != null
-                                  ? _getWeatherDescriptionById(
-                                      _currentWeather!.icon,
-                                    )
-                                  : _getWeatherDescription(
-                                      _currentWeather!.condition,
-                                    ),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: _buildOutfitCard(
+                                context,
+                                _generatedOutfit!.shirt,
+                                label: 'Shirt',
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildWeatherDetail(
-                                  Icons.water_drop_outlined,
-                                  '${_currentWeather!.humidity ?? '--'}%',
-                                  'Luftfeuchtigkeit',
-                                ),
-                                _buildWeatherDetail(
-                                  Icons.air_outlined,
-                                  '${_currentWeather!.windSpeed?.toStringAsFixed(1) ?? '--'} km/h',
-                                  'Wind',
-                                ),
-                                _buildWeatherDetail(
-                                  Icons.cloud_outlined,
-                                  '${_currentWeather!.cloudCover ?? '--'}%',
-                                  'Bewölkung',
-                                ),
-                              ],
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildOutfitCard(
+                                context,
+                                _generatedOutfit!.pullover,
+                                label: 'Pullover',
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      //Source
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Quelle: ${_currentWeather!.source}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                        const SizedBox(height: 16),
+                        // Bottom
+                        _buildOutfitCard(
+                          context,
+                          _generatedOutfit!.bottom,
+                          label: 'Bottom',
+                          isLarge: true,
+                        ),
+                        const SizedBox(height: 16),
+                        // Shoes
+                        _buildOutfitCard(
+                          context,
+                          _generatedOutfit!.shoes,
+                          label: 'Shoes',
+                          isLarge: true,
+                        ),
+                      ],
+                    )
+                  else
+                    Column(
+                      children: [
+                        _buildOutfitCard(
+                          context,
+                          null,
+                          label: 'Outerwear',
+                          isLarge: true,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildOutfitCard(
+                                context,
+                                null,
+                                label: 'Shirt',
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 16),
-
-              // Add activities button
-              GestureDetector(
-                onTap: () => _showAddActivityDialog(context),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest
-                        .withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.show_chart_rounded,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Add activities for today',
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildOutfitCard(
+                                context,
+                                null,
+                                label: 'Pullover',
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Icon(
-                          Icons.add,
-                          size: 20,
-                          color: theme.colorScheme.onSurface,
+                        const SizedBox(height: 16),
+                        _buildOutfitCard(
+                          context,
+                          null,
+                          label: 'Bottom',
+                          isLarge: true,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Activities list
-              // Activities list
-              if (_todayActivities.isNotEmpty) ...[
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _todayActivities.map((activity) {
-                    return Chip(
-                      label: Text(activity.name),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                      onDeleted: () {
-                        setState(() {
-                          _todayActivities.remove(activity);
-                        });
-                        // Regenerate outfit when activity is removed
-                        if (_currentWeather != null) {
-                          _generateOutfit(_currentWeather!);
-                        }
-                      },
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      labelStyle: TextStyle(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 24),
-              ],
-
-              // Your outfit section
-              Text(
-                'Your outfit',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Generate Outfit Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _currentWeather != null
-                      ? () => _generateOutfit(_currentWeather!)
-                      : null,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Generate New Outfit'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-                           // Outfit cards - Display all pieces
-                            // Outfit cards - Display all pieces (Outerwear → Shirt/Pullover → Bottom → Shoes)
-              if (_generatedOutfit != null)
-                Column(
-                  children: [
-                    // Outerwear (top)
-                    _buildOutfitCard(context, _generatedOutfit!.outerwear, label: 'Outerwear', isLarge: true),
-                    const SizedBox(height: 16),
-                    // Shirt and Pullover row
-                    Row(
-                      children: [
-                        Expanded(child: _buildOutfitCard(context, _generatedOutfit!.shirt, label: 'Shirt')),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildOutfitCard(context, _generatedOutfit!.pullover, label: 'Pullover')),
+                        const SizedBox(height: 16),
+                        _buildOutfitCard(
+                          context,
+                          null,
+                          label: 'Shoes',
+                          isLarge: true,
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    // Bottom
-                    _buildOutfitCard(context, _generatedOutfit!.bottom, label: 'Bottom', isLarge: true),
-                    const SizedBox(height: 16),
-                    // Shoes
-                    _buildOutfitCard(context, _generatedOutfit!.shoes, label: 'Shoes', isLarge: true),
-                  ],
-                )
-              else
-                Column(
-                  children: [
-                    _buildOutfitCard(context, null, label: 'Outerwear', isLarge: true),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(child: _buildOutfitCard(context, null, label: 'Shirt')),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildOutfitCard(context, null, label: 'Pullover')),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _buildOutfitCard(context, null, label: 'Bottom', isLarge: true),
-                    const SizedBox(height: 16),
-                    _buildOutfitCard(context, null, label: 'Shoes', isLarge: true),
-                  ],
-                ),
-              const SizedBox(height: 24),
-            ],
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildOutfitCard(BuildContext context, ClothingItem? item, {bool isLarge = false, String label = ''}) {
-  final theme = Theme.of(context);
-  return GestureDetector(
-    onTap: item != null
-        ? () => _showItemDetails(context, item)
-        : null,
-    child: Container(
-      height: isLarge ? 180 : 160,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: item != null
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Item Image
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: theme.colorScheme.surfaceContainerHighest,
+  Widget _buildOutfitCard(
+    BuildContext context,
+    ClothingItem? item, {
+    bool isLarge = false,
+    String label = '',
+  }) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: item != null ? () => _showItemDetails(context, item) : null,
+      child: Container(
+        height: isLarge ? 180 : 160,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: item != null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Item Image
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: theme.colorScheme.surfaceContainerHighest,
+                      ),
+                      child:
+                          item.metadata != null &&
+                              item.metadata!['imagePath'] != null
+                          ? Image.asset(
+                              item.metadata!['imagePath'] as String,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildPlaceholderIcon(theme);
+                              },
+                            )
+                          : _buildPlaceholderIcon(theme),
                     ),
-                    child: item.metadata != null && item.metadata!['imagePath'] != null
-                        ? Image.asset(
-                            item.metadata!['imagePath'] as String,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildPlaceholderIcon(theme);
-                            },
-                          )
-                        : _buildPlaceholderIcon(theme),
                   ),
-                ),
-                const SizedBox(height: 8),
-                // Item details: Name, Category, Subcategory
-                Column(
-                  children: [
-                    // Item Name
-                    Text(
-                      item.metadata?['name'] as String? ?? item.subtype,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    // Category & Subcategory
-                    Text(
-                      '${item.category} • ${item.subtype}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    // Label (e.g., "Shirt", "Outerwear")
-                    if (label.isNotEmpty)
+                  const SizedBox(height: 8),
+                  // Item details: Name, Category, Subcategory
+                  Column(
+                    children: [
+                      // Item Name
                       Text(
-                        label,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                        item.metadata?['name'] as String? ?? item.subtype,
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                         textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                  ],
-                ),
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.checkroom_outlined,
-                  size: 32,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: 8),
-                if (label.isNotEmpty)
-                  Text(
-                    label,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  )
-                else
-                  Column(
-                    children: [
-                      Container(
-                        height: 4,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(2),
+                      const SizedBox(height: 2),
+                      // Category & Subcategory
+                      Text(
+                        '${item.category} • ${item.subtype}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Container(
-                        height: 4,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(2),
+                      const SizedBox(height: 2),
+                      // Label (e.g., "Shirt", "Outerwear")
+                      if (label.isNotEmpty)
+                        Text(
+                          label,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
                     ],
                   ),
-              ],
-            ),
-    ),
-  );
-}
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.checkroom_outlined,
+                    size: 32,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 8),
+                  if (label.isNotEmpty)
+                    Text(
+                      label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                  else
+                    Column(
+                      children: [
+                        Container(
+                          height: 4,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          height: 4,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+      ),
+    );
+  }
 
   Widget _buildPlaceholderIcon(ThemeData theme) {
     return Center(
@@ -916,7 +821,9 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                     borderRadius: BorderRadius.circular(16),
                     color: theme.colorScheme.surfaceContainerHighest,
                   ),
-                  child: item.metadata != null && item.metadata!['imagePath'] != null
+                  child:
+                      item.metadata != null &&
+                          item.metadata!['imagePath'] != null
                       ? Image.asset(
                           item.metadata!['imagePath'] as String,
                           fit: BoxFit.cover,
@@ -964,15 +871,35 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                 const SizedBox(height: 12),
                 _buildDetailRow('Formality', item.attributes.formality, theme),
                 const SizedBox(height: 8),
-                _buildDetailRow('Warmth Level', item.attributes.warmthLevel.toString(), theme),
+                _buildDetailRow(
+                  'Warmth Level',
+                  item.attributes.warmthLevel.toString(),
+                  theme,
+                ),
                 const SizedBox(height: 8),
-                _buildDetailRow('Water Resistance', item.attributes.waterResistance.toString(), theme),
+                _buildDetailRow(
+                  'Water Resistance',
+                  item.attributes.waterResistance.toString(),
+                  theme,
+                ),
                 const SizedBox(height: 8),
-                _buildDetailRow('Wind Resistance', item.attributes.windResistance.toString(), theme),
+                _buildDetailRow(
+                  'Wind Resistance',
+                  item.attributes.windResistance.toString(),
+                  theme,
+                ),
                 const SizedBox(height: 8),
-                _buildDetailRow('Breathability', item.attributes.breathability.toString(), theme),
+                _buildDetailRow(
+                  'Breathability',
+                  item.attributes.breathability.toString(),
+                  theme,
+                ),
                 const SizedBox(height: 8),
-                _buildDetailRow('Stretch', item.attributes.stretch.toString(), theme),
+                _buildDetailRow(
+                  'Stretch',
+                  item.attributes.stretch.toString(),
+                  theme,
+                ),
                 const SizedBox(height: 20),
                 // Materials
                 if (item.attributes.materials.isNotEmpty) ...[
@@ -1064,206 +991,6 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
     );
   }
 
-  IconData _getWeatherIcon(String? condition) {
-    if (condition == null) return Icons.wb_cloudy_outlined;
-
-    final lowerCondition = condition.toLowerCase();
-    if (lowerCondition.contains('sun') || lowerCondition.contains('clear')) {
-      return Icons.wb_sunny_outlined;
-    } else if (lowerCondition.contains('rain')) {
-      return Icons.umbrella_outlined;
-    } else if (lowerCondition.contains('cloud')) {
-      return Icons.cloud_outlined;
-    } else if (lowerCondition.contains('snow')) {
-      return Icons.ac_unit_rounded;
-    }
-    return Icons.wb_cloudy_outlined;
-  }
-
-  IconData _getWeatherIconById(int? iconId) {
-    if (iconId == null) return Icons.wb_cloudy_outlined;
-
-    switch (iconId) {
-      case 1: // sunny
-        return Icons.wb_sunny_outlined;
-      case 2: // sunny, partly/slightly cloudy, need to find a better icon
-        return Icons.wb_sunny_outlined;
-      case 3: // sunny, cloudy, need to find a better icon
-        return Icons.cloud_outlined;
-      case 4: // clouds
-        return Icons.cloud_outlined;
-      case 5: // fog
-        return Icons.blur_on;
-      case 6: // fog, slippery
-        return Icons.blur_on;
-      case 7: // light rain
-        return Icons.water_drop_outlined;
-      case 8: // rain
-        return Icons.umbrella_outlined;
-      case 9: // heavy rain
-        return Icons.water_outlined;
-      case 10: // slight rain, slippery
-        return Icons.water_drop_outlined;
-      case 11: // heavy rain, slippery
-        return Icons.water_outlined;
-      case 12: // rain, occasional snowfall
-        return Icons.umbrella_outlined;
-      case 13: // rain, increased snowfall
-        return Icons.ac_unit_rounded;
-      case 14: // light snowfall
-        return Icons.ac_unit_rounded;
-      case 15: // snowfall
-        return Icons.snowing;
-      case 16: // heavy snowfall
-        return Icons.snowing;
-      case 17: // clouds, (hail)
-        return Icons.cloud;
-      case 18: // sunny, light rain
-        return Icons.wb_sunny_outlined;
-      case 19: // sunny, heavy rain
-        return Icons.wb_sunny_outlined;
-      case 20: // sun, rain, occasional snowfall
-        return Icons.wb_sunny_outlined;
-      case 21: // sun, rain, increased snowfall
-        return Icons.sunny_snowing;
-      case 22: // sunny, occasional snowfall
-        return Icons.wb_sunny_outlined;
-      case 23: // sunny, increased snowfall
-        return Icons.sunny_snowing;
-      case 24: // sunny, (hail)
-        return Icons.sunny_snowing;
-      case 25: // sunny, (heavy hail)
-        return Icons.sunny_snowing;
-      case 26: // thunderstorm
-        return Icons.flash_on;
-      case 27: // thunderstorm, rain
-        return Icons.thunderstorm_outlined;
-      case 28: // thunderstorm, heavy rain
-        return Icons.thunderstorm_outlined;
-      case 29: // thunderstorm, (hail)
-        return Icons.thunderstorm_outlined;
-      case 30: // thunderstorm, (heavy hail)
-        return Icons.thunderstorm_outlined;
-      case 31: // (wind)
-        return Icons.air;
-      default:
-        return Icons.wb_cloudy_outlined;
-    }
-  }
-
-  String _getWeatherDescription(String? condition) {
-    return WeatherConditions.getGermanDescription(
-      condition,
-      temperature: _currentWeather?.temperature,
-      windSpeed: _currentWeather?.windSpeed,
-      cloudCover: _currentWeather?.cloudCover,
-    );
-  }
-
-  String _getWeatherDescriptionById(int? iconId) {
-    String condition;
-    switch (iconId) {
-      case 1:
-        condition = 'sunny';
-        break;
-      case 2:
-        condition = 'partly cloudy';
-        break;
-      case 3:
-        condition = 'cloudy';
-        break;
-      case 4:
-        condition = 'overcast';
-        break;
-      case 5:
-        condition = 'fog';
-        break;
-      case 6:
-        condition = 'foggy';
-        break;
-      case 7:
-        condition = 'light rain';
-        break;
-      case 8:
-        condition = 'rain';
-        break;
-      case 9:
-        condition = 'heavy rain';
-        break;
-      case 10:
-        condition = 'light rain, slippery';
-        break;
-      case 11:
-        condition = 'heavy rain, slippery';
-        break;
-      case 12:
-        condition = 'rain, occasional snowfall';
-        break;
-      case 13:
-        condition = 'rain, increased snowfall';
-        break;
-      case 14:
-        condition = 'light snowfall';
-        break;
-      case 15:
-        condition = 'snowfall';
-        break;
-      case 16:
-        condition = 'heavy snowfall';
-        break;
-      case 17:
-        condition = 'clouds, hail';
-        break;
-      case 18:
-        condition = 'sunny, light rain';
-        break;
-      case 19:
-        condition = 'sunny, heavy rain';
-        break;
-      case 20:
-        condition = 'sun, rain, occasional snowfall';
-        break;
-      case 21:
-        condition = 'sun, rain, increased snowfall';
-        break;
-      case 22:
-        condition = 'sunny, occasional snowfall';
-        break;
-      case 23:
-        condition = 'sunny, increased snowfall';
-        break;
-      case 24:
-        condition = 'sunny, hail';
-        break;
-      case 25:
-        condition = 'sunny, heavy hail';
-        break;
-      case 26:
-        condition = 'thunderstorm';
-        break;
-      case 27:
-        condition = 'thunderstorm, rain';
-        break;
-      case 28:
-        condition = 'thunderstorm, heavy rain';
-        break;
-      case 29:
-        condition = 'thunderstorm, hail';
-        break;
-      case 30:
-        condition = 'thunderstorm, heavy hail';
-        break;
-      case 31:
-        condition = 'windy';
-        break;
-      default:
-        condition = 'unknown';
-        break;
-    }
-
-    return condition;
-  }
-
   void _showLocationPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -1348,7 +1075,8 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final List<String> allSubcategories = _getAllActivitySubcategories();
+            final List<String> allSubcategories =
+                _getAllActivitySubcategories();
 
             return AlertDialog(
               title: const Text('Aktivität hinzufügen'),
@@ -1368,13 +1096,16 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                       spacing: 8,
                       runSpacing: 8,
                       children: allSubcategories.map((activity) {
-                        final isSelected = selectedActivitySubcategory == activity;
+                        final isSelected =
+                            selectedActivitySubcategory == activity;
                         return FilterChip(
                           label: Text(_formatActivityKey(activity)),
                           selected: isSelected,
                           onSelected: (selected) {
                             setDialogState(() {
-                              selectedActivitySubcategory = selected ? activity : null;
+                              selectedActivitySubcategory = selected
+                                  ? activity
+                                  : null;
                             });
                           },
                         );
@@ -1396,7 +1127,9 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
                               Activity(
                                 id: DateTime.now().millisecondsSinceEpoch
                                     .toString(),
-                                name: _formatActivityKey(selectedActivitySubcategory!),
+                                name: _formatActivityKey(
+                                  selectedActivitySubcategory!,
+                                ),
                                 style: ActivityStyle.casual,
                                 type: ActivityType.other,
                               ),
@@ -1439,7 +1172,6 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
 
     return allSubcategories.toSet().toList(); // Remove duplicates and return
   }
-  
 
   /// Get all activity categories from JSON
   List<String> _getAllActivityCategories() {
@@ -1476,6 +1208,15 @@ List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
       default:
         return ActivityType.other;
     }
+  }
+
+  String _getWeatherDescription(String? condition) {
+    return WeatherConditions.getGermanDescription(
+      condition,
+      temperature: _currentWeather?.temperature,
+      windSpeed: _currentWeather?.windSpeed,
+      cloudCover: _currentWeather?.cloudCover,
+    );
   }
 
   Widget _buildWeatherDetail(IconData icon, String value, String label) {

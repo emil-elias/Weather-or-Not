@@ -54,7 +54,7 @@ class LocationService {
 
   Future<List<Map<String, dynamic>>> findClosestLocation(Position userPosition) async {
   // Load the JSON file
-  final String response = await rootBundle.loadString('stations.json');
+  final String response = await rootBundle.loadString('assets/stations.json');
   final List<dynamic> locations = json.decode(response);
 
   Map<String, dynamic>? closestLocation;
