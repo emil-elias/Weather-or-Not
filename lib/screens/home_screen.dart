@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:weatherornot/models/forecast.dart';
@@ -12,6 +13,7 @@ import '../services/wardrobe_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
 import '../models/outfit.dart';
+import '../models/saved_outfit.dart';
 import '../constants/app_constants.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import '../services/location_service.dart';
@@ -208,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
       print(forecast.days);
 
       // Generate outfit with weather and activities
-      
+
 
       setState(() {
         _currentWeather = weather;
@@ -258,6 +260,72 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       print('Error generating outfit: $e');
+    }
+  }
+
+  Future<void> _saveOutfit() async {
+    if (_generatedOutfit == null) return;
+
+    try {
+      // Show dialog to name the outfit
+      final TextEditingController nameController = TextEditingController();
+      final outfitName = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Save Outfit'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Outfit Name',
+              hintText: 'e.g., Casual Monday, Sport Day',
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, nameController.text),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+
+      if (outfitName == null || outfitName.trim().isEmpty) return;
+
+      final savedOutfit = SavedOutfit(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: outfitName.trim(),
+        savedAt: DateTime.now(),
+        shirtId: _generatedOutfit!.shirt?.id,
+        pulloverId: _generatedOutfit!.pullover?.id,
+        bottomId: _generatedOutfit!.bottom?.id,
+        outerwearId: _generatedOutfit!.outerwear?.id,
+        shoesId: _generatedOutfit!.shoes?.id,
+        accessoryIds: _generatedOutfit!.accessories.map((a) => a.id).toList(),
+      );
+
+      final success = await _wardrobeService.saveOutfit(savedOutfit);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Outfit saved successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save outfit')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 
@@ -541,18 +609,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
 
                   // Generate Outfit Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _currentWeather != null
-                          ? () => _generateOutfit(_currentWeather!)
-                          : null,
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Generate New Outfit'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _currentWeather != null
+                              ? () => _generateOutfit(_currentWeather!)
+                              : null,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Generate New Outfit'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _generatedOutfit != null
+                              ? _saveOutfit
+                              : null,
+                          icon: const Icon(Icons.save_outlined),
+                          label: const Text('Save Outfit'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -693,8 +777,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       child:
                           item.metadata != null &&
                               item.metadata!['imagePath'] != null
-                          ? Image.asset(
-                              item.metadata!['imagePath'] as String,
+                          ? Image.file(
+                              File(item.metadata!['imagePath'] as String),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return _buildPlaceholderIcon(theme);
