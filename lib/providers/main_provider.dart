@@ -109,7 +109,7 @@ class MainProvider extends ChangeNotifier {
         fallbackLon: fallbackLon,
       );
 
-      if (weather != null && weather.stationName != _selectedLocation) {
+      if (weather.stationName != _selectedLocation) {
           final oldLocation = _selectedLocation;
           _locations.remove(oldLocation);
           if (!_locations.contains(weather.stationName)) {

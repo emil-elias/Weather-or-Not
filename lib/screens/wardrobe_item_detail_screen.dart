@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import '../models/wardrobe_item.dart';
 import '../services/wardrobe_service.dart';
+import 'add_item_screen.dart';
 
 class WardrobeItemDetailScreen extends StatefulWidget {
   final WardrobeItem item;
@@ -21,11 +24,72 @@ class WardrobeItemDetailScreen extends StatefulWidget {
 class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
   final WardrobeService _wardrobeService = WardrobeService();
   late WardrobeItem _currentItem;
+  Map<String, dynamic> _subtypesAttributes = {};
+  Map<String, List<String>> _activityGroups = {};
+  List<String> _activityGroupOrder = [];
+  final TextEditingController _optimalSearchController = TextEditingController();
+  final TextEditingController _unsuitableSearchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _currentItem = widget.item;
+    _loadSubtypeAttributes();
+    _loadActivityOptions();
+  }
+
+  @override
+  void dispose() {
+    _optimalSearchController.dispose();
+    _unsuitableSearchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSubtypeAttributes() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/subtypes_attributes.json');
+      final Map<String, dynamic> jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+      setState(() {
+        _subtypesAttributes = jsonData;
+      });
+    } catch (e) {
+      // ignore
+      print('Failed to load subtype attributes: $e');
+    }
+  }
+
+  Future<void> _loadActivityOptions() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/activities.json');
+      final Map<String, dynamic> jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+      final Map<String, List<String>> groups = {};
+      if (jsonData.containsKey('activities')) {
+        final activities = jsonData['activities'] as Map<String, dynamic>;
+        activities.forEach((category, groupMap) {
+          if (groupMap is Map<String, dynamic>) {
+            groupMap.forEach((groupKey, subList) {
+              if (subList is List) {
+                groups.putIfAbsent(groupKey, () => []);
+                groups[groupKey]!.addAll(subList.map((e) => e.toString()));
+              }
+            });
+          }
+        });
+      }
+
+      final cleaned = <String, List<String>>{};
+      groups.forEach((k, v) {
+        final unique = v.toSet().toList()..sort();
+        cleaned[k] = unique;
+      });
+
+      setState(() {
+        _activityGroups = cleaned;
+        _activityGroupOrder = cleaned.keys.toList()..sort();
+      });
+    } catch (e) {
+      print('Failed to load activities: $e');
+    }
   }
 
   Future<void> _toggleFavorite() async {
@@ -81,6 +145,29 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
     }
   }
 
+  Future<void> _showEditItemDialog() async {
+    // Open the AddItemScreen in edit mode and wait for a boolean result
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => AddItemScreen(
+        onBack: () => Navigator.pop(context, true),
+        initialItem: _currentItem,
+      )),
+    );
+
+    if (result == true) {
+      // reload updated item from storage
+      final items = await _wardrobeService.getWardrobeItems();
+      final updated = items.firstWhere((i) => i.id == _currentItem.id, orElse: () => _currentItem);
+      setState(() {
+        _currentItem = updated;
+      });
+      widget.onUpdate();
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -124,6 +211,21 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
                   onPressed: _toggleFavorite,
                 ),
               ),
+
+              // Edit button
+              Container(
+                margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  color: theme.colorScheme.onSurface,
+                  onPressed: () => _showEditItemDialog(),
+                ),
+              ),
+
               Container(
                 margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
                 decoration: BoxDecoration(
@@ -279,6 +381,11 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 24),
+                      // Attributes section
+                      _buildAttributesSection(theme),
+
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -286,6 +393,270 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttributesSection(ThemeData theme) {
+    // Determine defaults for current subcategory
+    Map<String, dynamic> defaultAttrs = {};
+    Map<String, dynamic> defaultUsage = {};
+
+    if (_subtypesAttributes.isNotEmpty) {
+      final key = _currentItem.subcategory;
+      if (_subtypesAttributes.containsKey(key)) {
+        final entry = _subtypesAttributes[key];
+        if (entry is Map<String, dynamic>) {
+          defaultAttrs = (entry['attributes'] as Map<String, dynamic>?) ?? {};
+          defaultUsage = (entry['usage_constraints'] as Map<String, dynamic>?) ?? {};
+        }
+      } else {
+        // try normalized key
+        final normalized = key.replaceAll(' ', '_').replaceAll('-', '_');
+        if (_subtypesAttributes.containsKey(normalized)) {
+          final entry = _subtypesAttributes[normalized];
+          if (entry is Map<String, dynamic>) {
+            defaultAttrs = (entry['attributes'] as Map<String, dynamic>?) ?? {};
+            defaultUsage = (entry['usage_constraints'] as Map<String, dynamic>?) ?? {};
+          }
+        }
+      }
+    }
+
+    final mergedAttrs = {...defaultAttrs, ...?_currentItem.attributes};
+    final mergedUsage = {...defaultUsage, ...?_currentItem.usageConstraints};
+
+    // Helper to show list as chips
+    Widget chipsFromList(List<dynamic>? list) {
+      if (list == null || list.isEmpty) return const Text('-');
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: list.map((e) {
+          return Chip(
+            label: Text(e.toString()),
+            backgroundColor: theme.colorScheme.primaryContainer,
+            labelStyle: TextStyle(
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+          );
+        }).toList(),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.tune,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Attributes',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Materials
+          _buildInfoRow(
+            theme: theme,
+            icon: Icons.layers_outlined,
+            label: 'Materials',
+            valueWidget: chipsFromList(mergedAttrs['materials'] as List<dynamic>?),
+          ),
+          const SizedBox(height: 12),
+          // Numeric attributes
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoRow(
+                    theme: theme,
+                    icon: Icons.thermostat_outlined,
+                    label: 'Warmth',
+                    value: (mergedAttrs['warmth_level']?.toString() ?? '-')),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildInfoRow(
+                    theme: theme,
+                    icon: Icons.opacity_outlined,
+                    label: 'Water',
+                    value: (mergedAttrs['water_resistance']?.toString() ?? '-')),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoRow(
+                    theme: theme,
+                    icon: Icons.air_outlined,
+                    label: 'Wind',
+                    value: (mergedAttrs['wind_resistance']?.toString() ?? '-')),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildInfoRow(
+                    theme: theme,
+                    icon: Icons.bolt_outlined,
+                    label: 'Breathability',
+                    value: (mergedAttrs['breathability']?.toString() ?? '-')),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            theme: theme,
+            icon: Icons.straighten_outlined,
+            label: 'Stretch',
+            value: (mergedAttrs['stretch']?.toString() ?? '-'),
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            theme: theme,
+            icon: Icons.business_center_outlined,
+            label: 'Formality',
+            value: mergedAttrs['formality']?.toString() ?? _currentItem.formalityLevel,
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            theme: theme,
+            icon: Icons.category_outlined,
+            label: 'Fit',
+            value: mergedAttrs['fit']?.toString() ?? '-',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            theme: theme,
+            icon: Icons.style_outlined,
+            label: 'Style Tags',
+            valueWidget: chipsFromList(mergedAttrs['style_tags'] as List<dynamic>?),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Usage Constraints',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            theme: theme,
+            icon: Icons.thermostat,
+            label: 'Min/Max Temp',
+            value: '${mergedUsage['weather_min_temp'] ?? '-'} / ${mergedUsage['weather_max_temp'] ?? '-'}',
+          ),
+          const SizedBox(height: 12),
+          // Optimal Activities (grouped and collapsed)
+          Builder(builder: (context) {
+            final optimal = (mergedUsage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+            final search = _optimalSearchController.text.trim().toLowerCase();
+            // build a list of group children that have matching activities (and match search)
+            final children = _activityGroupOrder.map((group) {
+              final acts = _activityGroups[group] ?? [];
+              final matches = acts.where((a) => optimal.contains(a)).toList();
+              final display = search.isEmpty ? matches : matches.where((a) => a.toLowerCase().contains(search)).toList();
+              if (display.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical:6.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [Text(group.replaceAll('_', ' '), style: theme.textTheme.bodySmall), const SizedBox(width:8), Text('(${display.length})', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))]),
+                    const SizedBox(height:8),
+                    Wrap(spacing: 8, children: display.map((m) => Chip(label: Text(m), backgroundColor: theme.colorScheme.surfaceContainerHighest, labelStyle: TextStyle(color: theme.colorScheme.onSurface))).toList()),
+                  ],
+                ),
+              );
+            }).where((w) => w is! SizedBox).toList();
+
+            if (children.isEmpty) {
+              // fallback to empty row
+              return _buildInfoRow(theme: theme, icon: Icons.fitness_center_outlined, label: 'Optimal Activities', value: '-');
+            }
+
+            return ExpansionTile(
+              title: Row(children: [Icon(Icons.fitness_center_outlined, size:20, color: theme.colorScheme.primary), const SizedBox(width:8), Text('Optimal Activities')]),
+              initiallyExpanded: false,
+              childrenPadding: const EdgeInsets.symmetric(horizontal:0, vertical:8),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: _optimalSearchController,
+                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'Search activities', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), isDense: true,),
+                    onChanged: (v) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(height:8),
+                ...children,
+              ],
+            );
+          }),
+          const SizedBox(height: 12),
+          // Unsuitable For (grouped and collapsed)
+          Builder(builder: (context) {
+            final unsuitable = (mergedUsage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+            final search = _unsuitableSearchController.text.trim().toLowerCase();
+            final children = _activityGroupOrder.map((group) {
+              final acts = _activityGroups[group] ?? [];
+              final matches = acts.where((a) => unsuitable.contains(a)).toList();
+              final display = search.isEmpty ? matches : matches.where((a) => a.toLowerCase().contains(search)).toList();
+              if (display.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical:6.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [Text(group.replaceAll('_', ' '), style: theme.textTheme.bodySmall), const SizedBox(width:8), Text('(${display.length})', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))]),
+                    const SizedBox(height:8),
+                    Wrap(spacing: 8, children: display.map((m) => Chip(label: Text(m), backgroundColor: theme.colorScheme.surfaceContainerHighest, labelStyle: TextStyle(color: theme.colorScheme.onSurface))).toList()),
+                  ],
+                ),
+              );
+            }).where((w) => w is! SizedBox).toList();
+
+            if (children.isEmpty) {
+              return _buildInfoRow(theme: theme, icon: Icons.block_outlined, label: 'Unsuitable For', value: '-');
+            }
+
+            return ExpansionTile(
+              title: Row(children: [Icon(Icons.block_outlined, size:20, color: theme.colorScheme.primary), const SizedBox(width:8), Text('Unsuitable For')]),
+              initiallyExpanded: false,
+              childrenPadding: const EdgeInsets.symmetric(horizontal:0, vertical:8),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: _unsuitableSearchController,
+                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'Search activities', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), isDense: true,),
+                    onChanged: (v) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(height:8),
+                ...children,
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -337,8 +708,16 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
     required ThemeData theme,
     required IconData icon,
     required String label,
-    required String value,
+    String? value,
+    Widget? valueWidget,
   }) {
+    final content = valueWidget ?? (value != null ? Text(
+      value,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+    ) : const SizedBox.shrink());
+
     return Row(
       children: [
         Container(
@@ -365,12 +744,7 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                value,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              content,
             ],
           ),
         ),

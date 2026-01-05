@@ -16,7 +16,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  MainProvider _provider = MainProvider();
+  final MainProvider _provider = MainProvider();
 
   final List<Widget> _screens = [
     const HomeScreen(),

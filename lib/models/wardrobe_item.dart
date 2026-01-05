@@ -8,6 +8,8 @@ class WardrobeItem {
   final String formalityLevel;
   final List<String> tags;
   final String? imagePath;
+  final Map<String, dynamic>? attributes; // custom attributes overrides
+  final Map<String, dynamic>? usageConstraints; // custom usage constraints
   final DateTime createdAt;
   final bool isFavorite;
 
@@ -21,6 +23,8 @@ class WardrobeItem {
     required this.formalityLevel,
     required this.tags,
     this.imagePath,
+    this.attributes,
+    this.usageConstraints,
     required this.createdAt,
     this.isFavorite = false,
   });
@@ -36,6 +40,8 @@ class WardrobeItem {
       'formalityLevel': formalityLevel,
       'tags': tags,
       'imagePath': imagePath,
+      'attributes': attributes,
+      'usageConstraints': usageConstraints,
       'createdAt': createdAt.toIso8601String(),
       'isFavorite': isFavorite,
     };
@@ -52,6 +58,8 @@ class WardrobeItem {
       formalityLevel: json['formalityLevel'] as String,
       tags: List<String>.from(json['tags'] as List),
       imagePath: json['imagePath'] as String?,
+      attributes: (json['attributes'] as Map<String, dynamic>?)?.cast<String, dynamic>(),
+      usageConstraints: (json['usageConstraints'] as Map<String, dynamic>?)?.cast<String, dynamic>(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       isFavorite: json['isFavorite'] as bool? ?? false,
     );

@@ -1,13 +1,9 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:weatherornot/models/day_forecast.dart';
 import 'package:weatherornot/models/weather_warning.dart';
 import 'package:weatherornot/providers/main_provider.dart';
 import 'package:weatherornot/services/weather_service.dart';
-import 'package:weatherornot/widgets/location_dropdown.dart';
 import 'package:intl/intl.dart';
 
 class WeatherScreen extends StatefulWidget {
@@ -27,11 +23,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
       _provider.loadWeather(
         _provider.stationIDs[newLocation]!,
         newLocation,
-        fallbackStations: _provider.closestLocations != null
-            ? _provider.closestLocations!
-                  .where((loc) => loc['name'] != newLocation)
-                  .toList()
-            : null,
+        fallbackStations: _provider.closestLocations.where((loc) => loc['name'] != newLocation)
+                  .toList(),
       );
     }
   }

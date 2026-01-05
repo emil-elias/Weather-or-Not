@@ -59,8 +59,9 @@ class OutfitEngine {
       // 1) Temperature match: measure distance to the allowed [min,max] range.
       //    If inside range -> large bonus. If outside -> deduct relative to distance.
       double tempDiff;
-      if (temp < c.weatherMinTemp) tempDiff = c.weatherMinTemp - temp;
-      else if (temp > c.weatherMaxTemp) tempDiff = temp - c.weatherMaxTemp;
+      if (temp < c.weatherMinTemp) {
+        tempDiff = c.weatherMinTemp - temp;
+      } else if (temp > c.weatherMaxTemp) tempDiff = temp - c.weatherMaxTemp;
       else tempDiff = 0;
 
       if (tempDiff == 0) {
@@ -106,12 +107,13 @@ class OutfitEngine {
     ClothingItem? outer;
     List<ClothingItem> accessories = [];
 
-    double _computeFallbackScoreForItem(ClothingItem item) {
+    double computeFallbackScoreForItem(ClothingItem item) {
       // Keep a fallback heuristic similar to _scoreCandidates (for consistency)
       final c = item.usageConstraints;
       double tempDiff;
-      if (temp < c.weatherMinTemp) tempDiff = c.weatherMinTemp - temp;
-      else if (temp > c.weatherMaxTemp) tempDiff = temp - c.weatherMaxTemp;
+      if (temp < c.weatherMinTemp) {
+        tempDiff = c.weatherMinTemp - temp;
+      } else if (temp > c.weatherMaxTemp) tempDiff = temp - c.weatherMaxTemp;
       else tempDiff = 0;
 
       double s = (tempDiff == 0) ? 30 : max(0, 30 - tempDiff * 2);
@@ -130,7 +132,7 @@ class OutfitEngine {
       return s;
     }
 
-    ClothingItem? _pickByCategory(List<String> categoryVariations) {
+    ClothingItem? pickByCategory(List<String> categoryVariations) {
       // First, prefer items that match the requested category among the scored items
       final filtered = scores.entries
           .where((e) {
@@ -157,7 +159,7 @@ class OutfitEngine {
       }
 
       final scoredFallback = fallbackCandidates
-          .map((item) => MapEntry(item, _computeFallbackScoreForItem(item)))
+          .map((item) => MapEntry(item, computeFallbackScoreForItem(item)))
           .toList()
             ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -166,11 +168,11 @@ class OutfitEngine {
     }
 
     // Pick items based on actual category names
-    shirt = _pickByCategory(['t-shirts', 'shirts & blouses', 'knitwear', 'sportswear', 'tops']);
-    pullover = _pickByCategory(['sweat', 'hoodie', 'sweater', 'pullover']);
-    bottom = _pickByCategory(['bottom', 'trousers', 'pant', 'shorts', 'skirts', 'jean', 'sports_bottoms']);
-    shoes = _pickByCategory(['casual_shoes', 'boots', 'dress_shoes', 'sport_shoes']);
-    outer = _pickByCategory(['outerwear', 'jacket', 'coat', 'technical_outerwear']);
+    shirt = pickByCategory(['t-shirts', 'shirts & blouses', 'knitwear', 'sportswear', 'tops']);
+    pullover = pickByCategory(['sweat', 'hoodie', 'sweater', 'pullover']);
+    bottom = pickByCategory(['bottom', 'trousers', 'pant', 'shorts', 'skirts', 'jean', 'sports_bottoms']);
+    shoes = pickByCategory(['casual_shoes', 'boots', 'dress_shoes', 'sport_shoes']);
+    outer = pickByCategory(['outerwear', 'jacket', 'coat', 'technical_outerwear']);
 
     // Accessories: pick up to 2 highest-score from scores first, then fallback to wardrobe
     final accessoryEntries = scores.entries
@@ -182,7 +184,7 @@ class OutfitEngine {
 
     if (accessories.length < 2) {
       final fallbackAccessories = wardrobe.where((item) => item.category.toLowerCase().contains("access")).toList()
-        ..sort((a, b) => _computeFallbackScoreForItem(b).compareTo(_computeFallbackScoreForItem(a)));
+        ..sort((a, b) => computeFallbackScoreForItem(b).compareTo(computeFallbackScoreForItem(a)));
       for (final a in fallbackAccessories) {
         if (!accessories.contains(a)) accessories.add(a);
         if (accessories.length >= 2) break;
@@ -190,11 +192,14 @@ class OutfitEngine {
     }
 
     // Compute average score from the chosen items (use scored values when available, else fallback heuristic)
-    final chosenItems = [if (shirt != null) shirt!, if (pullover != null) pullover!, if (bottom != null) bottom!, if (shoes != null) shoes!, if (outer != null) outer!, ...accessories];
+    final chosenItems = [if (shirt != null) shirt, if (pullover != null) pullover, if (bottom != null) bottom, if (shoes != null) shoes, if (outer != null) outer, ...accessories];
     double total = 0;
     for (final item in chosenItems) {
-      if (scores.containsKey(item)) total += scores[item]!;
-      else total += _computeFallbackScoreForItem(item);
+      if (scores.containsKey(item)) {
+        total += scores[item]!;
+      } else {
+        total += computeFallbackScoreForItem(item);
+      }
     }
     final scoreSum = chosenItems.isNotEmpty ? total / chosenItems.length : 0;
 

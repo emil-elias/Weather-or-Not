@@ -14,14 +14,14 @@ class WeatherCard extends StatelessWidget {
   final WeatherService weatherService = WeatherService();
 
   WeatherCard({
-    Key? key,
+    super.key,
     required this.isLoading,
     this.errorMessage,
     this.currentWeather,
     this.forecast,
     this.forecastIndex,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

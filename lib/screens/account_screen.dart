@@ -135,7 +135,7 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _selectedTransportation,
+              initialValue: _selectedTransportation,
               isExpanded: true,
               decoration: InputDecoration(
                 filled: true,

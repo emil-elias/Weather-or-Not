@@ -15,7 +15,6 @@ import '../models/activity.dart';
 import '../models/outfit.dart';
 import '../models/saved_outfit.dart';
 import '../constants/app_constants.dart';
-import 'package:geolocator/geolocator.dart' as geo;
 import '../services/location_service.dart';
 import 'package:provider/provider.dart';
 
@@ -56,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   };
   List<String> _locations = [];
 
-  List<Activity> _todayActivities = [];
+  final List<Activity> _todayActivities = [];
 
   @override
   void initState() {
@@ -456,11 +455,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _provider.loadWeather(
         _provider.stationIDs[newLocation]!,
         newLocation,
-        fallbackStations: _provider.closestLocations != null
-            ? _provider.closestLocations!
-                  .where((loc) => loc['name'] != newLocation)
-                  .toList()
-            : null,
+        fallbackStations: _provider.closestLocations.where((loc) => loc['name'] != newLocation)
+                  .toList(),
       );
     }
   }
@@ -468,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final GlobalKey<NavigatorState> _homeNavigatorKey =
+    final GlobalKey<NavigatorState> homeNavigatorKey =
         GlobalKey<NavigatorState>();
 
     _provider = context.watch<MainProvider>();
@@ -483,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: Navigator(
-        key: _homeNavigatorKey,
+        key: homeNavigatorKey,
         onGenerateRoute: (settings) => MaterialPageRoute(
           builder: (_) => SafeArea(
             child: SingleChildScrollView(
@@ -520,7 +516,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     currentWeather: _currentWeather,
                     forecast: _forecast,
                     onTap: () {
-                      _homeNavigatorKey.currentState?.push(
+                      homeNavigatorKey.currentState?.push(
                         MaterialPageRoute(
                           builder: (_) => const WeatherScreen(),
                         ),
@@ -640,12 +636,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Outfit cards - Display all pieces
-                  // Outfit cards - Display all pieces (Outerwear → Shirt/Pullover → Bottom → Shoes)
+                  // Outfit cards — vertical ordered list (Outerwear → Pullover → Shirt → Bottom → Shoes)
                   if (_generatedOutfit != null)
                     Column(
                       children: [
-                        // Outerwear (top)
                         _buildOutfitCard(
                           context,
                           _generatedOutfit!.outerwear,
@@ -653,28 +647,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           isLarge: true,
                         ),
                         const SizedBox(height: 16),
-                        // Shirt and Pullover row
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildOutfitCard(
-                                context,
-                                _generatedOutfit!.shirt,
-                                label: 'Shirt',
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildOutfitCard(
-                                context,
-                                _generatedOutfit!.pullover,
-                                label: 'Pullover',
-                              ),
-                            ),
-                          ],
+                        _buildOutfitCard(
+                          context,
+                          _generatedOutfit!.pullover,
+                          label: 'Pullover',
+                          isLarge: true,
                         ),
                         const SizedBox(height: 16),
-                        // Bottom
+                        _buildOutfitCard(
+                          context,
+                          _generatedOutfit!.shirt,
+                          label: 'Shirt',
+                          isLarge: true,
+                        ),
+                        const SizedBox(height: 16),
                         _buildOutfitCard(
                           context,
                           _generatedOutfit!.bottom,
@@ -682,7 +668,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           isLarge: true,
                         ),
                         const SizedBox(height: 16),
-                        // Shoes
                         _buildOutfitCard(
                           context,
                           _generatedOutfit!.shoes,
@@ -701,24 +686,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           isLarge: true,
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildOutfitCard(
-                                context,
-                                null,
-                                label: 'Shirt',
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildOutfitCard(
-                                context,
-                                null,
-                                label: 'Pullover',
-                              ),
-                            ),
-                          ],
+                        _buildOutfitCard(
+                          context,
+                          null,
+                          label: 'Pullover',
+                          isLarge: true,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildOutfitCard(
+                          context,
+                          null,
+                          label: 'Shirt',
+                          isLarge: true,
                         ),
                         const SizedBox(height: 16),
                         _buildOutfitCard(
@@ -759,8 +738,16 @@ class _HomeScreenState extends State<HomeScreen> {
         height: isLarge ? 180 : 160,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.98),
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: item != null
             ? Column(
@@ -823,6 +810,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => _openCategoryChooser(context, label),
+                          icon: const Icon(Icons.swap_horiz_rounded),
+                          label: const Text('Change'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: theme.colorScheme.primaryContainer,
+                            foregroundColor: theme.colorScheme.onPrimaryContainer,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -837,12 +839,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   if (label.isNotEmpty)
-                    Text(
-                      label,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
+                    Column(
+                      children: [
+                        Text(
+                          label,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _openCategoryChooser(context, label),
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('Choose alternative'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(color: theme.colorScheme.outline, width: 1.2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   else
                     Column(
@@ -862,6 +882,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             color: theme.colorScheme.outlineVariant,
                             borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _openCategoryChooser(context, label),
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('Choose an item'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(color: theme.colorScheme.outline, width: 1.2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
                           ),
                         ),
                       ],
@@ -1055,6 +1089,138 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Open a chooser allowing the user to pick a different item for the given role label (e.g., "Shirt", "Outerwear")
+  Future<void> _openCategoryChooser(BuildContext context, String label) async {
+    final wardrobeItems = await _wardrobeService.getWardrobeItems();
+    if (wardrobeItems.isEmpty) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No wardrobe items available')));
+      return;
+    }
+
+    final clothingItems = _convertToClothingItems(wardrobeItems);
+    // Filter candidates by best-effort matching rules
+    final candidates = clothingItems.where((c) => _matchesRole(c, label)).toList();
+
+    if (candidates.isEmpty) {
+      // fallback: try basic category/subtype contains
+      final lower = label.toLowerCase();
+      candidates.addAll(clothingItems.where((c) => c.category.toLowerCase().contains(lower) || c.subtype.toLowerCase().contains(lower)).toList());
+    }
+
+    if (candidates.isEmpty) {
+      // last resort: show items from the same broad category (e.g., "tops" for shirt/pullover)
+      final map = {
+        'shirt': 'top',
+        'pullover': 'top',
+        'outerwear': 'outer',
+        'bottom': 'bottom',
+        'shoes': 'shoe',
+      };
+      final broad = map[label.toLowerCase()] ?? label.toLowerCase();
+      candidates.addAll(clothingItems.where((c) => c.category.toLowerCase().contains(broad) || c.subtype.toLowerCase().contains(broad)).toList());
+    }
+
+    // Show chooser
+    final result = await showModalBottomSheet<ClothingItem>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final theme = Theme.of(context);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Choose $label', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: candidates.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (ctx, idx) {
+                    final c = candidates[idx];
+                    return ListTile(
+                      leading: c.metadata != null && c.metadata!['imagePath'] != null
+                        ? Image.file(File(c.metadata!['imagePath'] as String), width: 48, height: 48, fit: BoxFit.cover)
+                        : const Icon(Icons.checkroom_outlined, size: 36),
+                      title: Text(c.metadata?['name'] as String? ?? c.subtype),
+                      subtitle: Text('${c.category} • ${c.subtype}'),
+                      onTap: () {
+                        Navigator.pop(context, c);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result != null) {
+      // Replace piece in generated outfit
+      _replaceOutfitPiece(result, label);
+    }
+  }
+
+  bool _matchesRole(ClothingItem c, String label) {
+    final lc = label.toLowerCase();
+    final cat = c.category.toLowerCase();
+    final sub = c.subtype.toLowerCase();
+    if (lc.contains('shirt')) return cat.contains('top') && (sub.contains('shirt') || sub.contains('tshirt') || sub.contains('t-shirt') || sub.contains('tee'));
+    if (lc.contains('pullover') || lc.contains('sweater') || lc.contains('hoodie')) return cat.contains('top') && (sub.contains('pullover') || sub.contains('sweater') || sub.contains('hoodie') || sub.contains('jumper'));
+    if (lc.contains('outer')) return cat.contains('outer') || sub.contains('jacket') || sub.contains('coat') || sub.contains('parka');
+    if (lc.contains('bottom')) return cat.contains('bottom') || sub.contains('jeans') || sub.contains('pants') || sub.contains('trouser') || sub.contains('short');
+    if (lc.contains('shoe')) return cat.contains('shoe') || cat.contains('shoe') || sub.contains('shoe') || cat.contains('shoes');
+    // default: match by category contains label
+    return cat.contains(lc) || sub.contains(lc);
+  }
+
+  void _replaceOutfitPiece(ClothingItem selected, String label) {
+    if (!mounted) return;
+    final old = _generatedOutfit;
+    final palette = old?.palette ?? ColorPalette(dominant: const Color(0xFF9E9E9E), accents: const [], neutrals: const []);
+    final score = old?.score ?? 0.0;
+
+    Outfit newOutfit = Outfit(
+      shirt: old?.shirt,
+      pullover: old?.pullover,
+      bottom: old?.bottom,
+      outerwear: old?.outerwear,
+      shoes: old?.shoes,
+      accessories: old?.accessories ?? [],
+      score: score,
+      palette: palette,
+    );
+
+    final lc = label.toLowerCase();
+    if (lc.contains('shirt')) {
+      newOutfit = Outfit(shirt: selected, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+    } else if (lc.contains('pullover')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: selected, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+    else if (lc.contains('bottom')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: newOutfit.pullover, bottom: selected, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+    else if (lc.contains('outer')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: selected, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+    else if (lc.contains('shoe')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: selected, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+    else {
+      // fallback: try to set based on category
+      if (selected.category.toLowerCase().contains('top')) newOutfit = Outfit(shirt: selected, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+    }
+
+    setState(() {
+      _generatedOutfit = newOutfit;
+    });
+  }
+
   Widget _buildDetailRow(String label, String value, ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1153,14 +1319,45 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAddActivityDialog(BuildContext context) {
     String? selectedActivityCategory;
     String? selectedActivitySubcategory;
+    String searchQuery = '';
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final List<String> allSubcategories =
-                _getAllActivitySubcategories();
+            // Build grouped activities: Map<GroupLabel, List<activityKey>>
+            final Map<String, List<String>> groupedActivities = {};
+
+            if (_activitiesData.containsKey('activities')) {
+              final activities = _activitiesData['activities'];
+              if (activities is Map<String, dynamic>) {
+                activities.forEach((category, subcategoriesMap) {
+                  if (subcategoriesMap is Map<String, dynamic>) {
+                    subcategoriesMap.forEach((groupKey, subList) {
+                      if (subList is List) {
+                        final groupLabel = _formatActivityKey(groupKey);
+                        groupedActivities.putIfAbsent(groupLabel, () => []);
+                        groupedActivities[groupLabel]!
+                            .addAll(List<String>.from(subList));
+                      }
+                    });
+                  }
+                });
+              }
+            }
+
+            // Deduplicate and sort activities within each group
+            final sortedGroupKeys = groupedActivities.keys.toList()
+              ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+            for (final key in sortedGroupKeys) {
+              final unique = groupedActivities[key]!.toSet().toList();
+              unique.sort((a, b) => _formatActivityKey(a)
+                  .toLowerCase()
+                  .compareTo(_formatActivityKey(b).toLowerCase()));
+              groupedActivities[key] = unique;
+            }
 
             return AlertDialog(
               title: const Text('Aktivität hinzufügen'),
@@ -1169,6 +1366,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Search field
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Suchen',
+                        prefixIcon: const Icon(Icons.search, size: 18),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  setDialogState(() {
+                                    searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          searchQuery = value.trim().toLowerCase();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       'Aktivitäten',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -1176,25 +1396,58 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: allSubcategories.map((activity) {
-                        final isSelected =
-                            selectedActivitySubcategory == activity;
-                        return FilterChip(
-                          label: Text(_formatActivityKey(activity)),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setDialogState(() {
-                              selectedActivitySubcategory = selected
-                                  ? activity
-                                  : null;
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
+
+                    // Groups as ExpansionTiles
+                    ...sortedGroupKeys.map((groupLabel) {
+                      // Filter activities by search query
+                      final activities = groupedActivities[groupLabel]!
+                          .where((act) {
+                        final label = _formatActivityKey(act).toLowerCase();
+                        return searchQuery.isEmpty ||
+                            label.contains(searchQuery) ||
+                            act.toLowerCase().contains(searchQuery);
+                      }).toList();
+
+                      if (activities.isEmpty) return const SizedBox.shrink();
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: ExpansionTile(
+                          title: Text(
+                            groupLabel,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 8.0),
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: activities.map((activity) {
+                                  final isSelected =
+                                      selectedActivitySubcategory == activity;
+                                  return FilterChip(
+                                    label: Text(_formatActivityKey(activity)),
+                                    selected: isSelected,
+                                    onSelected: (selected) {
+                                      setDialogState(() {
+                                        selectedActivitySubcategory = selected
+                                            ? activity
+                                            : null;
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -1215,7 +1468,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   selectedActivitySubcategory!,
                                 ),
                                 style: ActivityStyle.casual,
-                                type: ActivityType.other,
+                                type: _mapActivityToType(
+                                    selectedActivitySubcategory!),
                               ),
                             );
                           });
