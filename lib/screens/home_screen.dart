@@ -19,7 +19,10 @@ import '../services/location_service.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String? title;
+  final int? forecastIndex;
+  final bool live;
+  const HomeScreen({super.key, required this.live, this.title, this.forecastIndex});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -210,7 +213,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Generate outfit with weather and activities
 
-
       setState(() {
         _currentWeather = weather;
         _forecast = forecast;
@@ -316,15 +318,15 @@ class _HomeScreenState extends State<HomeScreen> {
           const SnackBar(content: Text('Outfit saved successfully!')),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save outfit')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to save outfit')));
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
@@ -455,8 +457,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _provider.loadWeather(
         _provider.stationIDs[newLocation]!,
         newLocation,
-        fallbackStations: _provider.closestLocations.where((loc) => loc['name'] != newLocation)
-                  .toList(),
+        fallbackStations: _provider.closestLocations
+            .where((loc) => loc['name'] != newLocation)
+            .toList(),
       );
     }
   }
@@ -491,13 +494,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Title
-                      Text(
-                        'Today',
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      Row( children: [
+                        if (Navigator.canPop(context))
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          tooltip: 'Back',
+                          onPressed: () => Navigator.maybePop(context),
                         ),
+                        const SizedBox(width: 8),
+                      Text(
+                        widget.title ?? 'Today',
+                        style: widget.title == "Today" ? theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ) : theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold)
                       ),
+                    ]),
+                      
                       const SizedBox(height: 16),
 
                       LocationDropdown(
@@ -513,15 +526,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   WeatherCard(
                     isLoading: _isLoading,
                     errorMessage: _errorMessage,
-                    currentWeather: _currentWeather,
+                    currentWeather: widget.live == true ? _currentWeather : null,
                     forecast: _forecast,
-                    onTap: () {
+                    forecastIndex: widget.forecastIndex,
+                    onTap: widget.live == true ? () {
+                      
                       homeNavigatorKey.currentState?.push(
                         MaterialPageRoute(
                           builder: (_) => const WeatherScreen(),
                         ),
                       );
-                    },
+                    } : null,
                   ),
 
                   const SizedBox(height: 16),
@@ -544,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Add activities for today',
+                            'Add activities for ${widget.title != null ? widget.title!.toLowerCase() : 'today'}',
                             style: theme.textTheme.bodyLarge,
                           ),
                           const Spacer(),
@@ -820,8 +835,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             backgroundColor: theme.colorScheme.primaryContainer,
-                            foregroundColor: theme.colorScheme.onPrimaryContainer,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            foregroundColor:
+                                theme.colorScheme.onPrimaryContainer,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),
@@ -852,13 +870,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: () => _openCategoryChooser(context, label),
+                            onPressed: () =>
+                                _openCategoryChooser(context, label),
                             icon: const Icon(Icons.add_rounded, size: 18),
                             label: const Text('Choose alternative'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: BorderSide(color: theme.colorScheme.outline, width: 1.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(
+                                color: theme.colorScheme.outline,
+                                width: 1.2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -888,13 +912,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: () => _openCategoryChooser(context, label),
+                            onPressed: () =>
+                                _openCategoryChooser(context, label),
                             icon: const Icon(Icons.add_rounded, size: 18),
                             label: const Text('Choose an item'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: BorderSide(color: theme.colorScheme.outline, width: 1.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(
+                                color: theme.colorScheme.outline,
+                                width: 1.2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -1093,18 +1123,31 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openCategoryChooser(BuildContext context, String label) async {
     final wardrobeItems = await _wardrobeService.getWardrobeItems();
     if (wardrobeItems.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No wardrobe items available')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No wardrobe items available')),
+        );
       return;
     }
 
     final clothingItems = _convertToClothingItems(wardrobeItems);
     // Filter candidates by best-effort matching rules
-    final candidates = clothingItems.where((c) => _matchesRole(c, label)).toList();
+    final candidates = clothingItems
+        .where((c) => _matchesRole(c, label))
+        .toList();
 
     if (candidates.isEmpty) {
       // fallback: try basic category/subtype contains
       final lower = label.toLowerCase();
-      candidates.addAll(clothingItems.where((c) => c.category.toLowerCase().contains(lower) || c.subtype.toLowerCase().contains(lower)).toList());
+      candidates.addAll(
+        clothingItems
+            .where(
+              (c) =>
+                  c.category.toLowerCase().contains(lower) ||
+                  c.subtype.toLowerCase().contains(lower),
+            )
+            .toList(),
+      );
     }
 
     if (candidates.isEmpty) {
@@ -1117,14 +1160,24 @@ class _HomeScreenState extends State<HomeScreen> {
         'shoes': 'shoe',
       };
       final broad = map[label.toLowerCase()] ?? label.toLowerCase();
-      candidates.addAll(clothingItems.where((c) => c.category.toLowerCase().contains(broad) || c.subtype.toLowerCase().contains(broad)).toList());
+      candidates.addAll(
+        clothingItems
+            .where(
+              (c) =>
+                  c.category.toLowerCase().contains(broad) ||
+                  c.subtype.toLowerCase().contains(broad),
+            )
+            .toList(),
+      );
     }
 
     // Show chooser
     final result = await showModalBottomSheet<ClothingItem>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
         final theme = Theme.of(context);
         return SafeArea(
@@ -1132,12 +1185,23 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Choose $label', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
-                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                    Text(
+                      'Choose $label',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ],
                 ),
               ),
@@ -1150,9 +1214,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (ctx, idx) {
                     final c = candidates[idx];
                     return ListTile(
-                      leading: c.metadata != null && c.metadata!['imagePath'] != null
-                        ? Image.file(File(c.metadata!['imagePath'] as String), width: 48, height: 48, fit: BoxFit.cover)
-                        : const Icon(Icons.checkroom_outlined, size: 36),
+                      leading:
+                          c.metadata != null && c.metadata!['imagePath'] != null
+                          ? Image.file(
+                              File(c.metadata!['imagePath'] as String),
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                            )
+                          : const Icon(Icons.checkroom_outlined, size: 36),
                       title: Text(c.metadata?['name'] as String? ?? c.subtype),
                       subtitle: Text('${c.category} • ${c.subtype}'),
                       onTap: () {
@@ -1178,11 +1248,36 @@ class _HomeScreenState extends State<HomeScreen> {
     final lc = label.toLowerCase();
     final cat = c.category.toLowerCase();
     final sub = c.subtype.toLowerCase();
-    if (lc.contains('shirt')) return cat.contains('top') && (sub.contains('shirt') || sub.contains('tshirt') || sub.contains('t-shirt') || sub.contains('tee'));
-    if (lc.contains('pullover') || lc.contains('sweater') || lc.contains('hoodie')) return cat.contains('top') && (sub.contains('pullover') || sub.contains('sweater') || sub.contains('hoodie') || sub.contains('jumper'));
-    if (lc.contains('outer')) return cat.contains('outer') || sub.contains('jacket') || sub.contains('coat') || sub.contains('parka');
-    if (lc.contains('bottom')) return cat.contains('bottom') || sub.contains('jeans') || sub.contains('pants') || sub.contains('trouser') || sub.contains('short');
-    if (lc.contains('shoe')) return cat.contains('shoe') || cat.contains('shoe') || sub.contains('shoe') || cat.contains('shoes');
+    if (lc.contains('shirt'))
+      return cat.contains('top') &&
+          (sub.contains('shirt') ||
+              sub.contains('tshirt') ||
+              sub.contains('t-shirt') ||
+              sub.contains('tee'));
+    if (lc.contains('pullover') ||
+        lc.contains('sweater') ||
+        lc.contains('hoodie'))
+      return cat.contains('top') &&
+          (sub.contains('pullover') ||
+              sub.contains('sweater') ||
+              sub.contains('hoodie') ||
+              sub.contains('jumper'));
+    if (lc.contains('outer'))
+      return cat.contains('outer') ||
+          sub.contains('jacket') ||
+          sub.contains('coat') ||
+          sub.contains('parka');
+    if (lc.contains('bottom'))
+      return cat.contains('bottom') ||
+          sub.contains('jeans') ||
+          sub.contains('pants') ||
+          sub.contains('trouser') ||
+          sub.contains('short');
+    if (lc.contains('shoe'))
+      return cat.contains('shoe') ||
+          cat.contains('shoe') ||
+          sub.contains('shoe') ||
+          cat.contains('shoes');
     // default: match by category contains label
     return cat.contains(lc) || sub.contains(lc);
   }
@@ -1190,7 +1285,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _replaceOutfitPiece(ClothingItem selected, String label) {
     if (!mounted) return;
     final old = _generatedOutfit;
-    final palette = old?.palette ?? ColorPalette(dominant: const Color(0xFF9E9E9E), accents: const [], neutrals: const []);
+    final palette =
+        old?.palette ??
+        ColorPalette(
+          dominant: const Color(0xFF9E9E9E),
+          accents: const [],
+          neutrals: const [],
+        );
     final score = old?.score ?? 0.0;
 
     Outfit newOutfit = Outfit(
@@ -1206,14 +1307,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final lc = label.toLowerCase();
     if (lc.contains('shirt')) {
-      newOutfit = Outfit(shirt: selected, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
-    } else if (lc.contains('pullover')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: selected, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
-    else if (lc.contains('bottom')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: newOutfit.pullover, bottom: selected, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
-    else if (lc.contains('outer')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: selected, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
-    else if (lc.contains('shoe')) newOutfit = Outfit(shirt: newOutfit.shirt, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: selected, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+      newOutfit = Outfit(
+        shirt: selected,
+        pullover: newOutfit.pullover,
+        bottom: newOutfit.bottom,
+        outerwear: newOutfit.outerwear,
+        shoes: newOutfit.shoes,
+        accessories: newOutfit.accessories,
+        score: newOutfit.score,
+        palette: newOutfit.palette,
+      );
+    } else if (lc.contains('pullover'))
+      newOutfit = Outfit(
+        shirt: newOutfit.shirt,
+        pullover: selected,
+        bottom: newOutfit.bottom,
+        outerwear: newOutfit.outerwear,
+        shoes: newOutfit.shoes,
+        accessories: newOutfit.accessories,
+        score: newOutfit.score,
+        palette: newOutfit.palette,
+      );
+    else if (lc.contains('bottom'))
+      newOutfit = Outfit(
+        shirt: newOutfit.shirt,
+        pullover: newOutfit.pullover,
+        bottom: selected,
+        outerwear: newOutfit.outerwear,
+        shoes: newOutfit.shoes,
+        accessories: newOutfit.accessories,
+        score: newOutfit.score,
+        palette: newOutfit.palette,
+      );
+    else if (lc.contains('outer'))
+      newOutfit = Outfit(
+        shirt: newOutfit.shirt,
+        pullover: newOutfit.pullover,
+        bottom: newOutfit.bottom,
+        outerwear: selected,
+        shoes: newOutfit.shoes,
+        accessories: newOutfit.accessories,
+        score: newOutfit.score,
+        palette: newOutfit.palette,
+      );
+    else if (lc.contains('shoe'))
+      newOutfit = Outfit(
+        shirt: newOutfit.shirt,
+        pullover: newOutfit.pullover,
+        bottom: newOutfit.bottom,
+        outerwear: newOutfit.outerwear,
+        shoes: selected,
+        accessories: newOutfit.accessories,
+        score: newOutfit.score,
+        palette: newOutfit.palette,
+      );
     else {
       // fallback: try to set based on category
-      if (selected.category.toLowerCase().contains('top')) newOutfit = Outfit(shirt: selected, pullover: newOutfit.pullover, bottom: newOutfit.bottom, outerwear: newOutfit.outerwear, shoes: newOutfit.shoes, accessories: newOutfit.accessories, score: newOutfit.score, palette: newOutfit.palette);
+      if (selected.category.toLowerCase().contains('top'))
+        newOutfit = Outfit(
+          shirt: selected,
+          pullover: newOutfit.pullover,
+          bottom: newOutfit.bottom,
+          outerwear: newOutfit.outerwear,
+          shoes: newOutfit.shoes,
+          accessories: newOutfit.accessories,
+          score: newOutfit.score,
+          palette: newOutfit.palette,
+        );
     }
 
     setState(() {
@@ -1338,8 +1498,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (subList is List) {
                         final groupLabel = _formatActivityKey(groupKey);
                         groupedActivities.putIfAbsent(groupLabel, () => []);
-                        groupedActivities[groupLabel]!
-                            .addAll(List<String>.from(subList));
+                        groupedActivities[groupLabel]!.addAll(
+                          List<String>.from(subList),
+                        );
                       }
                     });
                   }
@@ -1353,9 +1514,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
             for (final key in sortedGroupKeys) {
               final unique = groupedActivities[key]!.toSet().toList();
-              unique.sort((a, b) => _formatActivityKey(a)
-                  .toLowerCase()
-                  .compareTo(_formatActivityKey(b).toLowerCase()));
+              unique.sort(
+                (a, b) => _formatActivityKey(
+                  a,
+                ).toLowerCase().compareTo(_formatActivityKey(b).toLowerCase()),
+              );
               groupedActivities[key] = unique;
             }
 
@@ -1400,8 +1563,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Groups as ExpansionTiles
                     ...sortedGroupKeys.map((groupLabel) {
                       // Filter activities by search query
-                      final activities = groupedActivities[groupLabel]!
-                          .where((act) {
+                      final activities = groupedActivities[groupLabel]!.where((
+                        act,
+                      ) {
                         final label = _formatActivityKey(act).toLowerCase();
                         return searchQuery.isEmpty ||
                             label.contains(searchQuery) ||
@@ -1415,15 +1579,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ExpansionTile(
                           title: Text(
                             groupLabel,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           children: [
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 8.0),
+                                horizontal: 16.0,
+                                vertical: 8.0,
+                              ),
                               child: Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
@@ -1469,7 +1633,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 style: ActivityStyle.casual,
                                 type: _mapActivityToType(
-                                    selectedActivitySubcategory!),
+                                  selectedActivitySubcategory!,
+                                ),
                               ),
                             );
                           });

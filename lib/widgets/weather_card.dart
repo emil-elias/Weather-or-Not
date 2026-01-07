@@ -53,7 +53,7 @@ class WeatherCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: currentWeather != null ? weatherService.getGradientColors() : [Color(0xFF56CCF2), Color(0xFF2F80ED)],
+            colors: weatherService.getGradientColors(currentWeather, forecast, forecastIndex),
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -85,13 +85,15 @@ class WeatherCard extends StatelessWidget {
                           const Icon(
                             Icons.arrow_upward_rounded,
                             size: 16,
-                            color: Color(0xFF4AFF8C),
+                            //color: Color(0xFF4AFF8C),
+                            color: Colors.white
                           ),
                           Text(
                             ' ${_getMaxTemperature().toStringAsFixed(0)}°',
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Color(0xFF4AFF8C),
+                              //color: Color(0xFF4AFF8C),
+                              color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -103,13 +105,15 @@ class WeatherCard extends StatelessWidget {
                           const Icon(
                             Icons.arrow_downward_rounded,
                             size: 16,
-                            color: Color(0xFFFF6B6B),
+                            //color: Color(0xFFFF6B6B),
+                            color: Colors.white
                           ),
                           Text(
                             ' ${_getMinTemperature().toStringAsFixed(0)}°',
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Color(0xFFFF6B6B),
+                              //color: Color(0xFFFF6B6B),
+                              color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -119,11 +123,14 @@ class WeatherCard extends StatelessWidget {
                   ),
 
                 // Arrow
+                if (onTap != null)
                 const Icon(
                   Icons.arrow_forward_rounded,
                   color: Colors.white70,
                   size: 28,
-                ),
+                )
+                else
+                const SizedBox(width: 28),
               ],
             ),
             const SizedBox(height: 24),

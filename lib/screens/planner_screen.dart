@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:weatherornot/providers/main_provider.dart';
+import 'package:weatherornot/screens/home_screen.dart';
 import 'package:weatherornot/services/planner_service.dart';
 import 'package:weatherornot/widgets/weather_card.dart';
 
@@ -115,46 +116,61 @@ class _PlannerScreenState extends State<PlannerScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
-        centerTitle: false,
-        title: Text(
-          'Planner',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: theme.colorScheme.primary,
-            labelColor: theme.colorScheme.onSurface,
-            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-            tabs: const [
-              Tab(icon: Icon(Icons.wb_sunny_outlined), text: 'Week forecast'),
-              Tab(
-                icon: Icon(Icons.show_chart_rounded),
-                text: 'Week activities',
+    final GlobalKey<NavigatorState> plannerNavigatorKey =
+        GlobalKey<NavigatorState>();
+
+    return Navigator(
+      key: plannerNavigatorKey,
+      onGenerateRoute: (settings) => MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          appBar: AppBar(
+            backgroundColor: theme.colorScheme.surface,
+            elevation: 0,
+            centerTitle: false,
+            title: Text(
+              'Planner',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: theme.colorScheme.primary,
+                labelColor: theme.colorScheme.onSurface,
+                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                tabs: const [
+                  Tab(
+                    icon: Icon(Icons.wb_sunny_outlined),
+                    text: 'Week forecast',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.show_chart_rounded),
+                    text: 'Week activities',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildForecastTab(theme, context, plannerNavigatorKey),
+              _buildActivitiesTab(theme),
             ],
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildForecastTab(theme, context),
-          _buildActivitiesTab(theme),
-        ],
-      ),
     );
   }
 
-  Widget _buildForecastTab(ThemeData theme, BuildContext context) {
+  Widget _buildForecastTab(
+    ThemeData theme,
+    BuildContext context,
+    GlobalKey<NavigatorState> navigatorKey,
+  ) {
     DateTime now = DateTime.now();
 
     MainProvider provider = context.watch<MainProvider>();
@@ -166,8 +182,9 @@ class _PlannerScreenState extends State<PlannerScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
 
-          children: List.generate(7, (i) {
-            DateTime day = now.add(Duration(days: i));
+          children: List.generate(6, (i) {
+            final idx = i + 1; // Skip today (index 0)
+            DateTime day = now.add(Duration(days: idx));
             String dayName = DateFormat('EEEE').format(day);
             String date = DateFormat('MMM d').format(day);
 
@@ -185,7 +202,12 @@ class _PlannerScreenState extends State<PlannerScreen>
                 WeatherCard(
                   isLoading: false,
                   forecast: provider.forecast,
-                  forecastIndex: i,
+                  forecastIndex: idx,
+                  onTap: () {
+                    navigatorKey.currentState?.push(
+                      MaterialPageRoute(builder: (_) => HomeScreen(live: false, title: dayName, forecastIndex: idx)),
+                    );
+                  },
                 ),
                 SizedBox(height: 16),
               ],

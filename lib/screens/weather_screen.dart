@@ -56,7 +56,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: _weatherService.getGradientColors(),
+            colors: _weatherService.getGradientColors(_provider.currentWeather, _provider.forecast, null),
           ),
         ),
         child: SafeArea(
@@ -145,13 +145,15 @@ class _WeatherScreenState extends State<WeatherScreen> {
                               const Icon(
                                 Icons.arrow_upward_rounded,
                                 size: 16,
-                                color: Color(0xFF4AFF8C),
+                                //color: Color(0xFF4AFF8C),
+                                color: Colors.white
                               ),
                               Text(
                                 ' ${_provider.forecast?.days?.first.maxTemperature?.toStringAsFixed(0) ?? "--"}°',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Color(0xFF4AFF8C),
+                                  //color: Color(0xFF4AFF8C),
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -163,13 +165,15 @@ class _WeatherScreenState extends State<WeatherScreen> {
                               const Icon(
                                 Icons.arrow_downward_rounded,
                                 size: 16,
-                                color: Color(0xFFFF6B6B),
+                                //color: Color(0xFFFF6B6B),
+                                color: Colors.white
                               ),
                               Text(
                                 ' ${_provider.forecast?.days?.first.minTemperature?.toStringAsFixed(0) ?? "--"}°',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Color(0xFFFF6B6B),
+                                  //color: Color(0xFFFF6B6B),
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -528,8 +532,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
-              const SizedBox(width: 8),
               Text(
                 'Weather Warnings',
                 style: TextStyle(
@@ -557,7 +559,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   Widget _buildWarningCard(WeatherWarning warning) {
     final levelColor = _getWarningColor(warning.level);
     //final levelText = _getWarningLevelText(warning.level);
-    final levelText = "";
+    final levelText = "!";
     
     return Card(
       color: levelColor.withOpacity(0.3),
@@ -580,14 +582,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     color: levelColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
-                    levelText,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 8),
                 Expanded(

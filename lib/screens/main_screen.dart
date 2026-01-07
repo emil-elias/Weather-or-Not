@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
   final MainProvider _provider = MainProvider();
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    const HomeScreen(live: true, title: "Today"),
     const PlannerScreen(),
     const WardrobeScreen(),
     const AccountScreen(),

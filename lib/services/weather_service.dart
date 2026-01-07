@@ -79,7 +79,8 @@ class WeatherService {
           return Weather(
             stationName: locationName ?? 'DWD Station $stationID',
             stationId: stationID,
-            source: 'DWD (Station $stationID - aktuelle Messung) ${message != null ? '\n$message' : ''}',
+            source:
+                'DWD (Station $stationID - aktuelle Messung) ${message != null ? '\n$message' : ''}',
             temperature: weatherData['temperature'] != null
                 ? weatherData['temperature'].toDouble() / 10
                 : null,
@@ -133,7 +134,7 @@ class WeatherService {
 
         //recursive fallback to next closest station if available
         if (fallbackStations != null && fallbackStations.isNotEmpty) {
-          return getCurrentDWDWeatherByStationID( 
+          return getCurrentDWDWeatherByStationID(
             fallbackStations.first["id"],
             locationName: fallbackStations.first["name"],
             fallbackStations: fallbackStations.length > 1
@@ -141,9 +142,11 @@ class WeatherService {
                 : null,
             fallbackLat: fallbackLat,
             fallbackLon: fallbackLon,
-            message: 'Hinweis: Daten der nächsten verfügbaren Station - \nKeine verfügbaren Daten an Ihrem aktuellen Standort'
+            message:
+                'Hinweis: Daten der nächsten verfügbaren Station - \nKeine verfügbaren Daten an Ihrem aktuellen Standort',
           );
-        } else if (fallbackLat != null && fallbackLon != null) { //if nothing helps, just use BrightSky
+        } else if (fallbackLat != null && fallbackLon != null) {
+          //if nothing helps, just use BrightSky
           return getWeatherByCoordinates(
             fallbackLat,
             fallbackLon,
@@ -156,7 +159,9 @@ class WeatherService {
       }
 
       final now = DateTime.now();
-      final hourIndex = forecast.start != null ? now.difference(forecast.start!).inHours : 0;
+      final hourIndex = forecast.start != null
+          ? now.difference(forecast.start!).inHours
+          : 0;
 
       print('Forecast start: ${forecast.start}'); // Debug
       print('Hour Index: $hourIndex'); // Debug
@@ -164,37 +169,43 @@ class WeatherService {
       return Weather(
         stationName: locationName ?? 'DWD Station $stationID',
         stationId: stationID,
-        source: 'DWD (Station $stationID - basierend auf Vorhersage) ${message != null ? '\n$message' : ''}',
-        temperature: (forecast.temperature != null &&
+        source:
+            'DWD (Station $stationID - basierend auf Vorhersage) ${message != null ? '\n$message' : ''}',
+        temperature:
+            (forecast.temperature != null &&
                 hourIndex < forecast.temperature!.length)
             ? forecast.temperature![hourIndex]
             : null,
-        precipitation: (forecast.precipitation != null &&
+        precipitation:
+            (forecast.precipitation != null &&
                 hourIndex < forecast.precipitation!.length)
             ? forecast.precipitation![hourIndex]
             : null,
-        windSpeed: (forecast.windSpeed != null &&
+        windSpeed:
+            (forecast.windSpeed != null &&
                 hourIndex < forecast.windSpeed!.length)
             ? forecast.windSpeed![hourIndex]
             : null,
-        windGust: (forecast.windGust != null &&
-                hourIndex < forecast.windGust!.length)
+        windGust:
+            (forecast.windGust != null && hourIndex < forecast.windGust!.length)
             ? forecast.windGust![hourIndex]
             : null,
-        windDirection: (forecast.windDirection != null &&
+        windDirection:
+            (forecast.windDirection != null &&
                 hourIndex < forecast.windDirection!.length)
             ? forecast.windDirection![hourIndex]
             : null,
-        cloudCover: (forecast.cloudCover != null &&
+        cloudCover:
+            (forecast.cloudCover != null &&
                 hourIndex < forecast.cloudCover!.length)
             ? forecast.cloudCover![hourIndex]
             : null,
-        humidity: (forecast.humidity != null &&
-                hourIndex < forecast.humidity!.length)
+        humidity:
+            (forecast.humidity != null && hourIndex < forecast.humidity!.length)
             ? forecast.humidity![hourIndex]
             : null,
-        pressure: (forecast.pressure != null &&
-                hourIndex < forecast.pressure!.length)
+        pressure:
+            (forecast.pressure != null && hourIndex < forecast.pressure!.length)
             ? forecast.pressure![hourIndex]
             : null,
         condition: null,
@@ -242,6 +253,7 @@ class WeatherService {
 
         final forecast = data['forecast1'];
         final forecast2 = data['forecast2'];
+        final warnings = data['warnings'];
         final days = data['days'];
 
         // Parse the forecast data here and return a Forecast object
@@ -249,8 +261,7 @@ class WeatherService {
         return Forecast(
           stationName: 'DWD Station $stationID',
           stationId: forecast["stationId"] ?? stationID,
-          source:
-              'DWD (station $stationID)',
+          source: 'DWD (station $stationID)',
           start: forecast['start'] != null
               ? DateTime.fromMillisecondsSinceEpoch(forecast['start'])
               : DateTime(
@@ -274,7 +285,10 @@ class WeatherService {
           dewPoint: _toDoubleList(forecast['dewPoint2m'], divideBy10: true),
           cloudCover: _toDoubleList(forecast['cloudCoverTotal']),
           humidity: _toDoubleList(forecast['humidity'], divideBy10: true),
-          pressure: _toDoubleList(forecast['surfacePressure'], divideBy10: true),
+          pressure: _toDoubleList(
+            forecast['surfacePressure'],
+            divideBy10: true,
+          ),
           isDaylight: _toBoolList(forecast['isDay']),
           precipitationProbability: _toDoubleList(
             forecast['precipitationProbability'],
@@ -330,8 +344,8 @@ class WeatherService {
                   );
                 }).toList()
               : [],
-          warnings: forecast2['warnings'] != null
-              ? (forecast2['warnings'] as List).map((warningData) {
+          warnings: warnings != null
+              ? (warnings as List).map((warningData) {
                   return WeatherWarning(
                     warnId: warningData['warnId'] ?? '',
                     type: warningData['type']?.toInt(),
@@ -349,6 +363,7 @@ class WeatherService {
                             warningData['end'],
                           )
                         : DateTime.now(),
+                    instruction: warningData['instruction'] ?? '',
                   );
                 }).toList()
               : [],
@@ -532,8 +547,6 @@ class WeatherService {
     }
   }
 
-  
-
   String getWeatherDescriptionById(int? iconId) {
     String condition;
     switch (iconId) {
@@ -638,16 +651,73 @@ class WeatherService {
     return condition;
   }
 
-  List<Color> getGradientColors() {
+  List<Color> getGradientColors(
+    Weather? weather,
+    Forecast? forecast,
+    int? forecastIndex,
+  ) {
     final hour = DateTime.now().hour;
-    if (hour >= 6 && hour < 12) {
-      return [Color(0xFF4A90E2), Color(0xFF50C9FF)]; // Morning
-    } else if (hour >= 12 && hour < 18) {
-      return [Color(0xFF56CCF2), Color(0xFF2F80ED)]; // Afternoon
-    } else if (hour >= 18 && hour < 21) {
-      return [Color(0xFFFF6B6B), Color(0xFFFFB347)]; // Evening
+    final index = forecastIndex ?? 0;
+    final sunrise =
+        forecast != null && forecast.days != null && forecast.days!.isNotEmpty
+        ? forecast.days![index].sunrise?.hour ?? 6
+        : 6;
+    final sunset =
+        forecast != null && forecast.days != null && forecast.days!.isNotEmpty
+        ? forecast.days![index].sunset?.hour ?? 18
+        : 18;
+
+    // choose base gradient by time of day
+    List<Color> base;
+    if (hour >= sunrise && hour < 12) {
+      base = [Color(0xFF4A90E2), Color(0xFF50C9FF)]; // Morning
+    } else if (hour >= 12 && hour < sunset - 1) {
+      base = [Color(0xFF56CCF2), Color(0xFF2F80ED)]; // Afternoon
+    } else if (hour >= sunset - 1 && hour < sunset + 1) {
+      base = [Color(0xFFFF6B6B), Color(0xFFFFB347)]; // Evening
     } else {
-      return [Color(0xFF2C3E50), Color(0xFF3E5266)]; // Night
+      base = [Color(0xFF2C3E50), Color(0xFF3E5266)]; // Night
     }
+
+    // Determine cloud cover percent (0..100). Prefer current weather, fall back to forecast values.
+    double cloudCoverPercent = 0.0;
+
+    if (forecastIndex != null &&
+        forecast != null &&
+        forecast.days != null &&
+        index < forecast.days!.length) {
+      final sunshine = forecast.days![index].sunshine ?? 0;
+      final negativeSunshine =
+          100 -
+          sunshine / 60 * 10; // "convert" sunshine hours to cloud percentage
+      cloudCoverPercent = negativeSunshine.clamp(0, 100).toDouble();
+    }
+
+    if (weather != null && weather.cloudCover != null) {
+      cloudCoverPercent = weather.cloudCover!.clamp(0, 100).toDouble();
+    } else if (forecast != null &&
+        forecast.cloudCover != null &&
+        forecast.cloudCover!.isNotEmpty) {
+      final now = DateTime.now();
+
+      final hourIndex = forecast.start != null
+          ? now.difference(forecast.start!).inHours
+          : 0;
+      if (hourIndex >= 0 && hourIndex < forecast.cloudCover!.length) {
+        cloudCoverPercent = forecast.cloudCover![hourIndex]
+            .clamp(0, 100)
+            .toDouble();
+      }
+    }
+
+    // If no cloud data or zero cloud cover, return base gradient
+    if (cloudCoverPercent <= 0) return base;
+
+    // Desaturate each base color proportionally to cloud cover (100% => fully desaturated)
+    return base.map((c) {
+      final hsl = HSLColor.fromColor(c);
+      final newSat = hsl.saturation * (1 - cloudCoverPercent / 100.0);
+      return hsl.withSaturation(newSat).toColor();
+    }).toList();
   }
 }
