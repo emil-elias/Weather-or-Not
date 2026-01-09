@@ -481,6 +481,12 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   '${_provider.forecast!.dewPoint!.first.toStringAsFixed(1)}°',
                   Icons.thermostat,
                 ),
+              if (_provider.currentWeather?.snow != null)
+                _buildDetailCard(
+                  'Snow',
+                  '${(_provider.currentWeather!.snow!).toStringAsFixed(1)} cm',
+                  Icons.ac_unit,
+                )
             ],
           ),
         ],

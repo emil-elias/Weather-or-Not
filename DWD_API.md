@@ -107,7 +107,7 @@ Response looks like this:
 ```
 {
     "precipitation3h": *(Int)* precipitation over the last 3h, probably in 10*mm,
-    "totalsnow": *(Int)* snow, probably in 10*mm,
+    "totalsnow": *(Int)* snow, probably in 10*cm,
     "dewpoint": *(Int)* current dewpoint in 10*Celcius,
     "sunshine": *(Int)* sunshine for current hour in 10*minutes,
     "cloud_cover_total": *(Int)* cloud cover measure unsure, maybe 10*Okta, maybe percent,
