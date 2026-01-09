@@ -33,58 +33,59 @@ Response looks like this:
             "cloudCoverTotal": [empty most of the time],
             "icon": [*(Int)* icon mapping values throughout the day, see icon map below],
             "precipitationProbablity": null most of the time,
-            "precipitationProbablityIndex": null most of the time,
-            "days": [
-                {
-                    "dayDate": *(String)* date as string, like "2025-11-20", starts with the current day,
-                    "temperatureMin": *(Int)* min. temperature of the day in 10*Celsius,
-                    "temperatureMax": *(Int)* max. temperature of the day in 10*Celcius,
-                    "precipitation": *(Int)* precipitation, probably in 10*mm,
-                    "windSpeed": *(Int)* (highest?) wind speed in 10*km/h,
-                    "windGust": *(Int)* (highest?) wind gust speed in 10*km/h,
-                    "windDirection": *(Int)* (average?) wind direction in 10*degrees (3060 = 306),
-                    "sunshine": *(Int)* sunshine in 10*minutes,
-                    "sunrise": *(Int)* unix timestamp of sunrise,
-                    "sunset": *(Int)* unix timestamp of sunset,
-                    "moonrise": *(Int)* unix timestamp of moonrise,
-                    "moonset": *(Int)* unix timestamp of moonset,
-                    "moonriseOnThisDay": *(Int)* idk the difference to moonrise,
-                    "moonsetOnThisDay": *(Int)* idk the difference to moonset,
-                    "sunriseOnThisDay": *(Int)* idk the difference to sunrise,
-                    "sunsetOnThisDay": *(Int)* idk the difference to sunset,
-                    "moonPhase": *(Int)* numerical moon phase value i haven't figured out yet,
-                    "icon": *(Int)* icon for the day, see icon map below,
-                    "icon1": null most of the time,
-                    "icon2": null most of the time
-                },
-                {
-                    usually the 7 days of the following week
-                }
-            ]
+            "precipitationProbablityIndex": null most of the time
         }
+        "days": [
+            {
+                "dayDate": *(String)* date as string, like "2025-11-20", starts with the current day,
+                "temperatureMin": *(Int)* min. temperature of the day in 10*Celsius,
+                "temperatureMax": *(Int)* max. temperature of the day in 10*Celcius,
+                "precipitation": *(Int)* precipitation, probably in 10*mm,
+                "windSpeed": *(Int)* (highest?) wind speed in 10*km/h,
+                "windGust": *(Int)* (highest?) wind gust speed in 10*km/h,
+                "windDirection": *(Int)* (average?) wind direction in 10*degrees (3060 = 306),
+                "sunshine": *(Int)* sunshine in 10*minutes,
+                "sunrise": *(Int)* unix timestamp of sunrise,
+                "sunset": *(Int)* unix timestamp of sunset,
+                "moonrise": *(Int)* unix timestamp of moonrise,
+                "moonset": *(Int)* unix timestamp of moonset,
+                "moonriseOnThisDay": *(Int)* idk the difference to moonrise,
+                "moonsetOnThisDay": *(Int)* idk the difference to moonset,
+                "sunriseOnThisDay": *(Int)* idk the difference to sunrise,
+                "sunsetOnThisDay": *(Int)* idk the difference to sunset,
+                "moonPhase": *(Int)* numerical moon phase value i haven't figured out yet,
+                "icon": *(Int)* icon for the day, see icon map below,
+                "icon1": null most of the time,
+                "icon2": null most of the time
+            },
+            {
+                usually the 7 days of the following week
+            }
+        ]
         "forecast2": {
-            another forecast which might have slightly different values, but is missing temperature values most of the time. however, it has a field:
-            "warnings": [
-                {
-                    "warnId": *(String)* id of the warning,
-                    "type": *(Int)* numerical category i haven't figured out yet,
-                    "level": *(Int)* numerical category i haven't figured out yet,
-                    "start": *(Int)* unix timestamp of start time,
-                    "end": *(Int)* unix timestamp of end time,
-                    "bn": *(Bool)* boolean value i don't know the meaning of,
-                    "description": *(String)* text description in german like "Es tritt leichter Frost zwischen 0 °C und -3 °C auf.",
-                    "event": *(String)* category like "FROST",
-                    "headline": *(String)* text headline like "Amtliche WARNUNG vor FROST",
-                    "instruction": *(String)* advised instructions like "Hinweis auf: mögliche Frostschäden. Handlungsempfehlungen: ggf. Frostschutzmaßnahmen ergreifen",
-                    "instructionHtml": *(String)* same instructions in HTML format,
-                },
-                {
-                    ...
-                }
-            ],
-            "threeHourSummaries": null most of the time
+            another forecast which might have slightly different values, but is missing temperature values most of the time.
         }
+        "warnings": [
+            {
+                "warnId": *(String)* id of the warning,
+                "type": *(Int)* numerical category i haven't figured out yet,
+                "level": *(Int)* numerical category i haven't figured out yet,
+                "start": *(Int)* unix timestamp of start time,
+                "end": *(Int)* unix timestamp of end time,
+                "bn": *(Bool)* boolean value i don't know the meaning of,
+                "description": *(String)* text description in german like "Es tritt leichter Frost zwischen 0 °C und -3 °C auf.",
+                "event": *(String)* category like "FROST",
+                "headline": *(String)* text headline like "Amtliche WARNUNG vor FROST",
+                "instruction": *(String)* advised instructions like "Hinweis auf: mögliche Frostschäden. Handlungsempfehlungen: ggf. Frostschutzmaßnahmen ergreifen",
+                "instructionHtml": *(String)* same instructions in HTML format,
+            },
+            {
+                ...
+            }
+        ],
+        "threeHourSummaries": null most of the time
     }
+
 }
 ```
 
