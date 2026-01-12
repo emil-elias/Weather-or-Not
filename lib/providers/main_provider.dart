@@ -14,8 +14,14 @@ class MainProvider extends ChangeNotifier {
   Forecast? _forecast;
   String? _errorMessage;
   bool _isLoading = false;
-  String _selectedLocation = 'Bremen, Germany';
+  Map<String,dynamic> _selectedLocation = {
+    "name": "Bremen, Germany",
+    "id": "10224",
+    "lat": 53.0451,
+    "lon": 8.7981,
+  };
   List<Map<String, dynamic>> _closestLocations = [];
+  bool _locationAccessDenied = false;
 
   final List<String> _locations = [
     'Bremen, Germany',
@@ -41,13 +47,14 @@ class MainProvider extends ChangeNotifier {
   Forecast? get forecast => _forecast;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
-  String get selectedLocation => _selectedLocation;
+  Map<String,dynamic> get selectedLocation => _selectedLocation;
   List<Map<String, dynamic>> get closestLocations => _closestLocations;
+  bool get locationAccessDenied => _locationAccessDenied;
   List<String> get locations => _locations;
   Map<String, Map<String, double>> get locationCoordinates => _locationCoordinates;
 
 
-  void setSelectedLocation(String location) {
+  void setSelectedLocation(Map<String,dynamic> location) {
     _selectedLocation = location;
     notifyListeners();
   }
@@ -64,7 +71,8 @@ class MainProvider extends ChangeNotifier {
       _locations.insert(0, closest['name']);
       stationIDs[closest['name']] = closest['id'];
       _closestLocations = closestList;
-      setSelectedLocation(closest['name']);
+      _locationAccessDenied = false;
+      setSelectedLocation(closest);
       
       loadWeather(
           closest['id'],
@@ -76,7 +84,9 @@ class MainProvider extends ChangeNotifier {
 
     } catch (e) {
       print('Error getting location: $e');
-      setSelectedLocation('Bremen, Germany');
+      // mark that location access was denied / failed so UI can prompt
+      _locationAccessDenied = true;
+      setSelectedLocation({"name": "Bremen, Germany", "id": "10224"});
       loadWeather(
         stationIDs['Bremen, Germany']!,
         'Bremen, Germany',
@@ -97,7 +107,12 @@ class MainProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     _errorMessage = null;
-    _selectedLocation = locationName;
+    _selectedLocation = {
+      "name": locationName,
+      "id": stationId,
+      "lat": fallbackLat,
+      "lon": fallbackLon,
+    };
     notifyListeners();
 
     try {
@@ -109,13 +124,16 @@ class MainProvider extends ChangeNotifier {
         fallbackLon: fallbackLon,
       );
 
-      if (weather.stationName != _selectedLocation) {
-          final oldLocation = _selectedLocation;
+      if (weather.stationName != _selectedLocation["name"]) {
+          final oldLocation = _selectedLocation["name"];
           _locations.remove(oldLocation);
           if (!_locations.contains(weather.stationName)) {
             _locations.insert(0, weather.stationName);
           }
-          _selectedLocation = weather.stationName;
+          _selectedLocation = {
+            "name": weather.stationName,
+            "id": weather.stationId
+          };
           stationIDs[weather.stationName] = weather.stationId;
           stationId = weather.stationId;
       }

@@ -163,7 +163,7 @@ class WeatherCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Quelle: ${currentWeather?.source ?? forecast?.source ?? "trust me bro"}',
+                  'Source: ${currentWeather?.source ?? forecast?.source ?? "trust me bro"}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white70,
                   ),
@@ -249,8 +249,8 @@ class WeatherCard extends StatelessWidget {
         children: [
           _buildWeatherDetail(
             Icons.water_drop_outlined,
-            '${currentWeather!.humidity?.toStringAsFixed(0) ?? '--'}%',
-            'Luftfeuchtigkeit',
+            '${currentWeather!.humidity?.clamp(0,100).toStringAsFixed(0) ?? '--'}%',
+            'Humidity',
           ),
           _buildWeatherDetail(
             Icons.air_outlined,
@@ -259,8 +259,8 @@ class WeatherCard extends StatelessWidget {
           ),
           _buildWeatherDetail(
             Icons.cloud_outlined,
-            '${currentWeather!.cloudCover?.toStringAsFixed(0)  ?? '--'}%',
-            'Bewölkung',
+            '${currentWeather!.cloudCover?.clamp(0,100).toStringAsFixed(0)  ?? '--'}%',
+            'Cloud Cover',
           ),
         ],
       );
@@ -272,7 +272,7 @@ class WeatherCard extends StatelessWidget {
           _buildWeatherDetail(
             Icons.water_drop_outlined,
             '${forecast!.days![index].precipitation?.toStringAsFixed(0) ?? '--'} mm',
-            'Niederschlag',
+            'Precipitation',
           ),
           _buildWeatherDetail(
             Icons.air_outlined,
@@ -281,8 +281,8 @@ class WeatherCard extends StatelessWidget {
           ),
           _buildWeatherDetail(
             Icons.wb_sunny_outlined,
-            '${(forecast!.days![index].sunshine != null ? forecast!.days![index].sunshine! / 60 : 0).toStringAsFixed(0)} h',
-            'Sonnenschein',
+            '${(forecast!.days![index].sunshine != null ? forecast!.days![index].sunshine! / 60 : 0).clamp(0,24).toStringAsFixed(0)} h',
+            'Sunshine',
           )
         ],
       );
