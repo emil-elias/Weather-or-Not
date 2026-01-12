@@ -16,6 +16,7 @@ import '../models/outfit.dart';
 import '../models/saved_outfit.dart';
 import '../constants/app_constants.dart';
 import '../services/location_service.dart';
+import '../services/preferences_service.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -244,16 +245,38 @@ class _HomeScreenState extends State<HomeScreen> {
       // Create outfit engine
       final outfitEngine = OutfitEngine(clothingItems);
 
-      // Get activity string (combine all activities or use first one)
-      String activityString = 'daily';
-      if (_todayActivities.isNotEmpty) {
-        activityString = _todayActivities.first.type.displayName.toLowerCase();
+      // Build activities list (use types, default to 'daily')
+      final activities = _todayActivities.isNotEmpty
+          ? _todayActivities.map((a) => a.type.name.toLowerCase()).toList()
+          : ['daily'];
+
+      // Load user preferences (transportation method and warm/cold thresholds)
+      final prefs = PreferencesService();
+      final transportation = await prefs.getTransportation();
+      final coldThreshold = await prefs.getColdThreshold();
+      final warmThreshold = await prefs.getWarmThreshold();
+
+      // Add transportation as an activity (lowercased) so engine can consider it in optimalActivities/unsuitableFor
+      if (transportation.trim().isNotEmpty) {
+        activities.add(transportation.toLowerCase());
+      }
+
+      // Compute rain probability from precipitation or condition
+      double rainProbability = 0.0;
+      if (weather.precipitation != null) {
+        rainProbability = (weather.precipitation! / 5.0).clamp(0.0, 1.0);
+      } else if (weather.condition != null && weather.condition!.toLowerCase().contains('rain')) {
+        rainProbability = 0.8;
       }
 
       // Generate outfit
       final outfit = outfitEngine.generate(
         temperature: weather.temperature ?? 20.0,
-        activity: activityString,
+        activities: activities,
+        rainProbability: rainProbability,
+        weatherCondition: weather.condition,
+        coldThreshold: coldThreshold,
+        warmThreshold: warmThreshold,
       );
 
       setState(() {
@@ -383,20 +406,40 @@ class _HomeScreenState extends State<HomeScreen> {
         print('Loaded attributes for "$rawSubtype" from JSON');
       }
 
-      // Extract attributes from JSON or use defaults
-      final attributesData = foundSubtypeData?['attributes'] ?? {};
-      final usageConstraintsData = foundSubtypeData?['usage_constraints'] ?? {};
+      // Prefer stored attributes/usage constraints from the WardrobeItem, but merge them over JSON defaults
+      final Map<String, dynamic> storedAttributes = (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
+      final Map<String, dynamic> storedUsage = (item.usageConstraints as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
+
+      final Map<String, dynamic> jsonAttributes = (foundSubtypeData != null && foundSubtypeData['attributes'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map) : {};
+      final Map<String, dynamic> jsonUsage = (foundSubtypeData != null && foundSubtypeData['usage_constraints'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['usage_constraints'] as Map) : {};
+
+      // merge JSON defaults with stored overrides (stored wins)
+      final attributesData = {...jsonAttributes, ...storedAttributes};
+      final usageConstraintsData = {...jsonUsage, ...storedUsage};
+
+      if (storedAttributes.isNotEmpty) {
+        final overridden = storedAttributes.keys.join(', ');
+        print('Converting item ${item.id}: merging stored attributes over JSON defaults (overrides: $overridden)');
+      } else if (jsonAttributes.isNotEmpty) {
+        print('Converting item ${item.id}: using JSON attributes for subtype');
+      }
+
+      if (storedUsage.isNotEmpty) {
+        final overridden = storedUsage.keys.join(', ');
+        print('Converting item ${item.id}: merging stored usage constraints over JSON defaults (overrides: $overridden)');
+      } else if (jsonUsage.isNotEmpty) {
+        print('Converting item ${item.id}: using JSON usage constraints for subtype');
+      }
 
       // Parse attributes with fallback defaults
       final materials = List<String>.from(attributesData['materials'] ?? []);
-      final warmthLevel = attributesData['warmth_level'] ?? 5;
+      final warmthLevel = attributesData['warmth_level'] ?? _getWarmthLevel(item.formalityLevel ?? 'casual');
       final waterResistance = attributesData['water_resistance'] ?? 5;
       final windResistance = attributesData['wind_resistance'] ?? 5;
       final breathability = attributesData['breathability'] ?? 5;
       final stretch = attributesData['stretch'] ?? 5;
-      final formality =
-          attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
-      final styleTags = List<String>.from(attributesData['style_tags'] ?? []);
+      final formality = attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
+      final styleTags = List<String>.from(attributesData['style_tags'] ?? (item.tags ?? []));
       final fit = attributesData['fit'] ?? 'regular';
 
       // Parse usage constraints with fallback defaults
@@ -765,174 +808,152 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         child: item != null
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Item Image
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: theme.colorScheme.surfaceContainerHighest,
-                      ),
-                      child:
-                          item.metadata != null &&
-                              item.metadata!['imagePath'] != null
+                  // Left: fixed square image area
+                  Container(
+                    width: isLarge ? 140 : 120,
+                    height: isLarge ? 140 : 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: item.metadata != null && item.metadata!['imagePath'] != null
                           ? Image.file(
                               File(item.metadata!['imagePath'] as String),
                               fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
-                                return _buildPlaceholderIcon(theme);
+                                return Center(child: _buildPlaceholderIcon(theme));
                               },
                             )
-                          : _buildPlaceholderIcon(theme),
+                          : Center(child: _buildPlaceholderIcon(theme)),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // Item details: Name, Category, Subcategory
-                  Column(
-                    children: [
-                      // Item Name
-                      Text(
-                        item.metadata?['name'] as String? ?? item.subtype,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      // Category & Subcategory
-                      Text(
-                        '${item.category} • ${item.subtype}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      // Label (e.g., "Shirt", "Outerwear")
-                      if (label.isNotEmpty)
+                  const SizedBox(width: 12),
+                  // Right: info and change button
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Item name
                         Text(
-                          label,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
+                          item.metadata?['name'] as String? ?? item.subtype,
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
-                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: () => _openCategoryChooser(context, label),
-                          icon: const Icon(Icons.swap_horiz_rounded),
-                          label: const Text('Change'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: theme.colorScheme.primaryContainer,
-                            foregroundColor:
-                                theme.colorScheme.onPrimaryContainer,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 6),
+                        // Category & Subtype
+                        Text(
+                          '${item.category} • ${item.subtype}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (label.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            label,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: () => _openCategoryChooser(context, label),
+                            icon: const Icon(Icons.swap_horiz_rounded),
+                            label: const Text('Change'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              backgroundColor: theme.colorScheme.primaryContainer,
+                              foregroundColor: theme.colorScheme.onPrimaryContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            : Row(
                 children: [
-                  Icon(
-                    Icons.checkroom_outlined,
-                    size: 32,
-                    color: theme.colorScheme.onSurfaceVariant,
+                  Container(
+                    width: isLarge ? 140 : 120,
+                    height: isLarge ? 140 : 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Center(
+                        child: Icon(
+                          Icons.checkroom_outlined,
+                          size: 32,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  if (label.isNotEmpty)
-                    Column(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          label,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                        if (label.isNotEmpty) ...[
+                          Text(
+                            label,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () =>
-                                _openCategoryChooser(context, label),
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            label: const Text('Choose alternative'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: BorderSide(
-                                color: theme.colorScheme.outline,
-                                width: 1.2,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _openCategoryChooser(context, label),
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('Choose alternative'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                side: BorderSide(
+                                  color: theme.colorScheme.outline,
+                                  width: 1.2,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        Container(
-                          height: 4,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.outlineVariant,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          height: 4,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.outlineVariant,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () =>
-                                _openCategoryChooser(context, label),
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            label: const Text('Choose an item'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: BorderSide(
-                                color: theme.colorScheme.outline,
-                                width: 1.2,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
+                        ] else ...[
+                          // empty placeholder layout to keep consistent sizing
+                          const SizedBox(height: 4),
+                        ],
                       ],
                     ),
+                  ),
                 ],
               ),
-      ),
+        ),
     );
   }
 
@@ -972,8 +993,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child:
                       item.metadata != null &&
                           item.metadata!['imagePath'] != null
-                      ? Image.asset(
-                          item.metadata!['imagePath'] as String,
+                      ? Image.file(
+                          File(item.metadata!['imagePath'] as String),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return _buildPlaceholderIcon(theme);
@@ -1302,6 +1323,9 @@ class _HomeScreenState extends State<HomeScreen> {
       shoes: old?.shoes,
       accessories: old?.accessories ?? [],
       score: score,
+      baseScore: old?.baseScore ?? score,
+      styleScore: old?.styleScore ?? 0.0,
+      colorScore: old?.colorScore ?? 0.0,
       palette: palette,
     );
 
@@ -1315,6 +1339,9 @@ class _HomeScreenState extends State<HomeScreen> {
         shoes: newOutfit.shoes,
         accessories: newOutfit.accessories,
         score: newOutfit.score,
+        baseScore: newOutfit.baseScore,
+        styleScore: newOutfit.styleScore,
+        colorScore: newOutfit.colorScore,
         palette: newOutfit.palette,
       );
     } else if (lc.contains('pullover'))
@@ -1326,6 +1353,9 @@ class _HomeScreenState extends State<HomeScreen> {
         shoes: newOutfit.shoes,
         accessories: newOutfit.accessories,
         score: newOutfit.score,
+        baseScore: newOutfit.baseScore,
+        styleScore: newOutfit.styleScore,
+        colorScore: newOutfit.colorScore,
         palette: newOutfit.palette,
       );
     else if (lc.contains('bottom'))
@@ -1337,6 +1367,9 @@ class _HomeScreenState extends State<HomeScreen> {
         shoes: newOutfit.shoes,
         accessories: newOutfit.accessories,
         score: newOutfit.score,
+        baseScore: newOutfit.baseScore,
+        styleScore: newOutfit.styleScore,
+        colorScore: newOutfit.colorScore,
         palette: newOutfit.palette,
       );
     else if (lc.contains('outer'))
@@ -1348,6 +1381,9 @@ class _HomeScreenState extends State<HomeScreen> {
         shoes: newOutfit.shoes,
         accessories: newOutfit.accessories,
         score: newOutfit.score,
+        baseScore: newOutfit.baseScore,
+        styleScore: newOutfit.styleScore,
+        colorScore: newOutfit.colorScore,
         palette: newOutfit.palette,
       );
     else if (lc.contains('shoe'))
@@ -1359,6 +1395,9 @@ class _HomeScreenState extends State<HomeScreen> {
         shoes: selected,
         accessories: newOutfit.accessories,
         score: newOutfit.score,
+        baseScore: newOutfit.baseScore,
+        styleScore: newOutfit.styleScore,
+        colorScore: newOutfit.colorScore,
         palette: newOutfit.palette,
       );
     else {
@@ -1372,6 +1411,9 @@ class _HomeScreenState extends State<HomeScreen> {
           shoes: newOutfit.shoes,
           accessories: newOutfit.accessories,
           score: newOutfit.score,
+          baseScore: newOutfit.baseScore,
+          styleScore: newOutfit.styleScore,
+          colorScore: newOutfit.colorScore,
           palette: newOutfit.palette,
         );
     }

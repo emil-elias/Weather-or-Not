@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../widgets/image_picker_section.dart';
 import '../widgets/custom_text_field.dart';
-import '../widgets/custom_dropdown.dart';
 import '../models/wardrobe_item.dart';
 import '../services/wardrobe_service.dart';
 
@@ -25,9 +24,43 @@ class AddItemScreen extends StatefulWidget {
 class _AddItemScreenState extends State<AddItemScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _colorController = TextEditingController();
+  Color? _selectedColor;
   final WardrobeService _wardrobeService = WardrobeService();
   final ImagePicker _imagePicker = ImagePicker();
+
+  // Color picker's preset palette (approx 30 common clothing colors arranged roughly by hue circle)
+  static const List<Color> _pickerColors = [
+    Color(0xFFB71C1C), // deep red
+    Color(0xFFD32F2F), // red
+    Color(0xFFEF5350), // light red
+    Color(0xFFFF7043), // coral
+    Color(0xFFFB8C00), // orange
+    Color(0xFFF9A825), // mustard
+    Color(0xFFFDD835), // yellow
+    Color(0xFFAFB42B), // lime olive
+    Color(0xFF7CB342), // green
+    Color(0xFF4CAF50), // medium green
+    Color(0xFF388E3C), // dark green
+    Color(0xFF009688), // teal
+    Color(0xFF00ACC1), // cyan
+    Color(0xFF0288D1), // light blue
+    Color(0xFF1976D2), // royal blue
+    Color(0xFF303F9F), // indigo
+    Color(0xFF512DA8), // purple
+    Color(0xFF6A1B9A), // deep purple
+    Color(0xFFD81B60), // pink
+    Color(0xFF8E24AA), // magenta
+    Color(0xFF6D4C41), // brown
+    Color(0xFF795548), // chestnut
+    Color(0xFFBDBDBD), // light grey
+    Color(0xFF9E9E9E), // grey
+    Color(0xFF616161), // charcoal
+    Color(0xFF455A64), // slate
+    Color(0xFF263238), // dark slate
+    Color(0xFF000000), // black
+    Color(0xFFFFFFFF), // white
+    Color(0xFFFFE0B2), // beige
+  ];
 
   String? _selectedImagePath;
   bool _isLoading = false;
@@ -81,11 +114,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
     if (widget.initialItem != null) {
       _nameController.text = widget.initialItem!.name;
       _descriptionController.text = widget.initialItem!.description;
-      _colorController.text = widget.initialItem!.color;
       _selectedImagePath = widget.initialItem!.imagePath;
       _selectedCategory = widget.initialItem!.category;
       _selectedSubcategory = widget.initialItem!.subcategory;
-      _selectedFormality = widget.initialItem!.formalityLevel; 
+      _selectedFormality = widget.initialItem!.formalityLevel;
+
+      // Try to parse color if provided as hex (#rrggbb)
+      final cstr = widget.initialItem!.color.trim();
+      if (cstr.startsWith('#') && (cstr.length == 7 || cstr.length == 9)) {
+        try {
+          final hex = cstr.replaceFirst('#', '');
+          final value = int.parse(hex, radix: 16);
+          _selectedColor = Color(cstr.length == 7 ? (0xFF000000 | value) : value);
+        } catch (_) {}
+      }
     }
 
     _initAsync();
@@ -106,7 +148,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _colorController.dispose();
     _optimalSearchController.dispose();
     _unsuitableSearchController.dispose();
     _minTempController.dispose();
@@ -122,9 +163,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void _clearForm() {
     _nameController.clear();
     _descriptionController.clear();
-    _colorController.clear();
     setState(() {
       _selectedImagePath = null;
+      _selectedColor = null;
       _selectedCategory = 'Tops';
       _selectedSubcategory = 'T-Shirts';
       _selectedFormality = 'Casual';
@@ -168,7 +209,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
         subcategory: _selectedSubcategory,
-        color: _colorController.text.trim(),
+        color: _selectedColor != null ? '#${_selectedColor!.value.toRadixString(16).padLeft(8, '0').substring(2)}' : '',
         formalityLevel: _selectedFormality,
         tags: tags, 
         attributes: {
@@ -261,6 +302,126 @@ class _AddItemScreenState extends State<AddItemScreen> {
         SnackBar(content: Text('Error accessing gallery: ${e.toString()}')),
       );
     }
+  }
+
+
+  Future<void> _openColorDialog(BuildContext context) async {
+    final Color? picked = await showDialog<Color>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Pick a color'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: GridView.count(
+              crossAxisCount: 5,
+              shrinkWrap: true,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              children: _pickerColors.map((c) {
+                return InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop(c);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: c,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.black12),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedColor = picked;
+      });
+    }
+  }
+
+  Future<void> _openSubcategoryChooser(BuildContext context) async {
+    final subtypesData = await loadSubtypesJson();
+    final controller = TextEditingController();
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          final query = controller.text.trim().toLowerCase();
+
+          List<Widget> buildGroups() {
+            final groups = _rawCategories.cast<Map<String, dynamic>>();
+            final List<Widget> widgets = [];
+            for (final g in groups) {
+              final gid = g['id'] as String;
+              final label = g['label'] as String;
+              final items = (subtypesData['subtypes'][gid] as List).cast<Map<String, dynamic>>();
+              final filteredItems = query.isEmpty
+                  ? items
+                  : items.where((s) {
+                      final lab = (s['label'] as String).toLowerCase();
+                      return lab.contains(query) || label.toLowerCase().contains(query);
+                    }).toList();
+              if (filteredItems.isEmpty) continue;
+
+              widgets.add(ExpansionTile(
+                title: Text(label),
+                children: filteredItems.map((s) {
+                  final subLabel = s['label'] as String;
+                  final subId = s['id'] as String;
+                  return ListTile(
+                    title: Text(subLabel),
+                    onTap: () {
+                      // set chosen subcategory and related category
+                      setState(() {
+                        _selectedSubcategory = subLabel;
+                        _selectedCategory = label;
+                        _subLabelToId[subLabel] = subId;
+                      });
+
+                      // apply defaults if available
+                      if (_subtypesAttributes.isNotEmpty) {
+                        _applyDefaultsForSubcategory(subId);
+                      }
+
+                      Navigator.of(context).pop();
+                    },
+                  );
+                }).toList(),
+              ));
+            }
+            return widgets;
+          }
+
+          return AlertDialog(
+            title: const Text('Select Subcategory'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search categories or subcategories'),
+                    onChanged: (_) => setStateDialog(() {}),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(child: ListView(children: buildGroups())),
+                ],
+              ),
+            ),
+            actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+          );
+        });
+      },
+    );
   }
 
   Future<void> _saveImage(XFile image) async {
@@ -387,7 +548,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         _fitOptions = fits;
       });
     } catch (e) {
-      print('Failed to load subtype attributes: $e');
+      print('Error loading subtype attributes: $e');
     }
   }
 
@@ -474,6 +635,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
       _selectedUnsuitable.clear();
       final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
       _selectedUnsuitable.addAll(unsuitable);
+
+      // If attributes contain a color hint, set swatch
+      final colorHint = (attrs['color'] ?? usage['color'])?.toString();
+      if (colorHint != null && colorHint.startsWith('#')) {
+        try {
+          final hex = colorHint.replaceFirst('#', '');
+          final value = int.parse(hex, radix: 16);
+          _selectedColor = Color(colorHint.length == 7 ? (0xFF000000 | value) : value);
+        } catch (_) {}
+      }
     });
   }
 
@@ -481,8 +652,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
     // Basic text fields
     _nameController.text = item.name;
     _descriptionController.text = item.description;
-    _colorController.text = item.color;
     _selectedImagePath = item.imagePath;
+
+    // Try to parse color into swatch (hex like #RRGGBB)
+    final cstr = item.color.trim();
+    if (cstr.startsWith('#') && (cstr.length == 7 || cstr.length == 9)) {
+      try {
+        final hex = cstr.replaceFirst('#', '');
+        final value = int.parse(hex, radix: 16);
+        _selectedColor = Color(cstr.length == 7 ? (0xFF000000 | value) : value);
+      } catch (_) {
+        _selectedColor = null;
+      }
+    }
 
     // Basic selections
     _selectedCategory = item.category;
@@ -577,90 +759,49 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 20),
+              // Subcategory chooser (opens dialog with categories and expandable subcategories)
               Row(
                 children: [
                   Expanded(
-                    child: CustomDropdown(
-                      label: 'Category',
-                      value: _selectedCategory,
-                      items: _categories,
-                      prefixIcon: Icons.category_outlined,
-                      onChanged: (value) async {
-                        setState(() {
-                          _selectedCategory = value!;
-                        });
-
-                        // Find the matching group
-                        final selectedGroup =
-                            _rawCategories.firstWhere((g) => g['label'] == value);
-
-                        final selectedGroupId = selectedGroup['id'];
-
-                        // Load subtypes.json
-                        final subtypesData = await loadSubtypesJson();
-
-                        // Update subcategories for this selected top-level category
-                        final subtypes =
-                            (subtypesData['subtypes'][selectedGroupId] as List)
-                                .map((s) => s['label'] as String)
-                                .toList();
-
-                        setState(() {
-                          _subcategories = subtypes;
-                          _selectedSubcategory = _subcategories.first;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CustomDropdown(
-                      label: 'Subcategory',
-                      value: _selectedSubcategory,
-                      items: _subcategories,
-                      prefixIcon: Icons.list_alt_rounded,
-                      onChanged: (value) async {
-                        final newVal = value!;
-                        setState(() {
-                          _selectedSubcategory = newVal;
-                        });
-
-                        final id = _subLabelToId[newVal];
-                        if (id != null && _subtypesAttributes.isNotEmpty) {
-                          _applyDefaultsForSubcategory(id);
-                        } else {
-                          // Try to discover the id from subtypes json if missing
-                          try {
-                            final subtypesData = await loadSubtypesJson();
-                            String? foundId;
-                            final subtypesMap = subtypesData['subtypes'] as Map<String, dynamic>;
-                            for (final entry in subtypesMap.entries) {
-                              final list = entry.value as List;
-                              for (final s in list) {
-                                if ((s['label'] as String) == newVal) {
-                                  foundId = s['id'] as String;
-                                  break;
-                                }
-                              }
-                              if (foundId != null) break;
-                            }
-                            if (foundId != null) {
-                              _subLabelToId[newVal] = foundId;
-                              if (_subtypesAttributes.isNotEmpty) _applyDefaultsForSubcategory(foundId);
-                            }
-                          } catch (_) {}
-                        }
-                      },
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.list_alt_rounded),
+                      label: Row(children: [
+                        Expanded(child: Text(_selectedSubcategory)),
+                        const SizedBox(width: 8),
+                        Text(_selectedCategory, style: TextStyle(color: theme.colorScheme.onSurfaceVariant))
+                      ]),
+                      onPressed: () => _openSubcategoryChooser(context),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              CustomTextField(
-                label: 'Color',
-                controller: _colorController,
-                hintText: 'e.g. "Blue"',
-                prefixIcon: const Icon(Icons.palette_outlined),
+              // Color selector — show only the selected color swatch and open dialog to change
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _openColorDialog(context),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: _selectedColor ?? Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _selectedColor != null ? theme.colorScheme.primary : Colors.black12,
+                            width: _selectedColor != null ? 3 : 1,
+                          ),
+                        ),
+                        child: _selectedColor == null ? const Icon(Icons.color_lens_outlined) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(_selectedColor != null ? '#${_selectedColor!.value.toRadixString(16).padLeft(8,'0').substring(2)}' : 'No color selected', style: theme.textTheme.bodyMedium)),
+                    TextButton(onPressed: () => _openColorDialog(context), child: const Text('Choose Color')),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 

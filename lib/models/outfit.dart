@@ -136,7 +136,10 @@ class Outfit {
   final ClothingItem? shoes;
   final List<ClothingItem> accessories;
 
-  final double score; // result of the recommendation algorithm
+  final double score; // final composite score used for ranking
+  final double baseScore; // average of item scores (pre style/color adjustment)
+  final double styleScore; // 0..100 style consistency
+  final double colorScore; // 0..100 color harmony
   final ColorPalette palette;
 
   Outfit({
@@ -147,6 +150,9 @@ class Outfit {
     this.shoes,
     this.accessories = const [],
     required this.score,
+    required this.baseScore,
+    required this.styleScore,
+    required this.colorScore,
     required this.palette,
   });
 
@@ -158,6 +164,9 @@ class Outfit {
         "shoes": shoes?.toJson(),
         "accessories": accessories.map((i) => i.toJson()).toList(),
         "score": score,
+        "base_score": baseScore,
+        "style_score": styleScore,
+        "color_score": colorScore,
         "palette": palette.toJson(),
       };
 }
