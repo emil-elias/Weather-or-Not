@@ -37,7 +37,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   MainProvider _provider = MainProvider();
 
-  String _selectedLocation = 'Bremen, Germany';
+  Map<String, dynamic> _selectedLocation = {
+    "name": 'Bremen, Germany',
+    "id": "10224",
+    "lat": 53.0451,
+    "lon": 8.7981,
+
+  };
   Weather? _currentWeather;
   Forecast? _forecast;
   Outfit? _generatedOutfit;
@@ -201,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final weather = await _weatherService.getCurrentDWDWeatherByStationID(
         stationID!,
-        locationName: _selectedLocation,
+        locationName: _selectedLocation["name"],
         fallbackLat: coords['lat'],
         fallbackLon: coords['lon'],
       );
@@ -494,14 +500,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onLocationChanged(String? newLocation) {
+  void _onLocationChanged(Map<String,dynamic>? newLocation) {
     if (newLocation != null && newLocation != _provider.selectedLocation) {
       _provider.setSelectedLocation(newLocation);
       _provider.loadWeather(
-        _provider.stationIDs[newLocation]!,
-        newLocation,
+        newLocation["id"],
+        newLocation["name"],
         fallbackStations: _provider.closestLocations
-            .where((loc) => loc['name'] != newLocation)
+            .where((loc) => loc['name'] != newLocation["name"])
             .toList(),
       );
     }
@@ -558,8 +564,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       LocationDropdown(
                         selectedLocation: _selectedLocation,
-                        locations: _locations,
                         onLocationChanged: _onLocationChanged,
+                        closestLocations: _provider.closestLocations,
+                        locationAccessDenied: _provider.locationAccessDenied,
+                        onRequestLocationPermission: () => _provider.getClosestLocation(),
                       ),
                     ],
                   ),
@@ -1440,81 +1448,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showLocationPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Ort wählen',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: _locations.length,
-                itemBuilder: (context, index) {
-                  final location = _locations[index];
-                  final isSelected = location == _selectedLocation;
-                  return ListTile(
-                    leading: Icon(
-                      Icons.location_on,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    title: Text(
-                      location,
-                      style: TextStyle(
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                      ),
-                    ),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () {
-                      _onLocationChanged(location);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 

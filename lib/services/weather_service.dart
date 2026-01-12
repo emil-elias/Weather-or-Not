@@ -80,7 +80,7 @@ class WeatherService {
             stationName: locationName ?? 'DWD Station $stationID',
             stationId: stationID,
             source:
-                'DWD (Station $stationID - aktuelle Messung) ${message != null ? '\n$message' : ''}',
+                'DWD (station $stationID - current measurement) ${message != null ? '\n$message' : ''}',
             temperature: weatherData['temperature'] != null
                 ? weatherData['temperature'].toDouble() / 10
                 : null,
@@ -97,7 +97,7 @@ class WeatherService {
                 ? weatherData['dewpoint'].toDouble() / 10
                 : null,
             sunshine: weatherData['sunshine'] != null
-                ? weatherData['sunshine'].toDouble() / 10
+                ? (weatherData['sunshine'].toDouble() / 10)
                 : null,
             windSpeed: weatherData['meanwind'] != null
                 ? weatherData['meanwind'].toDouble() / 10
@@ -143,7 +143,7 @@ class WeatherService {
             fallbackLat: fallbackLat,
             fallbackLon: fallbackLon,
             message:
-                'Hinweis: Daten der nächsten verfügbaren Station - \nKeine verfügbaren Daten an Ihrem aktuellen Standort',
+                'Note: using data from next nearest station - \nno data available for your current location',
           );
         } else if (fallbackLat != null && fallbackLon != null) {
           //if nothing helps, just use BrightSky
@@ -170,7 +170,7 @@ class WeatherService {
         stationName: locationName ?? 'DWD Station $stationID',
         stationId: stationID,
         source:
-            'DWD (Station $stationID - basierend auf Vorhersage) ${message != null ? '\n$message' : ''}',
+            'DWD (station $stationID - based on forecast) ${message != null ? '\n$message' : ''}',
         temperature:
             (forecast.temperature != null &&
                 hourIndex < forecast.temperature!.length)

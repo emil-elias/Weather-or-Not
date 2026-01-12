@@ -52,41 +52,113 @@ class LocationService {
     return R * c; // Distance in kilometers
   }
 
-  Future<List<Map<String, dynamic>>> findClosestLocation(Position userPosition) async {
-  // Load the JSON file
-  final String response = await rootBundle.loadString('assets/stations.json');
-  final List<dynamic> locations = json.decode(response);
+  Future<List<Map<String, dynamic>>> findClosestLocation(
+    Position userPosition,
+  ) async {
+    // Load the JSON file
+    final String response = await rootBundle.loadString('assets/stations.json');
+    final List<dynamic> locations = json.decode(response);
 
-  Map<String, dynamic>? closestLocation;
-  double shortestDistance = double.infinity;
-  List<Map<String, dynamic>> closestLocations = [];
+    Map<String, dynamic>? closestLocation;
+    double shortestDistance = double.infinity;
+    List<Map<String, dynamic>> closestLocations = [];
 
-  for (var location in locations) {
-    final double distance = calculateDistance(
-      userPosition.latitude,
-      userPosition.longitude,
-      location['lat'],
-      location['lon'],
-    );
+    for (var location in locations) {
+      final double distance = calculateDistance(
+        userPosition.latitude,
+        userPosition.longitude,
+        location['lat'],
+        location['lon'],
+      );
 
-    if (distance < 25) {
-      closestLocations.add(location);
-      closestLocations.last['distance'] = distance;
-    } 
-    
-    if (distance < shortestDistance) {
-      shortestDistance = distance;
-      closestLocation = location;
+      if (distance < 25) {
+        closestLocations.add(location);
+        closestLocations.last['distance'] = distance;
+      }
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        closestLocation = location;
+      }
     }
+
+    if (closestLocations.isEmpty && closestLocation != null) {
+      closestLocations.add(closestLocation);
+      closestLocations.last['distance'] = shortestDistance;
+    }
+
+    closestLocations.sort((a, b) => a['distance'].compareTo(b['distance']));
+
+    return closestLocations;
   }
 
-  if (closestLocations.isEmpty && closestLocation != null) {
-    closestLocations.add(closestLocation);
-    closestLocations.last['distance'] = shortestDistance;
+  Future<List<Map<String, dynamic>>> searchLocationsByName(
+    String query,
+  ) async {
+    // Load the JSON file
+    final String response = await rootBundle.loadString('assets/stations.json');
+    final List<dynamic> locations = json.decode(response);
+
+    // normalize umlauts/ß for better matching (e.g. München <-> Muenchen)
+    String normalize(String s) {
+      final lower = s.toLowerCase();
+      return lower
+          .replaceAll('ä', 'ae')
+          .replaceAll('ö', 'oe')
+          .replaceAll('ü', 'ue')
+          .replaceAll('Ä'.toLowerCase(), 'ae')
+          .replaceAll('Ö'.toLowerCase(), 'oe')
+          .replaceAll('Ü'.toLowerCase(), 'ue')
+          .replaceAll('ß', 'ss');
+    }
+
+    final normQuery = normalize(query);
+    List<Map<String, dynamic>> matchingLocations = [];
+
+    for (var location in locations) {
+      final name = (location['name'] ?? '').toString();
+      if (normalize(name).contains(normQuery)) {
+        matchingLocations.add(location);
+      }
+    }
+
+    return matchingLocations;
   }
 
-  closestLocations.sort((a, b) => a['distance'].compareTo(b['distance']));
+  Future<List<Map<String, dynamic>>> getClosestAirqualityStations(double lat, double lon) async {
+    final String response = await rootBundle.loadString('assets/airquality_stations.json');
+    final List<dynamic> locations = json.decode(response);
 
-  return closestLocations;
-}
+    Map<String, dynamic>? closestLocation;
+    double shortestDistance = double.infinity;
+    List<Map<String, dynamic>> closestLocations = [];
+
+    for (var location in locations) {
+      final double distance = calculateDistance(
+        lat,
+        lon,
+        location[8],
+        location[7],
+      );
+
+      if (distance < 25) {
+        closestLocations.add(location);
+        closestLocations.last['distance'] = distance;
+      }
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        closestLocation = location;
+      }
+    }
+
+    if (closestLocations.isEmpty && closestLocation != null) {
+      closestLocations.add(closestLocation);
+      closestLocations.last['distance'] = shortestDistance;
+    }
+
+    closestLocations.sort((a, b) => a['distance'].compareTo(b['distance']));
+
+    return closestLocations;
+  }
 }

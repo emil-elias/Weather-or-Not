@@ -15,6 +15,8 @@ class AppConstants {
 
   static const String DWDAWSApiBaseUrl = "https://s3.eu-central-1.amazonaws.com/app-prod-static.warnwetter.de/v16";
 
+  static const String LuftqualitaetApiBaseUrl = 'https://umweltbundesamt.api.proxy.bund.dev/api/air_data/v2/airquality/json?';
+
   static const Map<String, String> stationIDs = {
     'Bremen, Germany': "10224",
     'Hamburg, Germany': "P0489", //(Innenstadt); Fuhlsbüttel: 10147, Neuwiedenthal: C720

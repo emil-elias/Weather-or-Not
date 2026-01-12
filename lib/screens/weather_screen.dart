@@ -17,18 +17,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
   final WeatherService _weatherService = WeatherService();
   MainProvider _provider = MainProvider();
 
-  void _onLocationChanged(String? newLocation) {
-    if (newLocation != null && newLocation != _provider.selectedLocation) {
-      _provider.setSelectedLocation(newLocation);
-      _provider.loadWeather(
-        _provider.stationIDs[newLocation]!,
-        newLocation,
-        fallbackStations: _provider.closestLocations.where((loc) => loc['name'] != newLocation)
-                  .toList(),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -92,7 +80,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _provider.selectedLocation,
+            _provider.selectedLocation["name"],
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -452,7 +440,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
               if (_provider.currentWeather?.cloudCover != null)
                 _buildDetailCard(
                   'Cloud Cover',
-                  '${_provider.currentWeather!.cloudCover!.toStringAsFixed(0)}%',
+                  '${_provider.currentWeather!.cloudCover!.clamp(0,100).toStringAsFixed(0)}%',
                   Icons.cloud,
                 )
               else if (_provider.forecast?.cloudCover != null &&
@@ -465,7 +453,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
               if (_provider.forecast?.days?.first.sunshine != null)
                 _buildDetailCard(
                   'Sunshine',
-                  '${(_provider.forecast!.days!.first.sunshine! / 60).toStringAsFixed(0)} h',
+                  '${(_provider.forecast!.days!.first.sunshine! / 60).clamp(0,24).toStringAsFixed(0)} h',
                   Icons.wb_sunny_outlined,
                 ),
               if (_provider.currentWeather?.dewpoint != null)
