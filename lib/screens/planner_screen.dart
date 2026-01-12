@@ -185,17 +185,9 @@ class _PlannerScreenState extends State<PlannerScreen>
       final Map<String, dynamic> storedAttributes = (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
       final Map<String, dynamic> storedUsage = (item.usageConstraints as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
 
-      // Try to look up subtype defaults from JSON (if available in home screen loaded data)
-      Map<String, dynamic>? foundSubtypeData;
-      try {
-        // attempt to access the global _subtypesAttributesData if present in scope
-        // else ignore (planner uses stored WardrobeItem overrides primarily)
-        // (This is defensive; planner may not have the JSON loaded)
-        // ignore: undefined_identifier
-        foundSubtypeData = (_subtypesAttributesData != null && _subtypesAttributesData is Map) ? (_subtypesAttributesData[rawSubtype] ?? _subtypesAttributesData[rawSubtype.replaceAll(' ', '_').replaceAll('-', '_')]) : null;
-      } catch (_) {
-        foundSubtypeData = null;
-      }
+      // Planner doesn't load the subtypes JSON; prefer stored WardrobeItem attributes
+      // Default to no JSON attributes (use stored attributes only)
+      Map<String, dynamic>? foundSubtypeData = null;
 
       final Map<String, dynamic> jsonAttributes = (foundSubtypeData != null && foundSubtypeData['attributes'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map) : {};
       final Map<String, dynamic> jsonUsage = (foundSubtypeData != null && foundSubtypeData['usage_constraints'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['usage_constraints'] as Map) : {};
