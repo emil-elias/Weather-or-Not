@@ -449,26 +449,54 @@ class _WardrobeScreenState extends State<WardrobeScreen>
               padding: const EdgeInsets.all(10.0),
               child: Row(
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: item.imagePath != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            File(item.imagePath!),
-                            fit: BoxFit.cover,
+                Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: item.imagePath != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                File(item.imagePath!),
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Icon(
+                              Icons.checkroom_rounded,
+                              color: theme.colorScheme.onPrimaryContainer,
+                              size: 32,
+                            ),
+                    ),
+                    if (item.isInWash)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        )
-                      : Icon(
-                          Icons.checkroom_rounded,
-                          color: theme.colorScheme.onPrimaryContainer,
-                          size: 32,
+                          child: Icon(
+                            Icons.local_laundry_service,
+                            color: theme.colorScheme.onPrimary,
+                            size: 16,
+                          ),
                         ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -529,6 +557,19 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                         onPressed: () => _toggleFavorite(item),
                       ),
                       IconButton(
+                        icon: Icon(
+                          item.isInWash
+                              ? Icons.local_laundry_service
+                              : Icons.local_laundry_service_outlined,
+                        ),
+                        color: item.isInWash
+                            ? theme.colorScheme.primary
+                            : null,
+                        iconSize: 20,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _toggleInWash(item),
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.delete_outline),
                         iconSize: 20,
                         visualDensity: VisualDensity.compact,
@@ -581,8 +622,33 @@ class _WardrobeScreenState extends State<WardrobeScreen>
       formalityLevel: item.formalityLevel,
       tags: item.tags,
       imagePath: item.imagePath,
+      attributes: item.attributes,
+      usageConstraints: item.usageConstraints,
       createdAt: item.createdAt,
       isFavorite: !item.isFavorite,
+      isInWash: item.isInWash,
+    );
+
+    await _wardrobeService.updateWardrobeItem(updatedItem);
+    _loadWardrobeItems();
+  }
+
+  Future<void> _toggleInWash(WardrobeItem item) async {
+    final updatedItem = WardrobeItem(
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      subcategory: item.subcategory,
+      color: item.color,
+      formalityLevel: item.formalityLevel,
+      tags: item.tags,
+      imagePath: item.imagePath,
+      attributes: item.attributes,
+      usageConstraints: item.usageConstraints,
+      createdAt: item.createdAt,
+      isFavorite: item.isFavorite,
+      isInWash: !item.isInWash,
     );
 
     await _wardrobeService.updateWardrobeItem(updatedItem);
@@ -1008,26 +1074,54 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: item.imagePath != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                File(item.imagePath!),
-                                fit: BoxFit.cover,
+                    Stack(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: item.imagePath != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    File(item.imagePath!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.checkroom_rounded,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  size: 32,
+                                ),
+                        ),
+                        if (item.isInWash)
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            )
-                          : Icon(
-                              Icons.checkroom_rounded,
-                              color: theme.colorScheme.onPrimaryContainer,
-                              size: 32,
+                              child: Icon(
+                                Icons.local_laundry_service,
+                                color: theme.colorScheme.onPrimary,
+                                size: 16,
+                              ),
                             ),
+                          ),
+                      ],
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -1080,6 +1174,19 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                           iconSize: 20,
                           visualDensity: VisualDensity.compact,
                           onPressed: () => _toggleFavorite(item),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            item.isInWash
+                                ? Icons.local_laundry_service
+                                : Icons.local_laundry_service_outlined,
+                          ),
+                          color: item.isInWash
+                              ? theme.colorScheme.primary
+                              : null,
+                          iconSize: 20,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => _toggleInWash(item),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline),
