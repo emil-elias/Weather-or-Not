@@ -12,6 +12,7 @@ class WardrobeItem {
   final Map<String, dynamic>? usageConstraints; // custom usage constraints
   final DateTime createdAt;
   final bool isFavorite;
+  final bool isInWash;
 
   WardrobeItem({
     required this.id,
@@ -27,6 +28,7 @@ class WardrobeItem {
     this.usageConstraints,
     required this.createdAt,
     this.isFavorite = false,
+    this.isInWash = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -44,6 +46,7 @@ class WardrobeItem {
       'usageConstraints': usageConstraints,
       'createdAt': createdAt.toIso8601String(),
       'isFavorite': isFavorite,
+      'isInWash': isInWash,
     };
   }
 
@@ -62,6 +65,7 @@ class WardrobeItem {
       usageConstraints: (json['usageConstraints'] as Map<String, dynamic>?)?.cast<String, dynamic>(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       isFavorite: json['isFavorite'] as bool? ?? false,
+      isInWash: json['isInWash'] as bool? ?? false,
     );
   }
 }

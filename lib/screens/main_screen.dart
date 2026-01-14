@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'planner_screen.dart';
 import 'wardrobe_screen.dart';
-import 'account_screen.dart';
+import 'setting_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:weatherornot/providers/main_provider.dart';
 
@@ -22,7 +22,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(live: true, title: "Today"),
     const PlannerScreen(),
     const WardrobeScreen(),
-    const AccountScreen(),
+    const SettingScreen(),
   ];
 
   @override
@@ -64,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),
             selectedIcon: Icon(Icons.person_rounded),
-            label: 'Account',
+            label: 'Setting',
           ),
         ],
       ),

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/preferences_service.dart';
 
-class AccountScreen extends StatefulWidget {
-  const AccountScreen({super.key});
+class SettingScreen extends StatefulWidget {
+  const SettingScreen({super.key});
 
   @override
-  State<AccountScreen> createState() => _AccountScreenState();
+  State<SettingScreen> createState() => _SettingScreenState();
 }
 
-class _AccountScreenState extends State<AccountScreen> {
+class _SettingScreenState extends State<SettingScreen> {
   final PreferencesService _prefsService = PreferencesService();
   String _selectedTransportation = 'Fahrrad';
   final TextEditingController _coldThresholdController = TextEditingController(text: '5');
@@ -104,7 +104,7 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Account'),
+          title: const Text('Setting'),
           centerTitle: true,
         ),
         body: const Center(
@@ -115,7 +115,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Account'),
+        title: const Text('Setting'),
         centerTitle: false,
         titleTextStyle: theme.textTheme.headlineSmall?.copyWith(
           fontWeight: FontWeight.bold,

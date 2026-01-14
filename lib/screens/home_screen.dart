@@ -245,8 +245,18 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
+      // Filter out items that are currently in wash
+      final availableItems = wardrobeItems.where((item) => !item.isInWash).toList();
+
+      if (availableItems.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No clothes available. All items are in the wash!')),
+        );
+        return;
+      }
+
       // Convert WardrobeItem to ClothingItem
-      final clothingItems = _convertToClothingItems(wardrobeItems);
+      final clothingItems = _convertToClothingItems(availableItems);
 
       // Create outfit engine
       final outfitEngine = OutfitEngine(clothingItems);
@@ -561,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.bold)
                       ),
                     ]),
-                      
+
                       const SizedBox(height: 16),
 
                       LocationDropdown(
@@ -583,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     forecast: _forecast,
                     forecastIndex: widget.forecastIndex,
                     onTap: widget.live == true ? () {
-                      
+
                       homeNavigatorKey.currentState?.push(
                         MaterialPageRoute(
                           builder: (_) => const WeatherScreen(),

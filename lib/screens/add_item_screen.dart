@@ -82,13 +82,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Map<String, List<String>> _activityGroups = {};
   List<String> _activityGroupOrder = [];
   final TextEditingController _optimalSearchController = TextEditingController();
-  final TextEditingController _unsuitableSearchController = TextEditingController(); 
+  final TextEditingController _unsuitableSearchController = TextEditingController();
 
   // Selected attribute values
   final Set<String> _selectedMaterials = {};
   final Set<String> _selectedStyleTags = {};
   final Set<String> _selectedOptimalActivities = {};
-  final Set<String> _selectedUnsuitable = {}; 
+  final Set<String> _selectedUnsuitable = {};
   String _selectedFit = '';
   int _selectedWarmth = 1;
   int _selectedWater = 0;
@@ -98,8 +98,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final TextEditingController _minTempController = TextEditingController();
   final TextEditingController _maxTempController = TextEditingController();
 
-  
-  
+
+
   final List<String> _formalityLevels = [
     'Casual',
     'Smart Casual',
@@ -211,7 +211,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         subcategory: _selectedSubcategory,
         color: _selectedColor != null ? '#${_selectedColor!.value.toRadixString(16).padLeft(8, '0').substring(2)}' : '',
         formalityLevel: _selectedFormality,
-        tags: tags, 
+        tags: tags,
         attributes: {
           'materials': _selectedMaterials.toList(),
           'warmth_level': _selectedWarmth,
@@ -231,6 +231,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
         },
         imagePath: _selectedImagePath,
         createdAt: isEditing ? widget.initialItem!.createdAt : DateTime.now(),
+        isFavorite: isEditing ? (widget.initialItem!.isFavorite) : false,
+        isInWash: isEditing ? (widget.initialItem!.isInWash) : false,
       );
 
       final success = isEditing ? await _wardrobeService.updateWardrobeItem(item) : await _wardrobeService.addWardrobeItem(item);
@@ -503,7 +505,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
 
-  
+
   Future<Map<String, dynamic>> loadCategoriesJson() async {
     final String response =
         await rootBundle.loadString('assets/categories.json'); // adjust path if needed
@@ -512,7 +514,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   Future<Map<String, dynamic>> loadSubtypesJson() async {
-    final String response = 
+    final String response =
       await rootBundle.loadString('assets/subcategories.json');
     return json.decode(response);
   }

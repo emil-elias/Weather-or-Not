@@ -103,8 +103,36 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
       formalityLevel: _currentItem.formalityLevel,
       tags: _currentItem.tags,
       imagePath: _currentItem.imagePath,
+      attributes: _currentItem.attributes,
+      usageConstraints: _currentItem.usageConstraints,
       createdAt: _currentItem.createdAt,
       isFavorite: !_currentItem.isFavorite,
+      isInWash: _currentItem.isInWash,
+    );
+
+    await _wardrobeService.updateWardrobeItem(updatedItem);
+    setState(() {
+      _currentItem = updatedItem;
+    });
+    widget.onUpdate();
+  }
+
+  Future<void> _toggleInWash() async {
+    final updatedItem = WardrobeItem(
+      id: _currentItem.id,
+      name: _currentItem.name,
+      description: _currentItem.description,
+      category: _currentItem.category,
+      subcategory: _currentItem.subcategory,
+      color: _currentItem.color,
+      formalityLevel: _currentItem.formalityLevel,
+      tags: _currentItem.tags,
+      imagePath: _currentItem.imagePath,
+      attributes: _currentItem.attributes,
+      usageConstraints: _currentItem.usageConstraints,
+      createdAt: _currentItem.createdAt,
+      isFavorite: _currentItem.isFavorite,
+      isInWash: !_currentItem.isInWash,
     );
 
     await _wardrobeService.updateWardrobeItem(updatedItem);
@@ -209,6 +237,26 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
                       ? theme.colorScheme.error
                       : theme.colorScheme.onSurface,
                   onPressed: _toggleFavorite,
+                ),
+              ),
+
+              // Washing machine button
+              Container(
+                margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    _currentItem.isInWash
+                        ? Icons.local_laundry_service
+                        : Icons.local_laundry_service_outlined,
+                  ),
+                  color: _currentItem.isInWash
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                  onPressed: _toggleInWash,
                 ),
               ),
 
