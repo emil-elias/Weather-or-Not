@@ -42,8 +42,6 @@ class WeatherCard extends StatelessWidget {
       );
     }
 
-   
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -53,7 +51,11 @@ class WeatherCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: weatherService.getGradientColors(currentWeather, forecast, forecastIndex),
+            colors: weatherService.getGradientColors(
+              currentWeather,
+              forecast,
+              forecastIndex,
+            ),
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -86,7 +88,7 @@ class WeatherCard extends StatelessWidget {
                             Icons.arrow_upward_rounded,
                             size: 16,
                             //color: Color(0xFF4AFF8C),
-                            color: Colors.white
+                            color: Colors.white,
                           ),
                           Text(
                             ' ${_getMaxTemperature().toStringAsFixed(0)}°',
@@ -106,7 +108,7 @@ class WeatherCard extends StatelessWidget {
                             Icons.arrow_downward_rounded,
                             size: 16,
                             //color: Color(0xFFFF6B6B),
-                            color: Colors.white
+                            color: Colors.white,
                           ),
                           Text(
                             ' ${_getMinTemperature().toStringAsFixed(0)}°',
@@ -124,13 +126,13 @@ class WeatherCard extends StatelessWidget {
 
                 // Arrow
                 if (onTap != null)
-                const Icon(
-                  Icons.arrow_forward_rounded,
-                  color: Colors.white70,
-                  size: 28,
-                )
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white70,
+                    size: 28,
+                  )
                 else
-                const SizedBox(width: 28),
+                  const SizedBox(width: 28),
               ],
             ),
             const SizedBox(height: 24),
@@ -195,25 +197,35 @@ class WeatherCard extends StatelessWidget {
   }
 
   String _getWeatherDescription() {
-    if (currentWeather != null) {
-      if (currentWeather!.icon != null) {
-        return weatherService.getWeatherDescriptionById(currentWeather!.icon);
-      } else if (currentWeather!.condition != null) {
-        return WeatherConditions.getGermanDescription(
-          currentWeather!.condition,
-          temperature: currentWeather?.temperature,
-          windSpeed: currentWeather?.windSpeed,
-          cloudCover: currentWeather?.cloudCover,
-        );
-      }
-    } else if (forecast?.days != null && forecast!.days!.isNotEmpty) {
-      if (forecastIndex != null) {
+    if (currentWeather == null &&
+        forecastIndex != null &&
+        forecast?.days != null &&
+        forecast!.days!.isNotEmpty &&
+        forecast!.days!.length > forecastIndex!) {
+      return weatherService.getWeatherDescriptionById(
+        forecast!.days![forecastIndex!].icon,
+      );
+    } else if (currentWeather != null && currentWeather!.condition != null) {
+      return WeatherConditions.getGermanDescription(
+        currentWeather!.condition,
+        temperature: currentWeather?.temperature,
+        windSpeed: currentWeather?.windSpeed,
+        cloudCover: currentWeather?.cloudCover,
+      );
+    } else if (currentWeather != null &&
+        currentWeather!.icon != null &&
+        currentWeather!.icon! <= 32) {
+      return weatherService.getWeatherDescriptionById(currentWeather!.icon);
+    } else if (forecast != null &&
+        forecast!.icon != null &&
+        forecast!.icon!.isNotEmpty) {
+      final now = DateTime.now();
+      final hourIndex = forecast?.start != null
+          ? now.difference(forecast!.start!).inHours
+          : 0;
+      if (forecast!.icon!.length > hourIndex) {
         return weatherService.getWeatherDescriptionById(
-          forecast!.days![forecastIndex!].icon,
-        );
-      } else {
-        return weatherService.getWeatherDescriptionById(
-          forecast!.days!.first.icon,
+          forecast!.icon![hourIndex],
         );
       }
     }
@@ -244,22 +256,65 @@ class WeatherCard extends StatelessWidget {
 
   Widget _buildDetailRow() {
     if (currentWeather != null) {
+
+      final now = DateTime.now();
+      final hourIndex = forecast?.start != null
+          ? now.difference(forecast!.start!).inHours
+          : 0;
+
+      String humidity = "--%";
+      if (currentWeather!.humidity != null && currentWeather!.humidity! < 3000) {
+        humidity =
+            '${currentWeather!.humidity!.clamp(0, 100).toStringAsFixed(0)}%';
+      } else if (forecast != null && forecast!.humidity != null && forecast!.humidity!.isNotEmpty &&
+          forecast!.humidity!.length > hourIndex) {
+        humidity =
+            '${forecast!.humidity![hourIndex].clamp(0, 100).toStringAsFixed(0)}%';
+      } 
+
+      String wind = "-- km/h";
+      if (currentWeather!.windSpeed != null && currentWeather!.windSpeed! < 3000) {
+        wind =
+            '${currentWeather!.windSpeed!.toStringAsFixed(1)} km/h';
+      } else if (forecast != null &&
+          forecast!.windSpeed != null &&
+          forecast!.windSpeed!.isNotEmpty &&
+          forecast!.windSpeed!.length > hourIndex &&
+          forecast!.windSpeed![hourIndex] < 3000
+          ) {
+        wind =
+            '${forecast!.windSpeed![hourIndex].toStringAsFixed(1)} km/h';
+      } else if (forecast != null && forecast!.days != null && forecast!.days!.isNotEmpty ) {
+        wind =
+            '${forecast!.days!.first.windSpeed?.toStringAsFixed(1) ?? '--'} km/h';
+      }
+
+      String cloudCover = "--%";
+      if (currentWeather!.cloudCover != null && currentWeather!.cloudCover! < 3000) {
+        cloudCover =
+            '${currentWeather!.cloudCover!.clamp(0, 100).toStringAsFixed(0)}%';
+      } else if (forecast != null && forecast!.cloudCover != null && forecast!.cloudCover!.isNotEmpty &&
+          forecast!.cloudCover!.length > hourIndex && forecast!.cloudCover![hourIndex] < 3000) {
+        cloudCover =
+            '${forecast!.cloudCover![hourIndex].clamp(0, 100).toStringAsFixed(0)}%';
+      }
+
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildWeatherDetail(
             Icons.water_drop_outlined,
-            '${currentWeather!.humidity?.clamp(0,100).toStringAsFixed(0) ?? '--'}%',
+            humidity,
             'Humidity',
           ),
           _buildWeatherDetail(
             Icons.air_outlined,
-            '${currentWeather!.windSpeed?.toStringAsFixed(1) ?? forecast?.days?.first.windSpeed?.toStringAsFixed(1) ?? '--'} km/h',
+            wind,
             'Wind',
           ),
           _buildWeatherDetail(
             Icons.cloud_outlined,
-            '${currentWeather!.cloudCover?.clamp(0,100).toStringAsFixed(0)  ?? '--'}%',
+            cloudCover,
             'Cloud Cover',
           ),
         ],
@@ -281,9 +336,9 @@ class WeatherCard extends StatelessWidget {
           ),
           _buildWeatherDetail(
             Icons.wb_sunny_outlined,
-            '${(forecast!.days![index].sunshine != null ? forecast!.days![index].sunshine! / 60 : 0).clamp(0,24).toStringAsFixed(0)} h',
+            '${(forecast!.days![index].sunshine != null ? forecast!.days![index].sunshine! / 60 : 0).clamp(0, 24).toStringAsFixed(0)} h',
             'Sunshine',
-          )
+          ),
         ],
       );
     } else {
@@ -292,33 +347,47 @@ class WeatherCard extends StatelessWidget {
   }
 
   Icon _getIcon() {
-    if (currentWeather != null) {
+    if (currentWeather == null &&
+        forecastIndex != null &&
+        forecast?.days != null &&
+        forecast!.days!.isNotEmpty) {
       return Icon(
-        currentWeather!.icon != null
-            ? weatherService.getWeatherIconById(currentWeather!.icon)
-            : weatherService.getWeatherIcon(currentWeather!.condition),
+        weatherService.getWeatherIconById(forecast!.days![forecastIndex!].icon),
         size: 80,
         color: Colors.white,
       );
-    } else if (forecast?.days != null && forecast!.days!.isNotEmpty) {
-      if (forecastIndex != null) {
+    } else if (currentWeather != null && currentWeather!.condition != null) {
+      return Icon(
+        weatherService.getWeatherIcon(currentWeather!.condition),
+        size: 80,
+        color: Colors.white,
+      );
+    } else if (currentWeather != null &&
+        currentWeather!.icon != null &&
+        currentWeather!.icon! <= 32) {
+      return Icon(
+        weatherService.getWeatherIconById(currentWeather!.icon),
+        size: 80,
+        color: Colors.white,
+      );
+    } else if (forecast != null &&
+        forecast!.icon != null &&
+        forecast!.icon!.isNotEmpty) {
+      final now = DateTime.now();
+      final hourIndex = forecast?.start != null
+          ? now.difference(forecast!.start!).inHours
+          : 0;
+
+      if (forecast!.icon!.length > hourIndex) {
         return Icon(
-          weatherService.getWeatherIconById(
-            forecast!.days![forecastIndex!].icon,
-          ),
-          size: 80,
-          color: Colors.white,
-        );
-      } else {
-        return Icon(
-          weatherService.getWeatherIconById(forecast!.days!.first.icon),
+          weatherService.getWeatherIconById(forecast!.icon![hourIndex]),
           size: 80,
           color: Colors.white,
         );
       }
-    } else {
-      return Icon(Icons.question_mark, size: 80, color: Colors.white);
     }
+
+    return Icon(Icons.question_mark, size: 80, color: Colors.white);
   }
 
   Widget _getTemperature() {
@@ -336,25 +405,37 @@ class WeatherCard extends StatelessWidget {
       height: 1,
     );
 
-    if (currentWeather != null) {
+    if (currentWeather == null &&
+        forecastIndex != null &&
+        forecast?.days != null &&
+        forecast!.days!.isNotEmpty) {
+      return Text(
+        '${forecast!.days![forecastIndex!].maxTemperature?.toStringAsFixed(0)}°/${forecast!.days![forecastIndex!].minTemperature?.toStringAsFixed(0)}°',
+        style: style2,
+      );
+    } else if (currentWeather != null &&
+        currentWeather!.temperature != null &&
+        currentWeather!.temperature! < 3000) {
       return Text(
         '${currentWeather!.temperature?.toStringAsFixed(0) ?? '--'}°',
         style: style1,
       );
-    } else if (forecast?.days != null && forecast!.days!.isNotEmpty) {
-      if (forecastIndex != null) {
+    } else if (forecast != null &&
+        forecast!.temperature != null &&
+        forecast!.temperature!.isNotEmpty) {
+      final now = DateTime.now();
+      final hourIndex = forecast?.start != null
+          ? now.difference(forecast!.start!).inHours
+          : 0;
+
+      if (forecast!.temperature!.length > hourIndex) {
         return Text(
-          '${forecast!.days![forecastIndex!].maxTemperature?.toStringAsFixed(0)}°/${forecast!.days![forecastIndex!].minTemperature?.toStringAsFixed(0)}°',
-          style: style2,
-        );
-      } else {
-        return Text(
-          '${forecast!.days!.first.maxTemperature?.toStringAsFixed(0)}°/${forecast!.days!.first.minTemperature?.toStringAsFixed(0)}°',
-          style: style2,
+          '${forecast!.temperature?[hourIndex].toStringAsFixed(0) ?? '--'}°',
+          style: style1,
         );
       }
-    } else {
-      return Text("?°", style: style1);
     }
+
+    return Text("--", style: style1);
   }
 }

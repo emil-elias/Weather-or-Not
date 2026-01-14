@@ -81,38 +81,40 @@ class WeatherService {
             stationId: stationID,
             source:
                 'DWD (station $stationID - current measurement) ${message != null ? '\n$message' : ''}',
-            temperature: weatherData['temperature'] != null
+            temperature: weatherData['temperature'] != null && weatherData['temperature'] < 3000
                 ? weatherData['temperature'].toDouble() / 10
                 : null,
-            precipitation: weatherData['precipitation'] != null
+            precipitation: weatherData['precipitation'] != null && weatherData['precipitation'] < 3000
                 ? weatherData['precipitation'].toDouble() / 10
                 : null,
-            precipitation_3h: weatherData['precipitation_3h'] != null
+            precipitation_3h: weatherData['precipitation_3h'] != null && weatherData['precipitation_3h'] < 3000
                 ? weatherData['precipitation_3h'].toDouble() / 10
                 : null,
-            snow: weatherData['totalsnow'] != null
+            snow: weatherData['totalsnow'] != null && weatherData['totalsnow'] < 3000
                 ? weatherData['totalsnow'].toDouble() / 10
                 : null,
-            dewpoint: weatherData['dewpoint'] != null
+            dewpoint: weatherData['dewpoint'] != null  && weatherData['dewpoint'] < 3000
                 ? weatherData['dewpoint'].toDouble() / 10
                 : null,
-            sunshine: weatherData['sunshine'] != null
+            sunshine: weatherData['sunshine'] != null && weatherData['sunshine'] < 3000
                 ? (weatherData['sunshine'].toDouble() / 10)
                 : null,
-            windSpeed: weatherData['meanwind'] != null
+            windSpeed: weatherData['meanwind'] != null && weatherData['meanwind'] < 3000
                 ? weatherData['meanwind'].toDouble() / 10
                 : null,
-            windGust: weatherData['maxwind'] != null
+            windGust: weatherData['maxwind'] != null && weatherData['maxwind'] < 3000
                 ? weatherData['maxwind'].toDouble() / 10
                 : null,
-            windDirection: weatherData['winddirection'] != null
+            windDirection: weatherData['winddirection'] != null && weatherData['winddirection'] < 3000
                 ? weatherData['winddirection'].toDouble() / 10
                 : null,
-            cloudCover: weatherData['cloud_cover_total']?.toDouble(),
-            humidity: weatherData['humidity'] != null
+            cloudCover: weatherData['cloud_cover_total'] != null && weatherData['cloud_cover_total'] < 3000
+                ? weatherData['cloud_cover_total'].toDouble()
+                : null,
+            humidity: weatherData['humidity'] != null && weatherData['humidity'] < 3000
                 ? weatherData['humidity'].toDouble() / 10
                 : null,
-            pressure: weatherData['pressure'] != null
+            pressure: weatherData['pressure'] != null && weatherData['pressure'] < 3000
                 ? weatherData['pressure'].toDouble() / 10
                 : null,
             timestamp: DateTime.fromMillisecondsSinceEpoch(weatherData['time']),
@@ -444,18 +446,18 @@ class WeatherService {
 
   /// Returns mock weather data for testing
   Weather _getMockWeather(String locationName) {
-    final random = Random();
+    //final random = Random();
     return Weather(
       stationName: locationName,
       stationId: locationName.toLowerCase().replaceAll(' ', '_'),
-      source: 'Mock Data',
-      temperature: 10 + random.nextDouble() * 5,
-      precipitation: random.nextDouble() * 2,
-      windSpeed: 10 + random.nextDouble() * 10,
-      cloudCover: 50 + random.nextInt(30).toDouble(),
-      humidity: 70 + random.nextInt(20).toDouble(),
-      pressure: 1013.0 + (random.nextDouble() - 0.5) * 20,
-      condition: ['dry', 'fog', 'rain', 'snow'][random.nextInt(4)],
+      source: 'not found',
+      temperature: null,
+      precipitation: null,
+      windSpeed: null,
+      cloudCover: null,
+      humidity: null,
+      pressure: null,
+      icon: 32,
       timestamp: DateTime.now(),
     );
   }
@@ -542,6 +544,8 @@ class WeatherService {
         return Icons.thunderstorm_outlined;
       case 31: // (wind)
         return Icons.air;
+      case 32: // unknown
+        return Icons.block;
       default:
         return Icons.wb_cloudy_outlined;
     }
@@ -642,6 +646,9 @@ class WeatherService {
         break;
       case 31:
         condition = 'Windy';
+        break;
+      case 32:
+        condition = 'Unfortunately,\nwe could not get weather data\nfor your location';
         break;
       default:
         condition = '';

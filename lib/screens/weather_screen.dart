@@ -44,7 +44,11 @@ class _WeatherScreenState extends State<WeatherScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: _weatherService.getGradientColors(_provider.currentWeather, _provider.forecast, null),
+            colors: _weatherService.getGradientColors(
+              _provider.currentWeather,
+              _provider.forecast,
+              null,
+            ),
           ),
         ),
         child: SafeArea(
@@ -55,9 +59,11 @@ class _WeatherScreenState extends State<WeatherScreen> {
                 _buildHeader(),
                 _buildCurrentWeather(),
                 const SizedBox(height: 24),
-                if (_provider.forecast?.warnings != null && _provider.forecast!.warnings!.isNotEmpty)
+                if (_provider.forecast?.warnings != null &&
+                    _provider.forecast!.warnings!.isNotEmpty)
                   _buildWarnings(),
-                if (_provider.forecast?.warnings != null && _provider.forecast!.warnings!.isNotEmpty)
+                if (_provider.forecast?.warnings != null &&
+                    _provider.forecast!.warnings!.isNotEmpty)
                   const SizedBox(height: 24),
                 _buildHourlyForecast(),
                 const SizedBox(height: 24),
@@ -98,8 +104,37 @@ class _WeatherScreenState extends State<WeatherScreen> {
   }
 
   Widget _buildCurrentWeather() {
-    final currentTemp = _provider.currentWeather?.temperature ?? 0.0;
-    final currentIcon = _provider.currentWeather?.icon ?? 0;
+    String currentTemp = "--";
+    int currentIcon = 0;
+
+    final now = DateTime.now();
+    final hourIndex = _provider.forecast?.start != null
+        ? now.difference(_provider.forecast!.start!).inHours
+        : 0;
+
+    if (_provider.currentWeather != null &&
+        _provider.currentWeather!.temperature != null &&
+        _provider.currentWeather!.temperature! <= 100) {
+      currentTemp = '${_provider.currentWeather!.temperature!.toStringAsFixed(0)}°';
+    } else if (_provider.forecast != null) {
+      if (_provider.forecast?.temperature != null &&
+          hourIndex >= 0 &&
+          hourIndex < _provider.forecast!.temperature!.length) {
+        currentTemp = '${_provider.forecast!.temperature![hourIndex]}°';
+      }
+    }
+
+    if (_provider.currentWeather != null &&
+        _provider.currentWeather!.icon != null &&
+        _provider.currentWeather!.icon! <= 32) {
+      currentIcon = _provider.currentWeather!.icon!;
+    } else if (_provider.forecast != null) {
+      if (_provider.forecast?.icon != null &&
+          hourIndex >= 0 &&
+          hourIndex < _provider.forecast!.icon!.length) {
+        currentIcon = _provider.forecast!.icon![hourIndex];
+      }
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -118,7 +153,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   Row(
                     children: [
                       Text(
-                        '${currentTemp.toStringAsFixed(0)}°',
+                        currentTemp,
                         style: TextStyle(
                           fontSize: 64,
                           fontWeight: FontWeight.bold,
@@ -134,7 +169,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                                 Icons.arrow_upward_rounded,
                                 size: 16,
                                 //color: Color(0xFF4AFF8C),
-                                color: Colors.white
+                                color: Colors.white,
                               ),
                               Text(
                                 ' ${_provider.forecast?.days?.first.maxTemperature?.toStringAsFixed(0) ?? "--"}°',
@@ -154,7 +189,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                                 Icons.arrow_downward_rounded,
                                 size: 16,
                                 //color: Color(0xFFFF6B6B),
-                                color: Colors.white
+                                color: Colors.white,
                               ),
                               Text(
                                 ' ${_provider.forecast?.days?.first.minTemperature?.toStringAsFixed(0) ?? "--"}°',
@@ -369,6 +404,11 @@ class _WeatherScreenState extends State<WeatherScreen> {
   }
 
   Widget _buildWeatherDetails() {
+    final now = DateTime.now();
+    final hourIndex = _provider.forecast?.start != null
+        ? now.difference(_provider.forecast!.start!).inHours
+        : 0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
@@ -387,94 +427,110 @@ class _WeatherScreenState extends State<WeatherScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              if (_provider.currentWeather?.windSpeed != null)
+              if (_provider.currentWeather?.windSpeed != null && 
+                  _provider.currentWeather!.windSpeed! < 1000)
                 _buildDetailCard(
                   'Wind Speed',
                   '${_provider.currentWeather!.windSpeed!.toStringAsFixed(1)} km/h',
                   Icons.air,
-                ),
+                ) else if (_provider.forecast?.windSpeed != null &&
+                  _provider.forecast!.windSpeed!.isNotEmpty && _provider.forecast!.windSpeed![hourIndex] < 1000)
+                  _buildDetailCard(
+                  'Wind Speed',
+                  '${_provider.forecast!.windSpeed![hourIndex].toStringAsFixed(1)} km/h',
+                  Icons.air,
+                ) 
+                  ,
               if (_provider.forecast?.days?.first.windSpeed != null)
                 _buildDetailCard(
                   'max. Wind Speed',
                   '${_provider.forecast!.days!.first.windSpeed!.toStringAsFixed(1)} km/h',
                   Icons.air,
                 ),
-              if (_provider.currentWeather?.humidity != null)
+              if (_provider.currentWeather?.humidity != null && 
+                  _provider.currentWeather!.humidity! < 3000)
                 _buildDetailCard(
                   'Humidity',
                   '${_provider.currentWeather!.humidity!.toStringAsFixed(0)}%',
                   Icons.water_drop,
                 )
               else if (_provider.forecast?.humidity != null &&
-                  _provider.forecast!.humidity!.isNotEmpty)
+                  _provider.forecast!.humidity!.isNotEmpty && _provider.forecast!.humidity![hourIndex] < 3000)
                 _buildDetailCard(
                   'Humidity',
-                  '${_provider.forecast!.humidity!.first.toStringAsFixed(0)}%',
+                  '${_provider.forecast!.humidity![hourIndex].toStringAsFixed(0)}%',
                   Icons.water_drop,
                 ),
-              if (_provider.currentWeather?.pressure != null)
+              if (_provider.currentWeather?.pressure != null && 
+                  _provider.currentWeather!.pressure! < 3000)
                 _buildDetailCard(
                   'Pressure',
                   '${_provider.currentWeather!.pressure!.toStringAsFixed(0)} mbar',
                   Icons.compress,
                 )
               else if (_provider.forecast?.pressure != null &&
-                  _provider.forecast!.pressure!.isNotEmpty)
+                  _provider.forecast!.pressure!.isNotEmpty && _provider.forecast!.pressure![hourIndex] < 3000)
                 _buildDetailCard(
                   'Pressure',
-                  '${_provider.forecast!.pressure!.first.toStringAsFixed(0)} mbar',
+                  '${_provider.forecast!.pressure![hourIndex].toStringAsFixed(0)} mbar',
                   Icons.compress,
                 ),
-              if (_provider.forecast?.days?.first.precipitation != null)
+              if (_provider.forecast?.days?.first.precipitation != null && 
+                  _provider.forecast!.days!.first.precipitation! < 3000)
                 _buildDetailCard(
                   'Precipitation',
                   '${_provider.forecast!.days!.first.precipitation!.toStringAsFixed(1)} mm',
                   Icons.opacity,
                 )
-              else if (_provider.currentWeather?.precipitation != null)
+              else if (_provider.currentWeather?.precipitation != null && 
+                  _provider.currentWeather!.precipitation! < 3000)
                 _buildDetailCard(
                   'Precipitation',
                   '${_provider.currentWeather!.precipitation!.toStringAsFixed(1)} mm',
                   Icons.opacity,
                 ),
-              if (_provider.currentWeather?.cloudCover != null)
+              if (_provider.currentWeather?.cloudCover != null && 
+                  _provider.currentWeather!.cloudCover! < 3000)
                 _buildDetailCard(
                   'Cloud Cover',
-                  '${_provider.currentWeather!.cloudCover!.clamp(0,100).toStringAsFixed(0)}%',
+                  '${_provider.currentWeather!.cloudCover!.clamp(0, 100).toStringAsFixed(0)}%',
                   Icons.cloud,
                 )
               else if (_provider.forecast?.cloudCover != null &&
-                  _provider.forecast!.cloudCover!.isNotEmpty)
+                  _provider.forecast!.cloudCover!.isNotEmpty && _provider.forecast!.cloudCover![hourIndex] < 3000)
                 _buildDetailCard(
                   'Cloud Cover',
-                  '${_provider.forecast!.cloudCover!.first.toStringAsFixed(0)}%',
+                  '${_provider.forecast!.cloudCover![hourIndex].clamp(0, 100).toStringAsFixed(0)}%',
                   Icons.cloud,
                 ),
-              if (_provider.forecast?.days?.first.sunshine != null)
+              if (_provider.forecast?.days?.first.sunshine != null &&
+                  _provider.forecast!.days!.first.sunshine! < 3000)
                 _buildDetailCard(
                   'Sunshine',
-                  '${(_provider.forecast!.days!.first.sunshine! / 60).clamp(0,24).toStringAsFixed(0)} h',
+                  '${(_provider.forecast!.days!.first.sunshine! / 60).clamp(0, 24).toStringAsFixed(0)} h',
                   Icons.wb_sunny_outlined,
                 ),
-              if (_provider.currentWeather?.dewpoint != null)
+              if (_provider.currentWeather?.dewpoint != null &&
+                  _provider.currentWeather!.dewpoint! < 3000)
                 _buildDetailCard(
                   'Dew Point',
                   '${_provider.currentWeather!.dewpoint!.toStringAsFixed(1)}°',
                   Icons.thermostat,
                 )
               else if (_provider.forecast?.dewPoint != null &&
-                  _provider.forecast!.dewPoint!.isNotEmpty)
+                  _provider.forecast!.dewPoint!.isNotEmpty && _provider.forecast!.dewPoint![hourIndex] < 3000)
                 _buildDetailCard(
                   'Dew Point',
-                  '${_provider.forecast!.dewPoint!.first.toStringAsFixed(1)}°',
+                  '${_provider.forecast!.dewPoint![hourIndex].toStringAsFixed(1)}°',
                   Icons.thermostat,
                 ),
-              if (_provider.currentWeather?.snow != null && _provider.currentWeather!.snow! > 0)
+              if (_provider.currentWeather?.snow != null &&
+                  _provider.currentWeather!.snow! > 0 && _provider.currentWeather!.snow! < 3000)
                 _buildDetailCard(
                   'Snow',
                   '${(_provider.currentWeather!.snow!).toStringAsFixed(1)} cm',
                   Icons.ac_unit,
-                )
+                ),
             ],
           ),
         ],
@@ -518,7 +574,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
     );
   }
 
-   Widget _buildWarnings() {
+  Widget _buildWarnings() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -554,7 +610,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
     final levelColor = _getWarningColor(warning.level);
     //final levelText = _getWarningLevelText(warning.level);
     final levelText = "!";
-    
+
     return Card(
       color: levelColor.withOpacity(0.3),
       elevation: 0,
@@ -571,12 +627,19 @@ class _WeatherScreenState extends State<WeatherScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: levelColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -600,10 +663,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     const SizedBox(width: 4),
                     Text(
                       _formatWarningTime(warning.start, warning.end),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -687,7 +747,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   String _formatWarningTime(DateTime? start, DateTime? end) {
     final now = DateTime.now();
     final dateFormat = DateFormat('MMM d, HH:mm');
-    
+
     if (start != null && end != null) {
       if (start.day == end.day) {
         return '${DateFormat('MMM d, HH:mm').format(start)} - ${DateFormat('HH:mm').format(end)}';

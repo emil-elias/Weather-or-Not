@@ -62,7 +62,8 @@ class MainProvider extends ChangeNotifier {
   Future<void> getClosestLocation() async {
     try {
       final geo.Position userPosition = await _locationService.getCurrentLocation();
-      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(userPosition);
+      
+      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(userPosition.latitude, userPosition.longitude);
       //print(closestList);
       final closest = closestList.first;
 

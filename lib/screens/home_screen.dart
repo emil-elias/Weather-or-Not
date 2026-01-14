@@ -500,13 +500,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onLocationChanged(Map<String,dynamic>? newLocation) {
+  void _onLocationChanged(Map<String,dynamic>? newLocation) async {
     if (newLocation != null && newLocation != _provider.selectedLocation) {
       _provider.setSelectedLocation(newLocation);
+      
+      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(newLocation['lat'], newLocation['lon']);
       _provider.loadWeather(
         newLocation["id"],
         newLocation["name"],
-        fallbackStations: _provider.closestLocations
+        fallbackStations: closestList
             .where((loc) => loc['name'] != newLocation["name"])
             .toList(),
       );

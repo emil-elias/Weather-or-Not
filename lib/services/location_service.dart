@@ -53,7 +53,8 @@ class LocationService {
   }
 
   Future<List<Map<String, dynamic>>> findClosestLocation(
-    Position userPosition,
+    double userLatitude,
+    double userLongitude,
   ) async {
     // Load the JSON file
     final String response = await rootBundle.loadString('assets/stations.json');
@@ -65,8 +66,8 @@ class LocationService {
 
     for (var location in locations) {
       final double distance = calculateDistance(
-        userPosition.latitude,
-        userPosition.longitude,
+        userLatitude,
+        userLongitude,
         location['lat'],
         location['lon'],
       );
