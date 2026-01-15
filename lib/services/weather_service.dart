@@ -145,7 +145,7 @@ class WeatherService {
             fallbackLat: fallbackLat,
             fallbackLon: fallbackLon,
             message:
-                'Note: using data from next nearest station - \nno data available for your current location',
+                'Note: using data from next nearest station - no data available for your selected location',
           );
         } else if (fallbackLat != null && fallbackLon != null) {
           //if nothing helps, just use BrightSky
@@ -156,7 +156,7 @@ class WeatherService {
           );
         } else {
           print('DWD forecast data missing, using mock data'); // Debug
-          return _getMockWeather('DWD Station $stationID');
+          return _getMockWeather(locationName ?? 'DWD Station $stationID');
         }
       }
 
@@ -223,10 +223,10 @@ class WeatherService {
         return getWeatherByCoordinates(
           fallbackLat,
           fallbackLon,
-          locationName: 'DWD Station $stationID',
+          locationName: locationName ?? 'DWD Station $stationID',
         );
       } else {
-        return _getMockWeather('DWD Station $stationID');
+        return _getMockWeather(locationName ?? 'DWD Station $stationID');
       }
     }
   }
@@ -648,7 +648,7 @@ class WeatherService {
         condition = 'Windy';
         break;
       case 32:
-        condition = 'Unfortunately,\nwe could not get weather data\nfor your location';
+        condition = 'Unfortunately, we could not get weather data for your location';
         break;
       default:
         condition = '';

@@ -71,7 +71,7 @@ class LocationDropdown extends StatelessWidget {
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.6,
+            height: MediaQuery.of(context).size.height * 0.5,
             child: StatefulBuilder(
               builder: (context, setModalState) {
                 if (!_controllerListenerAdded) {

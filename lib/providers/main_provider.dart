@@ -15,7 +15,7 @@ class MainProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = false;
   Map<String,dynamic> _selectedLocation = {
-    "name": "Bremen, Germany",
+    "name": "BREMEN",
     "id": "10224",
     "lat": 53.0451,
     "lon": 8.7981,
@@ -24,21 +24,21 @@ class MainProvider extends ChangeNotifier {
   bool _locationAccessDenied = false;
 
   final List<String> _locations = [
-    'Bremen, Germany',
-    'Hamburg, Germany',
-    'Berlin, Germany',
-    'München, Germany',
-    /*'Köln, Germany',*/
-    'Lisboa, Portugal',
+    'BREMEN',
+    'HAMBURG',
+    'BERLIN',
+    'MÜNCHEN',
+    /*'KÖLN',*/
+    'LISBON',
   ];
 
   final Map<String, Map<String, double>> _locationCoordinates = {
-    'Bremen, Germany': {'lat': 53.0793, 'lon': 8.8017},
-    'Hamburg, Germany': {'lat': 53.5511, 'lon': 9.9937},
-    'Berlin, Germany': {'lat': 52.5200, 'lon': 13.4050},
-    'München, Germany': {'lat': 48.1351, 'lon': 11.5820},
-    'Köln, Germany': {'lat': 50.9375, 'lon': 6.9603},
-    'Lisboa, Portugal': {'lat': 38.47, 'lon': -9.08},
+    'BREMEN': {'lat': 53.0793, 'lon': 8.8017},
+    'HAMBURG': {'lat': 53.5511, 'lon': 9.9937},
+    'BERLIN': {'lat': 52.5200, 'lon': 13.4050},
+    'MÜNCHEN': {'lat': 48.1351, 'lon': 11.5820},
+    'KÖLN': {'lat': 50.9375, 'lon': 6.9603},
+    'LISBON': {'lat': 38.47, 'lon': -9.08},
   };
 
   final Map<String, String> stationIDs = Map<String, String>.from(AppConstants.stationIDs);
@@ -87,12 +87,12 @@ class MainProvider extends ChangeNotifier {
       print('Error getting location: $e');
       // mark that location access was denied / failed so UI can prompt
       _locationAccessDenied = true;
-      setSelectedLocation({"name": "Bremen, Germany", "id": "10224"});
+      setSelectedLocation({"name": "BREMEN", "id": "10224"});
       loadWeather(
-        stationIDs['Bremen, Germany']!,
-        'Bremen, Germany',
-        fallbackLat: _locationCoordinates['Bremen, Germany']!['lat'],
-        fallbackLon: _locationCoordinates['Bremen, Germany']!['lon'],
+        stationIDs['BREMEN']!,
+        'BREMEN',
+        fallbackLat: _locationCoordinates['BREMEN']!['lat'],
+        fallbackLon: _locationCoordinates['BREMEN']!['lon'],
       );
     } finally {
       notifyListeners();

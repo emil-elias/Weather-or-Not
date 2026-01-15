@@ -14,7 +14,7 @@ class PreferencesService {
   /// Get preferred transportation mode
   Future<String> getTransportation() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_transportationKey) ?? 'Fahrrad';
+    return prefs.getString(_transportationKey) ?? 'Bike';
   }
 
   /// Save cold threshold

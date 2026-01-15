@@ -18,12 +18,12 @@ class AppConstants {
   static const String LuftqualitaetApiBaseUrl = 'https://umweltbundesamt.api.proxy.bund.dev/api/air_data/v2/airquality/json?';
 
   static const Map<String, String> stationIDs = {
-    'Bremen, Germany': "10224",
-    'Hamburg, Germany': "P0489", //(Innenstadt); Fuhlsbüttel: 10147, Neuwiedenthal: C720
-    'Berlin, Germany': "10389", //(Alexanderplatz); Brandenburg: 10385, Buch: G002, Kaniswall: G006, Tempelhof: 10384, ...
-    'München, Germany': "10865", //(Stadt); Flughafen: 10870
-    'Köln, Germany': "10513", //(Köln/Bonn); Stammheim: H744
-    'Lisboa, Portugal': "08536", 
+    'BREMEN': "10224",
+    'HAMBURG': "P0489", //(Innenstadt); Fuhlsbüttel: 10147, Neuwiedenthal: C720
+    'BERLIN': "10389", //(Alexanderplatz); Brandenburg: 10385, Buch: G002, Kaniswall: G006, Tempelhof: 10384, ...
+    'MÜNCHEN': "10865", //(Stadt); Flughafen: 10870
+    'KÖLN': "10513", //(Köln/Bonn); Stammheim: H744
+    'LISBON': "08536", 
   };
 }
 

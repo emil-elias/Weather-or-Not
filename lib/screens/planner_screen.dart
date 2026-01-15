@@ -123,19 +123,28 @@ class _PlannerScreenState extends State<PlannerScreen>
   Future<void> _generateOutfitForIndex(int forecastIndex, DateTime day) async {
     final provider = context.read<MainProvider>();
     final forecast = provider.forecast;
-    if (forecast == null || forecast.days == null || forecast.days!.length <= forecastIndex) {
+    if (forecast == null ||
+        forecast.days == null ||
+        forecast.days!.length <= forecastIndex) {
       return;
     }
 
     final dayForecast = forecast.days![forecastIndex];
 
     // Temperature: use average of min and max when available
-    final double temp = ((dayForecast.maxTemperature ?? (provider.currentWeather?.temperature ?? 15.0)) + (dayForecast.minTemperature ?? (provider.currentWeather?.temperature ?? 15.0))) / 2.0;
+    final double temp =
+        ((dayForecast.maxTemperature ??
+                (provider.currentWeather?.temperature ?? 15.0)) +
+            (dayForecast.minTemperature ??
+                (provider.currentWeather?.temperature ?? 15.0))) /
+        2.0;
 
     double rainProbability = 0.0;
     if (dayForecast.precipitation != null) {
       rainProbability = (dayForecast.precipitation! / 5.0).clamp(0.0, 1.0);
-    } else if (dayForecast.icon != null && dayForecast.icon! >= 200 && dayForecast.icon! < 800) {
+    } else if (dayForecast.icon != null &&
+        dayForecast.icon! >= 200 &&
+        dayForecast.icon! < 800) {
       // crude heuristic: meteorological icons <800 are weather events - assume some rain if not clear
       rainProbability = 0.6;
     }
@@ -154,8 +163,19 @@ class _PlannerScreenState extends State<PlannerScreen>
     final clothingItems = _convertToClothingItemsPlanner(wardrobeItems);
 
     // Debug: list potential outer candidates from wardrobe
-    final outerCandidates = clothingItems.where((c) => c.category.toLowerCase().contains('outer') || c.subtype.toLowerCase().contains('jacket') || c.subtype.toLowerCase().contains('coat') || c.category.toLowerCase().contains('jacket') || c.category.toLowerCase().contains('coat')).toList();
-    print('Planner: found ${clothingItems.length} clothing items; outer candidates (${outerCandidates.length}): ${outerCandidates.map((c) => '${c.subtype}(${c.category}) warmth=${c.attributes.warmthLevel} water=${c.attributes.waterResistance}').join(', ')}');
+    final outerCandidates = clothingItems
+        .where(
+          (c) =>
+              c.category.toLowerCase().contains('outer') ||
+              c.subtype.toLowerCase().contains('jacket') ||
+              c.subtype.toLowerCase().contains('coat') ||
+              c.category.toLowerCase().contains('jacket') ||
+              c.category.toLowerCase().contains('coat'),
+        )
+        .toList();
+    print(
+      'Planner: found ${clothingItems.length} clothing items; outer candidates (${outerCandidates.length}): ${outerCandidates.map((c) => '${c.subtype}(${c.category}) warmth=${c.attributes.warmthLevel} water=${c.attributes.waterResistance}').join(', ')}',
+    );
 
     final engine = OutfitEngine(clothingItems);
     final outfit = engine.generate(
@@ -175,33 +195,53 @@ class _PlannerScreenState extends State<PlannerScreen>
     }
   }
 
-  List<ClothingItem> _convertToClothingItemsPlanner(List<dynamic> wardrobeItems) {
+  List<ClothingItem> _convertToClothingItemsPlanner(
+    List<dynamic> wardrobeItems,
+  ) {
     return wardrobeItems.map((item) {
       final rawCategory = (item.category ?? '').toString().toLowerCase();
       final rawSubtype = (item.subcategory ?? '').toString().toLowerCase();
       final name = item.name ?? '';
       final imagePath = item.imagePath;
 
-      final Map<String, dynamic> storedAttributes = (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
-      final Map<String, dynamic> storedUsage = (item.usageConstraints as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
+      final Map<String, dynamic> storedAttributes =
+          (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ??
+          {};
+      final Map<String, dynamic> storedUsage =
+          (item.usageConstraints as Map<String, dynamic>?)
+              ?.cast<String, dynamic>() ??
+          {};
 
       // Planner doesn't load the subtypes JSON; prefer stored WardrobeItem attributes
       // Default to no JSON attributes (use stored attributes only)
       Map<String, dynamic>? foundSubtypeData = null;
 
-      final Map<String, dynamic> jsonAttributes = (foundSubtypeData != null && foundSubtypeData['attributes'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map) : {};
-      final Map<String, dynamic> jsonUsage = (foundSubtypeData != null && foundSubtypeData['usage_constraints'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['usage_constraints'] as Map) : {};
+      final Map<String, dynamic> jsonAttributes =
+          (foundSubtypeData != null && foundSubtypeData['attributes'] is Map)
+          ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map)
+          : {};
+      final Map<String, dynamic> jsonUsage =
+          (foundSubtypeData != null &&
+              foundSubtypeData['usage_constraints'] is Map)
+          ? Map<String, dynamic>.from(
+              foundSubtypeData['usage_constraints'] as Map,
+            )
+          : {};
 
       final attributesData = {...jsonAttributes, ...storedAttributes};
       final usageConstraintsData = {...jsonUsage, ...storedUsage};
 
       if (storedAttributes.isNotEmpty) {
         final overridden = storedAttributes.keys.join(', ');
-        print('Converting item ${item.id}: merging stored attributes over JSON defaults (overrides: $overridden)');
+        print(
+          'Converting item ${item.id}: merging stored attributes over JSON defaults (overrides: $overridden)',
+        );
       }
       if (storedUsage.isNotEmpty) {
         final overridden = storedUsage.keys.join(', ');
-        print('Converting item ${item.id}: merging stored usage constraints over JSON defaults (overrides: $overridden)');
+        print(
+          'Converting item ${item.id}: merging stored usage constraints over JSON defaults (overrides: $overridden)',
+        );
       }
 
       final materials = List<String>.from(attributesData['materials'] ?? []);
@@ -210,14 +250,21 @@ class _PlannerScreenState extends State<PlannerScreen>
       final windResistance = attributesData['wind_resistance'] ?? 5;
       final breathability = attributesData['breathability'] ?? 5;
       final stretch = attributesData['stretch'] ?? 5;
-      final formality = attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
-      final styleTags = List<String>.from(attributesData['style_tags'] ?? (item.tags ?? []));
+      final formality =
+          attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
+      final styleTags = List<String>.from(
+        attributesData['style_tags'] ?? (item.tags ?? []),
+      );
       final fit = attributesData['fit'] ?? 'regular';
 
       final weatherMinTemp = usageConstraintsData['weather_min_temp'] ?? -40;
       final weatherMaxTemp = usageConstraintsData['weather_max_temp'] ?? 45;
-      final optimalActivities = List<String>.from(usageConstraintsData['optimal_activities'] ?? ['daily', 'casual']);
-      final unsuitableFor = List<String>.from(usageConstraintsData['unsuitable_for'] ?? []);
+      final optimalActivities = List<String>.from(
+        usageConstraintsData['optimal_activities'] ?? ['daily', 'casual'],
+      );
+      final unsuitableFor = List<String>.from(
+        usageConstraintsData['unsuitable_for'] ?? [],
+      );
       return ClothingItem(
         id: item.id,
         category: rawCategory,
@@ -251,12 +298,27 @@ class _PlannerScreenState extends State<PlannerScreen>
     if (outfit == null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text('No outfit generated for this day', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        child: Text(
+          'No outfit generated for this day',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
       );
     }
 
     Widget buildItemPreview(ClothingItem? item, IconData fallbackIcon) {
-      if (item == null) return Column(children: [CircleAvatar(backgroundColor: theme.colorScheme.surface, child: Icon(fallbackIcon)), const SizedBox(height:4), Text('-', style: theme.textTheme.bodySmall)]);
+      if (item == null)
+        return Column(
+          children: [
+            CircleAvatar(
+              backgroundColor: theme.colorScheme.surface,
+              child: Icon(fallbackIcon),
+            ),
+            const SizedBox(height: 4),
+            Text('-', style: theme.textTheme.bodySmall),
+          ],
+        );
       final imagePath = item.metadata?['imagePath'] as String?;
       final label = (item.metadata?['name'] as String?) ?? item.subtype;
       return Column(
@@ -264,10 +326,29 @@ class _PlannerScreenState extends State<PlannerScreen>
           CircleAvatar(
             radius: 22,
             backgroundColor: outfit.palette.dominant.withOpacity(0.15),
-            child: imagePath != null ? ClipOval(child: Image.file(File(imagePath), width: 36, height: 36, fit: BoxFit.cover)) : Icon(Icons.checkroom, color: theme.colorScheme.onPrimaryContainer),
+            child: imagePath != null
+                ? ClipOval(
+                    child: Image.file(
+                      File(imagePath),
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Icon(
+                    Icons.checkroom,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
           ),
           const SizedBox(height: 6),
-          SizedBox(width: 80, child: Text(label, textAlign: TextAlign.center, style: theme.textTheme.bodySmall)),
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         ],
       );
     }
@@ -289,7 +370,9 @@ class _PlannerScreenState extends State<PlannerScreen>
               const SizedBox(width: 8),
               Expanded(child: buildItemPreview(outfit.bottom, Icons.checkroom)),
               const SizedBox(width: 8),
-              Expanded(child: buildItemPreview(outfit.shoes, Icons.directions_walk)),
+              Expanded(
+                child: buildItemPreview(outfit.shoes, Icons.directions_walk),
+              ),
             ],
           ),
         ),
@@ -316,6 +399,7 @@ class _PlannerScreenState extends State<PlannerScreen>
       score: outfit.score,
     );
   }
+
   /// Format activity key to readable string
   String _formatActivityKey(String key) {
     return key
@@ -351,6 +435,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
               child: TabBar(
@@ -422,7 +507,13 @@ class _PlannerScreenState extends State<PlannerScreen>
                   forecastIndex: idx,
                   onTap: () {
                     navigatorKey.currentState?.push(
-                      MaterialPageRoute(builder: (_) => HomeScreen(live: false, title: dayName, forecastIndex: idx)),
+                      MaterialPageRoute(
+                        builder: (_) => HomeScreen(
+                          live: false,
+                          title: dayName,
+                          forecastIndex: idx,
+                        ),
+                      ),
                     );
                   },
                 ),

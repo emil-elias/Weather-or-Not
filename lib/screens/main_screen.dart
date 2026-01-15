@@ -64,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),
             selectedIcon: Icon(Icons.person_rounded),
-            label: 'Setting',
+            label: 'Settings',
           ),
         ],
       ),

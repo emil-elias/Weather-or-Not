@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   MainProvider _provider = MainProvider();
 
   Map<String, dynamic> _selectedLocation = {
-    "name": 'Bremen, Germany',
+    "name": 'BREMEN',
     "id": "10224",
     "lat": 53.0451,
     "lon": 8.7981,
@@ -56,12 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Location coordinates
   final Map<String, Map<String, double>> _locationCoordinates = {
-    'Bremen, Germany': {'lat': 53.0793, 'lon': 8.8017},
-    'Hamburg, Germany': {'lat': 53.5511, 'lon': 9.9937},
-    'Berlin, Germany': {'lat': 52.5200, 'lon': 13.4050},
-    'München, Germany': {'lat': 48.1351, 'lon': 11.5820},
-    'Köln, Germany': {'lat': 50.9375, 'lon': 6.9603},
-    'Lisbon, Portugal': {'lat': 38.47, 'lon': -9.08},
+    'BREMEN': {'lat': 53.0793, 'lon': 8.8017},
+    'HAMBURG': {'lat': 53.5511, 'lon': 9.9937},
+    'BERLIN': {'lat': 52.5200, 'lon': 13.4050},
+    'MÜNCHEN': {'lat': 48.1351, 'lon': 11.5820},
+    'KÖLN': {'lat': 50.9375, 'lon': 6.9603},
+    'LISBON': {'lat': 38.47, 'lon': -9.08},
   };
   List<String> _locations = [];
 
@@ -592,7 +592,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     currentWeather: widget.live == true ? _currentWeather : null,
                     forecast: _forecast,
                     forecastIndex: widget.forecastIndex,
-                    onTap: widget.live == true ? () {
+                    onTap: widget.live == true && _currentWeather?.icon != 32 ? () {
 
                       homeNavigatorKey.currentState?.push(
                         MaterialPageRoute(
