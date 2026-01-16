@@ -10,6 +10,7 @@ import 'package:weatherornot/widgets/location_dropdown.dart';
 import 'package:weatherornot/widgets/weather_card.dart';
 import '../services/weather_service.dart';
 import '../services/wardrobe_service.dart';
+import '../services/planner_service.dart';
 import '../models/weather.dart';
 import '../models/activity.dart';
 import '../models/outfit.dart';
@@ -66,14 +67,33 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> _locations = [];
 
   final List<Activity> _todayActivities = [];
+  final PlannerService _plannerService = PlannerService();
+
 
   @override
   void initState() {
     super.initState();
     _isLoading = true;
     _loadActivitiesFromAssets();
-    _loadSubtypesAttributesFromAssets(); // Add this line
+    _loadSubtypesAttributesFromAssets();
     _loadWeather();
+    _syncTodayActivitiesWithPlanner();
+  }
+
+  Future<void> _syncTodayActivitiesWithPlanner() async {
+    final today = DateTime.now();
+    final planned = await _plannerService.getDayActivities(today);
+    setState(() {
+      _todayActivities.clear();
+      for (final activityName in planned) {
+        _todayActivities.add(Activity(
+          id: activityName,
+          name: _formatActivityKey(activityName),
+          style: ActivityStyle.casual,
+          type: _mapActivityToType(activityName),
+        ));
+      }
+    });
   }
 
   /// Load activities from assets/activities.json
@@ -654,10 +674,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Chip(
                           label: Text(activity.name),
                           deleteIcon: const Icon(Icons.close, size: 18),
-                          onDeleted: () {
+                          onDeleted: () async {
                             setState(() {
                               _todayActivities.remove(activity);
                             });
+                            // Remove from planner
+                            final today = DateTime.now();
+                            await _plannerService.removeActivityFromDay(today, activity.name.toLowerCase().replaceAll(' ', '_'));
                             // Regenerate outfit when activity is removed
                             if (_currentWeather != null) {
                               _generateOutfit(_currentWeather!);
@@ -729,52 +752,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           _generatedOutfit!.pullover,
                           label: 'Pullover',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.shirt,
-                          label: 'Shirt',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.bottom,
-                          label: 'Bottom',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.shoes,
-                          label: 'Shoes',
-                          isLarge: true,
-                        ),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        _buildOutfitCard(
-                          context,
-                          null,
-                          label: 'Outerwear',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          null,
-                          label: 'Pullover',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          null,
-                          label: 'Shirt',
                           isLarge: true,
                         ),
                         const SizedBox(height: 16),
@@ -1609,7 +1586,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 FilledButton(
                   onPressed: selectedActivitySubcategory != null
-                      ? () {
+                      ? () async {
                           setState(() {
                             _todayActivities.add(
                               Activity(
@@ -1625,6 +1602,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           });
+                          // Add to planner's permanent list for today
+                          final today = DateTime.now();
+                          await _plannerService.addActivityToDay(today, selectedActivitySubcategory!);
                           if (_currentWeather != null) {
                             _generateOutfit(_currentWeather!);
                           }
