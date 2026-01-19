@@ -23,7 +23,14 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
     _provider = context.watch<MainProvider>();
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Row(
@@ -77,6 +84,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -234,7 +234,12 @@ class LocationDropdown extends StatelessWidget {
         );
       },
     ).whenComplete(() {
-      controller.dispose();
+      // Delay disposal to allow dismissal animation to complete
+      Future.delayed(const Duration(milliseconds: 300), () {
+        
+          controller.dispose();
+        
+      });
     });
   }
 }

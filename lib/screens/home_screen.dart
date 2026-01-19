@@ -24,7 +24,12 @@ class HomeScreen extends StatefulWidget {
   final String? title;
   final int? forecastIndex;
   final bool live;
-  const HomeScreen({super.key, required this.live, this.title, this.forecastIndex});
+  const HomeScreen({
+    super.key,
+    required this.live,
+    this.title,
+    this.forecastIndex,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -43,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
     "id": "10224",
     "lat": 53.0451,
     "lon": 8.7981,
-
   };
   Weather? _currentWeather;
   Forecast? _forecast;
@@ -69,7 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Activity> _todayActivities = [];
   final PlannerService _plannerService = PlannerService();
 
-
   @override
   void initState() {
     super.initState();
@@ -86,12 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _todayActivities.clear();
       for (final activityName in planned) {
-        _todayActivities.add(Activity(
-          id: activityName,
-          name: _formatActivityKey(activityName),
-          style: ActivityStyle.casual,
-          type: _mapActivityToType(activityName),
-        ));
+        _todayActivities.add(
+          Activity(
+            id: activityName,
+            name: _formatActivityKey(activityName),
+            style: ActivityStyle.casual,
+            type: _mapActivityToType(activityName),
+          ),
+        );
       }
     });
   }
@@ -266,11 +271,15 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // Filter out items that are currently in wash
-      final availableItems = wardrobeItems.where((item) => !item.isInWash).toList();
+      final availableItems = wardrobeItems
+          .where((item) => !item.isInWash)
+          .toList();
 
       if (availableItems.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No clothes available. All items are in the wash!')),
+          const SnackBar(
+            content: Text('No clothes available. All items are in the wash!'),
+          ),
         );
         return;
       }
@@ -301,7 +310,8 @@ class _HomeScreenState extends State<HomeScreen> {
       double rainProbability = 0.0;
       if (weather.precipitation != null) {
         rainProbability = (weather.precipitation! / 5.0).clamp(0.0, 1.0);
-      } else if (weather.condition != null && weather.condition!.toLowerCase().contains('rain')) {
+      } else if (weather.condition != null &&
+          weather.condition!.toLowerCase().contains('rain')) {
         rainProbability = 0.8;
       }
 
@@ -443,11 +453,25 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // Prefer stored attributes/usage constraints from the WardrobeItem, but merge them over JSON defaults
-      final Map<String, dynamic> storedAttributes = (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
-      final Map<String, dynamic> storedUsage = (item.usageConstraints as Map<String, dynamic>?)?.cast<String, dynamic>() ?? {};
+      final Map<String, dynamic> storedAttributes =
+          (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ??
+          {};
+      final Map<String, dynamic> storedUsage =
+          (item.usageConstraints as Map<String, dynamic>?)
+              ?.cast<String, dynamic>() ??
+          {};
 
-      final Map<String, dynamic> jsonAttributes = (foundSubtypeData != null && foundSubtypeData['attributes'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map) : {};
-      final Map<String, dynamic> jsonUsage = (foundSubtypeData != null && foundSubtypeData['usage_constraints'] is Map) ? Map<String, dynamic>.from(foundSubtypeData['usage_constraints'] as Map) : {};
+      final Map<String, dynamic> jsonAttributes =
+          (foundSubtypeData != null && foundSubtypeData['attributes'] is Map)
+          ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map)
+          : {};
+      final Map<String, dynamic> jsonUsage =
+          (foundSubtypeData != null &&
+              foundSubtypeData['usage_constraints'] is Map)
+          ? Map<String, dynamic>.from(
+              foundSubtypeData['usage_constraints'] as Map,
+            )
+          : {};
 
       // merge JSON defaults with stored overrides (stored wins)
       final attributesData = {...jsonAttributes, ...storedAttributes};
@@ -455,27 +479,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (storedAttributes.isNotEmpty) {
         final overridden = storedAttributes.keys.join(', ');
-        print('Converting item ${item.id}: merging stored attributes over JSON defaults (overrides: $overridden)');
+        print(
+          'Converting item ${item.id}: merging stored attributes over JSON defaults (overrides: $overridden)',
+        );
       } else if (jsonAttributes.isNotEmpty) {
         print('Converting item ${item.id}: using JSON attributes for subtype');
       }
 
       if (storedUsage.isNotEmpty) {
         final overridden = storedUsage.keys.join(', ');
-        print('Converting item ${item.id}: merging stored usage constraints over JSON defaults (overrides: $overridden)');
+        print(
+          'Converting item ${item.id}: merging stored usage constraints over JSON defaults (overrides: $overridden)',
+        );
       } else if (jsonUsage.isNotEmpty) {
-        print('Converting item ${item.id}: using JSON usage constraints for subtype');
+        print(
+          'Converting item ${item.id}: using JSON usage constraints for subtype',
+        );
       }
 
       // Parse attributes with fallback defaults
       final materials = List<String>.from(attributesData['materials'] ?? []);
-      final warmthLevel = attributesData['warmth_level'] ?? _getWarmthLevel(item.formalityLevel ?? 'casual');
+      final warmthLevel =
+          attributesData['warmth_level'] ??
+          _getWarmthLevel(item.formalityLevel ?? 'casual');
       final waterResistance = attributesData['water_resistance'] ?? 5;
       final windResistance = attributesData['wind_resistance'] ?? 5;
       final breathability = attributesData['breathability'] ?? 5;
       final stretch = attributesData['stretch'] ?? 5;
-      final formality = attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
-      final styleTags = List<String>.from(attributesData['style_tags'] ?? (item.tags ?? []));
+      final formality =
+          attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
+      final styleTags = List<String>.from(
+        attributesData['style_tags'] ?? (item.tags ?? []),
+      );
       final fit = attributesData['fit'] ?? 'regular';
 
       // Parse usage constraints with fallback defaults
@@ -530,11 +565,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onLocationChanged(Map<String,dynamic>? newLocation) async {
+  void _onLocationChanged(Map<String, dynamic>? newLocation) async {
     if (newLocation != null && newLocation != _provider.selectedLocation) {
       _provider.setSelectedLocation(newLocation);
-      
-      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(newLocation['lat'], newLocation['lon']);
+
+      final List<Map<String, dynamic>> closestList = await _locationService
+          .findClosestLocation(newLocation['lat'], newLocation['lon']);
       _provider.loadWeather(
         newLocation["id"],
         newLocation["name"],
@@ -575,22 +611,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row( children: [
-                        if (Navigator.canPop(context))
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          tooltip: 'Back',
-                          onPressed: () => Navigator.maybePop(context),
-                        ),
-                        const SizedBox(width: 8),
-                      Text(
-                        widget.title ?? 'Today',
-                        style: widget.title == "Today" ? theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ) : theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold)
+                      Row(
+                        children: [
+                          if (Navigator.canPop(context))
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back),
+                              tooltip: 'Back',
+                              onPressed: () => Navigator.maybePop(context),
+                            ),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.title ?? 'Today',
+                            style: widget.title == "Today"
+                                ? theme.textTheme.headlineLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  )
+                                : theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                          ),
+                        ],
                       ),
-                    ]),
 
                       const SizedBox(height: 16),
 
@@ -599,7 +640,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         onLocationChanged: _onLocationChanged,
                         closestLocations: _provider.closestLocations,
                         locationAccessDenied: _provider.locationAccessDenied,
-                        onRequestLocationPermission: () => _provider.getClosestLocation(),
+                        onRequestLocationPermission: () =>
+                            _provider.getClosestLocation(),
                       ),
                     ],
                   ),
@@ -609,17 +651,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   WeatherCard(
                     isLoading: _isLoading,
                     errorMessage: _errorMessage,
-                    currentWeather: widget.live == true ? _currentWeather : null,
+                    currentWeather: widget.live == true
+                        ? _currentWeather
+                        : null,
                     forecast: _forecast,
                     forecastIndex: widget.forecastIndex,
-                    onTap: widget.live == true && _currentWeather?.icon != 32 ? () {
-
-                      homeNavigatorKey.currentState?.push(
-                        MaterialPageRoute(
-                          builder: (_) => const WeatherScreen(),
-                        ),
-                      );
-                    } : null,
+                    onTap: widget.live == true && _currentWeather?.icon != 32
+                        ? () {
+                            homeNavigatorKey.currentState?.push(
+                              MaterialPageRoute(
+                                builder: (_) => const WeatherScreen(),
+                              ),
+                            );
+                          }
+                        : null,
                   ),
 
                   const SizedBox(height: 16),
@@ -680,7 +725,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                             // Remove from planner
                             final today = DateTime.now();
-                            await _plannerService.removeActivityFromDay(today, activity.name.toLowerCase().replaceAll(' ', '_'));
+                            await _plannerService.removeActivityFromDay(
+                              today,
+                              activity.name.toLowerCase().replaceAll(' ', '_'),
+                            );
                             // Regenerate outfit when activity is removed
                             if (_currentWeather != null) {
                               _generateOutfit(_currentWeather!);
@@ -818,14 +866,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: item.metadata != null && item.metadata!['imagePath'] != null
+                      child:
+                          item.metadata != null &&
+                              item.metadata!['imagePath'] != null
                           ? Image.file(
                               File(item.metadata!['imagePath'] as String),
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
-                                return Center(child: _buildPlaceholderIcon(theme));
+                                return Center(
+                                  child: _buildPlaceholderIcon(theme),
+                                );
                               },
                             )
                           : Center(child: _buildPlaceholderIcon(theme)),
@@ -871,13 +923,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: FilledButton.icon(
-                            onPressed: () => _openCategoryChooser(context, label),
+                            onPressed: () =>
+                                _openCategoryChooser(context, label),
                             icon: const Icon(Icons.swap_horiz_rounded),
                             label: const Text('Change'),
                             style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              backgroundColor: theme.colorScheme.primaryContainer,
-                              foregroundColor: theme.colorScheme.onPrimaryContainer,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              backgroundColor:
+                                  theme.colorScheme.primaryContainer,
+                              foregroundColor:
+                                  theme.colorScheme.onPrimaryContainer,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -926,11 +984,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: OutlinedButton.icon(
-                              onPressed: () => _openCategoryChooser(context, label),
+                              onPressed: () =>
+                                  _openCategoryChooser(context, label),
                               icon: const Icon(Icons.add_rounded, size: 18),
                               label: const Text('Choose alternative'),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
                                 side: BorderSide(
                                   color: theme.colorScheme.outline,
                                   width: 1.2,
@@ -950,7 +1012,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-        ),
+      ),
     );
   }
 
@@ -1443,6 +1505,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAddActivityDialog(BuildContext context) {
     String? selectedActivityCategory;
     String? selectedActivitySubcategory;
+    List<String> selectedActivities = [];
     String searchQuery = '';
 
     showDialog(
@@ -1487,131 +1550,148 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             return AlertDialog(
-              title: const Text('Aktivität hinzufügen'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Search field
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Suchen',
-                        prefixIcon: const Icon(Icons.search, size: 18),
-                        suffixIcon: searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
-                                onPressed: () {
-                                  setDialogState(() {
-                                    searchQuery = '';
-                                  });
-                                },
-                              )
-                            : null,
-                      ),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          searchQuery = value.trim().toLowerCase();
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Aktivitäten',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Groups as ExpansionTiles
-                    ...sortedGroupKeys.map((groupLabel) {
-                      // Filter activities by search query
-                      final activities = groupedActivities[groupLabel]!.where((
-                        act,
-                      ) {
-                        final label = _formatActivityKey(act).toLowerCase();
-                        return searchQuery.isEmpty ||
-                            label.contains(searchQuery) ||
-                            act.toLowerCase().contains(searchQuery);
-                      }).toList();
-
-                      if (activities.isEmpty) return const SizedBox.shrink();
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: ExpansionTile(
-                          title: Text(
-                            groupLabel,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 8.0,
-                              ),
-                              child: Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: activities.map((activity) {
-                                  final isSelected =
-                                      selectedActivitySubcategory == activity;
-                                  return FilterChip(
-                                    label: Text(_formatActivityKey(activity)),
-                                    selected: isSelected,
-                                    onSelected: (selected) {
-                                      setDialogState(() {
-                                        selectedActivitySubcategory = selected
-                                            ? activity
-                                            : null;
-                                      });
-                                    },
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ],
+              title: const Text('Add activity'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Search field
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          prefixIcon: const Icon(Icons.search, size: 18),
+                          suffixIcon: searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    setDialogState(() {
+                                      searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
                         ),
-                      );
-                    }),
-                  ],
+                        onChanged: (value) {
+                          setDialogState(() {
+                            searchQuery = value.trim().toLowerCase();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Activities',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Groups as ExpansionTiles
+                      ...sortedGroupKeys.map((groupLabel) {
+                        // Filter activities by search query
+                        final activities = groupedActivities[groupLabel]!.where(
+                          (act) {
+                            final label = _formatActivityKey(act).toLowerCase();
+                            return searchQuery.isEmpty ||
+                                label.contains(searchQuery) ||
+                                act.toLowerCase().contains(searchQuery);
+                          },
+                        ).toList();
+
+                        if (activities.isEmpty) return const SizedBox.shrink();
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: ExpansionTile(
+                            title: Text(
+                              groupLabel,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: activities.map((activity) {
+                                    final isSelected = selectedActivities
+                                        .contains(activity);
+                                    return FilterChip(
+                                      label: Text(_formatActivityKey(activity)),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        setDialogState(() {
+                                          if (selected) {
+                                            selectedActivities.add(activity);
+                                          } else {
+                                            selectedActivities.remove(activity);
+                                          }
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Abbrechen'),
+                  child: const Text('Cancel'),
                 ),
                 FilledButton(
-                  onPressed: selectedActivitySubcategory != null
+                  onPressed: selectedActivities.isNotEmpty
                       ? () async {
                           setState(() {
-                            _todayActivities.add(
-                              Activity(
-                                id: DateTime.now().millisecondsSinceEpoch
-                                    .toString(),
-                                name: _formatActivityKey(
-                                  selectedActivitySubcategory!,
+                            for (final activity in selectedActivities) {
+                              _todayActivities.add(
+                                Activity(
+                                  id: DateTime.now().millisecondsSinceEpoch
+                                      .toString(),
+                                  name: _formatActivityKey(activity),
+                                  style: ActivityStyle.casual,
+                                  type: _mapActivityToType(activity),
                                 ),
-                                style: ActivityStyle.casual,
-                                type: _mapActivityToType(
-                                  selectedActivitySubcategory!,
-                                ),
-                              ),
-                            );
+                              );
+                            }
                           });
-                          // Add to planner's permanent list for today
                           final today = DateTime.now();
-                          await _plannerService.addActivityToDay(today, selectedActivitySubcategory!);
+                          for (final activity in selectedActivities) {
+                            await _plannerService.addActivityToDay(
+                              today,
+                              activity,
+                            );
+                          }
+
                           if (_currentWeather != null) {
                             _generateOutfit(_currentWeather!);
                           }
-                          Navigator.pop(context);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${selectedActivities.length} activities added',
+                                ),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
                         }
                       : null,
-                  child: const Text('Hinzufügen'),
+                  child: const Text('Add'),
                 ),
               ],
             );

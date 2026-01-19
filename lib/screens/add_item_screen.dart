@@ -809,7 +809,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
               // Attributes editor (preselected from subtype defaults)
               ExpansionTile(
-                initiallyExpanded: true,
+                initiallyExpanded: false,
                 title: const Text('Attributes & Usage'),
                 childrenPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                 children: [
@@ -826,7 +826,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           children: _materialsOptions.map((m) {
                             final sel = _selectedMaterials.contains(m);
                             return FilterChip(
-                              label: Text(m),
+                              label: Text(m.replaceAll('_', ' ')),
                               selected: sel,
                               onSelected: (s) { setState(() { if (s) {
                                 _selectedMaterials.add(m);
@@ -963,7 +963,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 children: displayActs.map((act) {
                                   final isSel = _selectedOptimalActivities.contains(act);
                                   return FilterChip(
-                                    label: Text(act),
+                                    label: Text(act.replaceAll('_', ' ')),
                                     selected: isSel,
                                     selectedColor: theme.colorScheme.primary,
                                     checkmarkColor: theme.colorScheme.onPrimary,
@@ -1020,7 +1020,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 children: displayActs.map((act) {
                                   final isSel = _selectedUnsuitable.contains(act);
                                   return FilterChip(
-                                    label: Text(act),
+                                    label: Text(act.replaceAll('_', ' ')),
                                     selected: isSel,
                                     selectedColor: theme.colorScheme.primary,
                                     checkmarkColor: theme.colorScheme.onPrimary,

@@ -73,16 +73,22 @@ class _PlannerScreenState extends State<PlannerScreen>
 
   /// Get all activity subcategories
   List<String> _getAllActivitySubcategories() {
-    final List<String> allSubcategories = [];
+    //final List<String> allSubcategories = [];
+    final Map<String, List<String>> groupedActivities = {};
 
     if (_activitiesData.containsKey('activities')) {
       final activities = _activitiesData['activities'];
       if (activities is Map<String, dynamic>) {
         activities.forEach((category, subcategoriesMap) {
           if (subcategoriesMap is Map<String, dynamic>) {
-            subcategoriesMap.forEach((group, subList) {
+            subcategoriesMap.forEach((groupKey, subList) {
               if (subList is List) {
-                allSubcategories.addAll(List<String>.from(subList));
+                //allSubcategories.addAll(List<String>.from(subList));
+                final groupLabel = _formatActivityKey(groupKey);
+                groupedActivities.putIfAbsent(groupLabel, () => []);
+                groupedActivities[groupLabel]!.addAll(
+                  List<String>.from(subList),
+                );
               }
             });
           }
@@ -90,7 +96,22 @@ class _PlannerScreenState extends State<PlannerScreen>
       }
     }
 
-    return allSubcategories.toSet().toList();
+    // Deduplicate and sort activities within each group
+    final sortedGroupKeys = groupedActivities.keys.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    for (final key in sortedGroupKeys) {
+      final unique = groupedActivities[key]!.toSet().toList();
+      unique.sort(
+        (a, b) => _formatActivityKey(
+          a,
+        ).toLowerCase().compareTo(_formatActivityKey(b).toLowerCase()),
+      );
+      groupedActivities[key] = unique;
+    }
+
+    //return allSubcategories.toSet().toList();
+    return sortedGroupKeys.expand((key) => groupedActivities[key]!).toList();
   }
 
   /// Load all day activities from storage
@@ -609,7 +630,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                   ),
                 ),
                 FilledButton.icon(
-                  onPressed: () => _showAddActivityDialog(context, theme),
+                  onPressed: () => _showAddActivityDialog(context),
                   icon: const Icon(Icons.add),
                   label: const Text('Add'),
                 ),
@@ -686,13 +707,14 @@ class _PlannerScreenState extends State<PlannerScreen>
   }
 
   /// Show dialog to add activity to selected day
-  void _showAddActivityDialog(BuildContext context, ThemeData theme) {
+  /*void _showAddActivityDialog(BuildContext context, ThemeData theme) {
     final allActivities = _getAllActivitySubcategories();
     final currentActivities = _getActivitiesForDay(_selectedDay);
 
     showDialog(
       context: context,
       builder: (context) {
+
         return AlertDialog(
           title: Text(
             'Add Activity to ${DateFormat('MMM d').format(_selectedDay)}',
@@ -737,6 +759,187 @@ class _PlannerScreenState extends State<PlannerScreen>
               child: const Text('Cancel'),
             ),
           ],
+        );
+      },
+    );
+  }*/
+
+  void _showAddActivityDialog(BuildContext context) {
+    String? selectedActivityCategory;
+    String? selectedActivitySubcategory;
+    List<String> selectedActivities = [];
+    String searchQuery = '';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            // Build grouped activities: Map<GroupLabel, List<activityKey>>
+            final Map<String, List<String>> groupedActivities = {};
+
+            if (_activitiesData.containsKey('activities')) {
+              final activities = _activitiesData['activities'];
+              if (activities is Map<String, dynamic>) {
+                activities.forEach((category, subcategoriesMap) {
+                  if (subcategoriesMap is Map<String, dynamic>) {
+                    subcategoriesMap.forEach((groupKey, subList) {
+                      if (subList is List) {
+                        final groupLabel = _formatActivityKey(groupKey);
+                        groupedActivities.putIfAbsent(groupLabel, () => []);
+                        groupedActivities[groupLabel]!.addAll(
+                          List<String>.from(subList),
+                        );
+                      }
+                    });
+                  }
+                });
+              }
+            }
+
+            // Deduplicate and sort activities within each group
+            final sortedGroupKeys = groupedActivities.keys.toList()
+              ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+            for (final key in sortedGroupKeys) {
+              final unique = groupedActivities[key]!.toSet().toList();
+              unique.sort(
+                (a, b) => _formatActivityKey(
+                  a,
+                ).toLowerCase().compareTo(_formatActivityKey(b).toLowerCase()),
+              );
+              groupedActivities[key] = unique;
+            }
+
+            return AlertDialog(
+              title: Text('Add Activity to ${DateFormat('MMM d').format(_selectedDay)}'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Search field
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          prefixIcon: const Icon(Icons.search, size: 18),
+                          suffixIcon: searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    setDialogState(() {
+                                      searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            searchQuery = value.trim().toLowerCase();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Activities',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Groups as ExpansionTiles
+                      ...sortedGroupKeys.map((groupLabel) {
+                        // Filter activities by search query
+                        final activities = groupedActivities[groupLabel]!.where(
+                          (act) {
+                            final label = _formatActivityKey(act).toLowerCase();
+                            return searchQuery.isEmpty ||
+                                label.contains(searchQuery) ||
+                                act.toLowerCase().contains(searchQuery);
+                          },
+                        ).toList();
+
+                        if (activities.isEmpty) return const SizedBox.shrink();
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: ExpansionTile(
+                            title: Text(
+                              groupLabel,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: activities.map((activity) {
+                                    final isSelected =
+                                        selectedActivities.contains(activity);
+                                    return FilterChip(
+                                      label: Text(_formatActivityKey(activity)),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        setDialogState(() {
+                                          if (selected) {
+                                            selectedActivities.add(activity);
+                                          
+                                          } else {
+                                            selectedActivities.remove(activity);
+                                            
+                                          }
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: selectedActivities.isEmpty 
+                      ? null
+                      : () async {
+                          for (final activity in selectedActivities) {
+                            await _plannerService.addActivityToDay(
+                              _selectedDay,
+                              activity,
+                            );
+                          }
+                          // Reload once after all are added
+                          await _loadAllDayActivities();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${selectedActivities.length} activities added')),
+                            );
+                            Navigator.pop(context);
+                          }
+                        },
+                  child: const Text('Add'),
+                )
+              ],
+            );
+          },
         );
       },
     );
