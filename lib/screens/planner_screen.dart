@@ -529,7 +529,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                   onTap: () {
                     navigatorKey.currentState?.push(
                       MaterialPageRoute(
-                        builder: (_) => HomeScreen(
+                        builder: (context) => HomeScreen(
                           live: false,
                           title: dayName,
                           forecastIndex: idx,

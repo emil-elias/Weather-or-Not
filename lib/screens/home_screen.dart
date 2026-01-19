@@ -601,7 +601,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Navigator(
         key: homeNavigatorKey,
         onGenerateRoute: (settings) => MaterialPageRoute(
-          builder: (context) => SafeArea(
+          builder: (_) => SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
