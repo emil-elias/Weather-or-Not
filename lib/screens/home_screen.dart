@@ -601,7 +601,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Navigator(
         key: homeNavigatorKey,
         onGenerateRoute: (settings) => MaterialPageRoute(
-          builder: (_) => SafeArea(
+          builder: (context) => SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -660,7 +660,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? () {
                             homeNavigatorKey.currentState?.push(
                               MaterialPageRoute(
-                                builder: (_) => const WeatherScreen(),
+                                builder: (context) => const WeatherScreen(),
                               ),
                             );
                           }

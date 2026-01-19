@@ -240,17 +240,23 @@ class _AddItemScreenState extends State<AddItemScreen> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEditing ? 'Item updated successfully!' : 'Item added to wardrobe successfully!')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(isEditing ? 'Item updated successfully!' : 'Item added to wardrobe successfully!')),
+          );
+        }
         _clearForm();
-        widget.onBack();
+        if (mounted) {
+          widget.onBack();
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to add/update item. Please try again.'),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to add/update item. Please try again.'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -275,6 +281,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         imageQuality: 85,
       );
 
+      if (!mounted) return;
       if (image != null) {
         await _saveImage(image);
       }
@@ -295,6 +302,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         imageQuality: 85,
       );
 
+      if (!mounted) return;
       if (image != null) {
         await _saveImage(image);
       }
@@ -434,6 +442,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
       await File(image.path).copy(savedImage.path);
 
+      if (!mounted) return;
       setState(() {
         _selectedImagePath = savedImage.path;
       });
