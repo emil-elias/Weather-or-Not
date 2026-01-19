@@ -36,7 +36,7 @@ class _PlannerScreenState extends State<PlannerScreen>
   // Calendar
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
 
   // Day activities mapping
   Map<String, List<String>> _dayActivitiesMap = {};
