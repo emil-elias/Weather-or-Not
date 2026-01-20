@@ -521,7 +521,7 @@ class OutfitEngine {
       shirt: shirt,
       pullover: pullover,
       bottom: bottom,
-      outerwear: _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('outer')),
+      outerwear: _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('outer') || c.category.toLowerCase().contains('jacket') || c.category.toLowerCase().contains('coat')),
       shoes: _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('shoe') || c.category.toLowerCase().contains('boot')),
       accessories: accessories,
       score: finalScore,

@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:weatherornot/models/forecast.dart';
 import 'package:weatherornot/screens/weather_screen.dart';
 import 'package:weatherornot/services/outfit_generator.dart';
+import 'package:weatherornot/services/outfit_storage_service.dart';
 import 'package:weatherornot/providers/main_provider.dart';
 import 'package:weatherornot/widgets/location_dropdown.dart';
 import 'package:weatherornot/widgets/weather_card.dart';
@@ -38,6 +40,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final WeatherService _weatherService = WeatherService();
   final WardrobeService _wardrobeService = WardrobeService();
+  final OutfitStorageService _outfitStorageService = OutfitStorageService();
 
   final LocationService _locationService = LocationService();
 
@@ -52,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Weather? _currentWeather;
   Forecast? _forecast;
   Outfit? _generatedOutfit;
+  Set<String> _washingItemIds = <String>{};
   bool _isLoading = true;
   String? _errorMessage;
   Map<String, dynamic> _subtypesAttributesData = {};
@@ -81,11 +85,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadSubtypesAttributesFromAssets();
     _loadWeather();
     _syncTodayActivitiesWithPlanner();
+    _loadOrGenerateOutfit();
+  }
+
+  /// Get the date for the outfit being displayed
+  DateTime _getDisplayDate() {
+    if (widget.forecastIndex == null || widget.forecastIndex == 0) {
+      return DateTime.now();
+    }
+    return DateTime.now().add(Duration(days: widget.forecastIndex!));
   }
 
   Future<void> _syncTodayActivitiesWithPlanner() async {
-    final today = DateTime.now();
-    final planned = await _plannerService.getDayActivities(today);
+    final displayDate = _getDisplayDate();
+    final planned = await _plannerService.getDayActivities(displayDate);
     setState(() {
       _todayActivities.clear();
       for (final activityName in planned) {
@@ -260,6 +273,38 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadOrGenerateOutfit() async {
+    try {
+      final displayDate = _getDisplayDate();
+      
+      // Try to load stored outfit for the display date
+      final storedOutfit = await _outfitStorageService.getOutfitForDate(displayDate);
+      
+      if (storedOutfit != null) {
+        // Use stored outfit
+        await _hasOutfitItemsInWash(storedOutfit);
+        setState(() {
+          _generatedOutfit = storedOutfit;
+        });
+        print('HomeScreen: Loaded stored outfit for $displayDate');
+        return;
+      }
+      
+      // If no stored outfit, wait for weather to be loaded then generate one
+      if (_currentWeather != null) {
+        await _generateOutfit(_currentWeather!);
+        
+        // Save the generated outfit for the display date
+        if (_generatedOutfit != null) {
+          await _outfitStorageService.saveOutfitForDate(displayDate, _generatedOutfit!);
+          print('HomeScreen: Generated and stored outfit for $displayDate');
+        }
+      }
+    } catch (e) {
+      print('Error loading or generating outfit: $e');
+    }
+  }
+
   Future<void> _generateOutfit(Weather weather) async {
     try {
       // Fetch wardrobe items from storage
@@ -315,19 +360,33 @@ class _HomeScreenState extends State<HomeScreen> {
         rainProbability = 0.8;
       }
 
-      // Generate outfit
-      final outfit = outfitEngine.generate(
+      // Generate multiple outfits and randomly select from top 5
+      final outfits = outfitEngine.generateOutfits(
         temperature: weather.temperature ?? 20.0,
         activities: activities,
         rainProbability: rainProbability,
         weatherCondition: weather.condition,
         coldThreshold: coldThreshold,
         warmThreshold: warmThreshold,
+        topNPerCategory: 3,
+        maxOutfits: 5,
       );
 
-      setState(() {
-        _generatedOutfit = outfit;
-      });
+      if (outfits.isNotEmpty) {
+        // Randomly select from top 5 outfits
+        final random = Random();
+        final selectedOutfit = outfits[random.nextInt(outfits.length)];
+        await _hasOutfitItemsInWash(selectedOutfit);
+        
+        setState(() {
+          _generatedOutfit = selectedOutfit;
+        });
+        
+        // Save the generated outfit for the display date
+        final displayDate = _getDisplayDate();
+        await _outfitStorageService.saveOutfitForDate(displayDate, selectedOutfit);
+        print('HomeScreen: Generated and saved outfit for $displayDate');
+      }
     } catch (e) {
       print('Error generating outfit: $e');
     }
@@ -596,6 +655,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedLocation = context.watch<MainProvider>().selectedLocation;
     _locations = context.watch<MainProvider>().locations;
 
+    // Determine display title based on date
+    final displayDate = _getDisplayDate();
+    final isToday = displayDate.day == DateTime.now().day &&
+        displayDate.month == DateTime.now().month &&
+        displayDate.year == DateTime.now().year;
+    final displayTitle = isToday 
+        ? 'Today'
+        : (widget.title ?? _formatDate(displayDate));
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: Navigator(
@@ -621,8 +689,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           const SizedBox(width: 8),
                           Text(
-                            widget.title ?? 'Today',
-                            style: widget.title == "Today"
+                            displayTitle,
+                            style: displayTitle == "Today"
                                 ? theme.textTheme.headlineLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   )
@@ -687,7 +755,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Add activities for ${widget.title != null ? widget.title!.toLowerCase() : 'today'}',
+                            'Add activities for ${isToday ? 'today' : displayTitle.toLowerCase()}',
                             style: theme.textTheme.bodyLarge,
                           ),
                           const Spacer(),
@@ -724,9 +792,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               _todayActivities.remove(activity);
                             });
                             // Remove from planner
-                            final today = DateTime.now();
+                            final displayDate = _getDisplayDate();
                             await _plannerService.removeActivityFromDay(
-                              today,
+                              displayDate,
                               activity.name.toLowerCase().replaceAll(' ', '_'),
                             );
                             // Regenerate outfit when activity is removed
@@ -805,14 +873,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         _buildOutfitCard(
                           context,
-                          null,
+                          _generatedOutfit!.shirt,
+                          label: 'Shirt',
+                          isLarge: true,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildOutfitCard(
+                          context,
+                          _generatedOutfit!.bottom,
                           label: 'Bottom',
                           isLarge: true,
                         ),
                         const SizedBox(height: 16),
                         _buildOutfitCard(
                           context,
-                          null,
+                          _generatedOutfit!.shoes,
                           label: 'Shoes',
                           isLarge: true,
                         ),
@@ -826,6 +901,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  bool _isItemInWash(ClothingItem item) {
+    return _washingItemIds.contains(item.id);
   }
 
   Widget _buildOutfitCard(
@@ -856,32 +935,60 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Left: fixed square image area
-                  Container(
-                    width: isLarge ? 140 : 120,
-                    height: isLarge ? 140 : 120,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: theme.colorScheme.surfaceContainerHighest,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child:
-                          item.metadata != null &&
-                              item.metadata!['imagePath'] != null
-                          ? Image.file(
-                              File(item.metadata!['imagePath'] as String),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: _buildPlaceholderIcon(theme),
-                                );
-                              },
-                            )
-                          : Center(child: _buildPlaceholderIcon(theme)),
-                    ),
+                  // Left: fixed square image area with in-wash overlay
+                  Stack(
+                    children: [
+                      Container(
+                        width: isLarge ? 140 : 120,
+                        height: isLarge ? 140 : 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: theme.colorScheme.surfaceContainerHighest,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child:
+                              item.metadata != null &&
+                                  item.metadata!['imagePath'] != null
+                              ? Image.file(
+                                  File(item.metadata!['imagePath'] as String),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: _buildPlaceholderIcon(theme),
+                                    );
+                                  },
+                                )
+                              : Center(child: _buildPlaceholderIcon(theme)),
+                        ),
+                      ),
+                      if (_isItemInWash(item))
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.error,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.local_laundry_service,
+                              color: theme.colorScheme.onError,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(width: 12),
                   // Right: info and change button
@@ -1317,11 +1424,51 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-
     if (result != null) {
       // Replace piece in generated outfit
       _replaceOutfitPiece(result, label);
     }
+  }
+
+  /// Check if any items in the outfit are in wash
+  Future<bool> _hasOutfitItemsInWash(Outfit? outfit) async {
+    if (outfit == null) {
+      if (mounted) {
+        setState(() {
+          _washingItemIds.clear();
+        });
+      }
+      return false;
+    }
+
+    final wardrobeItems = await _wardrobeService.getWardrobeItems();
+    final outfitItems = [
+      outfit.shirt,
+      outfit.pullover,
+      outfit.bottom,
+      outfit.outerwear,
+      outfit.shoes,
+      ...outfit.accessories,
+    ].whereType<ClothingItem>().toList();
+
+    final inWashIds = <String>{};
+
+    for (final outfitItem in outfitItems) {
+      for (final wardrobeItem in wardrobeItems) {
+        if (wardrobeItem.id == outfitItem.id && wardrobeItem.isInWash) {
+          inWashIds.add(outfitItem.id);
+          break;
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _washingItemIds = inWashIds;
+      });
+    }
+
+    return inWashIds.isNotEmpty;
   }
 
   bool _matchesRole(ClothingItem c, String label) {
@@ -1480,6 +1627,30 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _generatedOutfit = newOutfit;
     });
+
+    // Save the modified outfit to storage for today
+    _saveModifiedOutfit(newOutfit);
+  }
+
+  Future<void> _saveModifiedOutfit(Outfit outfit) async {
+    try {
+      final displayDate = _getDisplayDate();
+      await _outfitStorageService.saveOutfitForDate(displayDate, outfit);
+      await _hasOutfitItemsInWash(outfit);
+      
+      print('HomeScreen: Saved modified outfit for $displayDate');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Outfit saved'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error saving modified outfit: $e');
+    }
   }
 
   Widget _buildDetailRow(String label, String value, ThemeData theme) {
@@ -1668,10 +1839,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }
                           });
-                          final today = DateTime.now();
+                          final displayDate = _getDisplayDate();
                           for (final activity in selectedActivities) {
                             await _plannerService.addActivityToDay(
-                              today,
+                              displayDate,
                               activity,
                             );
                           }
@@ -1767,6 +1938,12 @@ class _HomeScreenState extends State<HomeScreen> {
       windSpeed: _currentWeather?.windSpeed,
       cloudCover: _currentWeather?.cloudCover,
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 
   Widget _buildWeatherDetail(IconData icon, String value, String label) {

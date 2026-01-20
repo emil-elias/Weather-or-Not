@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,7 @@ import 'package:weatherornot/services/planner_service.dart';
 import 'package:weatherornot/services/wardrobe_service.dart';
 import 'package:weatherornot/services/preferences_service.dart';
 import 'package:weatherornot/services/outfit_generator.dart';
+import 'package:weatherornot/services/outfit_storage_service.dart';
 import 'package:weatherornot/models/outfit.dart';
 import 'package:weatherornot/widgets/weather_card.dart';
 import 'package:weatherornot/widgets/outfit_details_sheet.dart';
@@ -28,7 +30,9 @@ class _PlannerScreenState extends State<PlannerScreen>
   final PlannerService _plannerService = PlannerService();
   final WardrobeService _wardrobeService = WardrobeService();
   final PreferencesService _preferencesService = PreferencesService();
+  final OutfitStorageService _outfitStorageService = OutfitStorageService();
   final Map<String, Outfit> _plannedOutfits = {}; // dateKey -> Outfit
+  final Map<String, Set<String>> _inWashItemIdsByDate = {}; // dateKey -> ids of items in wash
 
   // Activities data
   Map<String, dynamic> _activitiesData = {};
@@ -132,6 +136,34 @@ class _PlannerScreenState extends State<PlannerScreen>
     return _dayActivitiesMap[dateKey] ?? [];
   }
 
+  /// Collect IDs of outfit items that are currently in wash
+  Future<Set<String>> _collectInWashItemIds(Outfit? outfit) async {
+    if (outfit == null) return <String>{};
+
+    final wardrobeItems = await _wardrobeService.getWardrobeItems();
+    final outfitItems = [
+      outfit.shirt,
+      outfit.pullover,
+      outfit.bottom,
+      outfit.outerwear,
+      outfit.shoes,
+      ...outfit.accessories,
+    ].whereType<ClothingItem>().toList();
+
+    final inWashIds = <String>{};
+
+    for (final outfitItem in outfitItems) {
+      for (final wardrobeItem in wardrobeItems) {
+        if (wardrobeItem.id == outfitItem.id && wardrobeItem.isInWash) {
+          inWashIds.add(outfitItem.id);
+          break;
+        }
+      }
+    }
+
+    return inWashIds;
+  }
+
   /// Generate outfits for the next 6 forecast days (indexes 1..6)
   Future<void> _generateOutfitsForWeek() async {
     final now = DateTime.now();
@@ -142,6 +174,22 @@ class _PlannerScreenState extends State<PlannerScreen>
   }
 
   Future<void> _generateOutfitForIndex(int forecastIndex, DateTime day) async {
+    final key = _dateToString(day);
+    
+    // Check if outfit is already stored for this date
+    final storedOutfit = await _outfitStorageService.getOutfitForDate(day);
+    if (storedOutfit != null) {
+      final inWashIds = await _collectInWashItemIds(storedOutfit);
+      if (mounted) {
+        setState(() {
+          _plannedOutfits[key] = storedOutfit;
+          _inWashItemIdsByDate[key] = inWashIds;
+        });
+      }
+      print('Planner: Using stored outfit for $key');
+      return;
+    }
+
     final provider = context.read<MainProvider>();
     final forecast = provider.forecast;
     if (forecast == null ||
@@ -199,20 +247,37 @@ class _PlannerScreenState extends State<PlannerScreen>
     );
 
     final engine = OutfitEngine(clothingItems);
-    final outfit = engine.generate(
+    
+    // Generate multiple outfits and randomly select from top 5
+    final outfits = engine.generateOutfits(
       temperature: temp,
       activities: activities,
       rainProbability: rainProbability,
       weatherCondition: null,
       coldThreshold: coldThreshold,
       warmThreshold: warmThreshold,
+      topNPerCategory: 3,
+      maxOutfits: 5,
     );
 
-    final key = _dateToString(day);
-    if (mounted) {
-      setState(() {
-        _plannedOutfits[key] = outfit;
-      });
+    if (outfits.isNotEmpty) {
+      // Randomly select from top 5 outfits
+      final random = Random();
+      final outfit = outfits[random.nextInt(outfits.length)];
+      
+      // Save the outfit to storage
+      await _outfitStorageService.saveOutfitForDate(day, outfit);
+      
+      // Collect any outfit pieces currently in wash
+      final inWashIds = await _collectInWashItemIds(outfit);
+
+      if (mounted) {
+        setState(() {
+          _plannedOutfits[key] = outfit;
+          _inWashItemIdsByDate[key] = inWashIds;
+        });
+      }
+      print('Planner: Generated and stored outfit for $key');
     }
   }
 
@@ -328,6 +393,10 @@ class _PlannerScreenState extends State<PlannerScreen>
       );
     }
 
+    bool _isItemInWashForDay(String dateKey, ClothingItem item) {
+      return _inWashItemIdsByDate[dateKey]?.contains(item.id) ?? false;
+    }
+
     Widget buildItemPreview(ClothingItem? item, IconData fallbackIcon) {
       if (item == null)
         return Column(
@@ -342,24 +411,53 @@ class _PlannerScreenState extends State<PlannerScreen>
         );
       final imagePath = item.metadata?['imagePath'] as String?;
       final label = (item.metadata?['name'] as String?) ?? item.subtype;
+      final inWash = _isItemInWashForDay(key, item);
       return Column(
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: outfit.palette.dominant.withOpacity(0.15),
-            child: imagePath != null
-                ? ClipOval(
-                    child: Image.file(
-                      File(imagePath),
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: outfit.palette.dominant.withOpacity(0.15),
+                child: imagePath != null
+                    ? ClipOval(
+                        child: Image.file(
+                          File(imagePath),
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Icon(
+                        Icons.checkroom,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+              ),
+              if (inWash)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  )
-                : Icon(
-                    Icons.checkroom,
-                    color: theme.colorScheme.onPrimaryContainer,
+                    child: Icon(
+                      Icons.local_laundry_service,
+                      size: 14,
+                      color: theme.colorScheme.onError,
+                    ),
                   ),
+                ),
+            ],
           ),
           const SizedBox(height: 6),
           SizedBox(
@@ -381,18 +479,22 @@ class _PlannerScreenState extends State<PlannerScreen>
         onTap: () => _showOutfitDetails(outfit),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(child: buildItemPreview(outfit.outerwear, Icons.shield)),
-              const SizedBox(width: 8),
-              Expanded(child: buildItemPreview(outfit.pullover, Icons.layers)),
-              const SizedBox(width: 8),
-              Expanded(child: buildItemPreview(outfit.shirt, Icons.checkroom)),
-              const SizedBox(width: 8),
-              Expanded(child: buildItemPreview(outfit.bottom, Icons.checkroom)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: buildItemPreview(outfit.shoes, Icons.directions_walk),
+              Row(
+                children: [
+                  Expanded(child: buildItemPreview(outfit.outerwear, Icons.shield)),
+                  const SizedBox(width: 8),
+                  Expanded(child: buildItemPreview(outfit.pullover, Icons.layers)),
+                  const SizedBox(width: 8),
+                  Expanded(child: buildItemPreview(outfit.shirt, Icons.checkroom)),
+                  const SizedBox(width: 8),
+                  Expanded(child: buildItemPreview(outfit.bottom, Icons.checkroom)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: buildItemPreview(outfit.shoes, Icons.directions_walk),
+                  ),
+                ],
               ),
             ],
           ),
@@ -526,8 +628,8 @@ class _PlannerScreenState extends State<PlannerScreen>
                   isLoading: false,
                   forecast: provider.forecast,
                   forecastIndex: idx,
-                  onTap: () {
-                    navigatorKey.currentState?.push(
+                  onTap: () async {
+                    await navigatorKey.currentState?.push(
                       MaterialPageRoute(
                         builder: (context) => HomeScreen(
                           live: false,
@@ -536,6 +638,8 @@ class _PlannerScreenState extends State<PlannerScreen>
                         ),
                       ),
                     );
+                    // Reload outfit after returning from HomeScreen
+                    await _generateOutfitForIndex(idx, day);
                   },
                 ),
                 const SizedBox(height: 12),

@@ -155,15 +155,40 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     }
 
     if (_selectedCategory != null) {
-      items = items.where((item) => item.category == _selectedCategory).toList();
+      // Get all group labels for this category
+      final categoryId = _categoryOptions
+          .firstWhere(
+            (cat) => cat['label'] == _selectedCategory,
+            orElse: () => {'id': '', 'label': ''},
+          )['id'];
+
+      if (categoryId != null && categoryId.isNotEmpty && _categoriesData.isNotEmpty) {
+        final category = (_categoriesData['categories'] as List)
+            .firstWhere(
+              (cat) => cat['id'] == categoryId,
+              orElse: () => {'groups': []},
+            );
+        
+        final groupLabels = (category['groups'] as List)
+            .map((g) => (g['label'] as String).toLowerCase())
+            .toSet();
+
+        items = items.where((item) => 
+          groupLabels.contains(item.category.toLowerCase())
+        ).toList();
+      }
     }
 
     if (_selectedSubcategory != null) {
-      items = items.where((item) => item.subcategory == _selectedSubcategory).toList();
+      items = items.where((item) => 
+        item.subcategory.toLowerCase() == _selectedSubcategory!.toLowerCase()
+      ).toList();
     }
 
     if (_selectedFormalityLevel != null) {
-      items = items.where((item) => item.formalityLevel == _selectedFormalityLevel).toList();
+      items = items.where((item) => 
+        item.formalityLevel.toLowerCase() == _selectedFormalityLevel!.toLowerCase()
+      ).toList();
     }
 
     return items;

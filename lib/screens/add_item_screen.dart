@@ -682,40 +682,77 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _selectedSubcategory = item.subcategory;
     _selectedFormality = item.formalityLevel;
 
-    // Attributes
-    final attrs = item.attributes ?? {};
-    _selectedMaterials.clear();
-    final mats = (attrs['materials'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
-    _selectedMaterials.addAll(mats);
-
-    _selectedStyleTags.clear();
-    final sty = (attrs['style_tags'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
-    _selectedStyleTags.addAll(sty);
-
-    _selectedFit = attrs['fit']?.toString() ?? _selectedFit;
-    _selectedWarmth = (attrs['warmth_level'] is num) ? (attrs['warmth_level'] as num).toInt() : _selectedWarmth;
-    _selectedWater = (attrs['water_resistance'] is num) ? (attrs['water_resistance'] as num).toInt() : _selectedWater;
-    _selectedWind = (attrs['wind_resistance'] is num) ? (attrs['wind_resistance'] as num).toInt() : _selectedWind;
-    _selectedBreath = (attrs['breathability'] is num) ? (attrs['breathability'] as num).toInt() : _selectedBreath;
-    _selectedStretch = (attrs['stretch'] is num) ? (attrs['stretch'] as num).toInt() : _selectedStretch;
-
-    final usage = item.usageConstraints ?? {};
-    _minTempController.text = usage['weather_min_temp']?.toString() ?? '';
-    _maxTempController.text = usage['weather_max_temp']?.toString() ?? '';
-
-    _selectedOptimalActivities.clear();
-    final optimal = (usage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
-    _selectedOptimalActivities.addAll(optimal);
-
-    _selectedUnsuitable.clear();
-    final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
-    _selectedUnsuitable.addAll(unsuitable);
-
-    // if there is a matching subtype id for the subcategory, ensure defaults are applied first
+    // First apply defaults from subtypes_attributes.json if available
     final id = _subLabelToId[_selectedSubcategory];
     if (id != null && _subtypesAttributes.isNotEmpty) {
       _applyDefaultsForSubcategory(id);
-      // Then overwrite with explicit item attributes (already applied above)
+    }
+
+    // Then overwrite with stored attributes from the item
+    final attrs = item.attributes ?? {};
+    if (attrs.isNotEmpty) {
+      final mats = (attrs['materials'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      if (mats.isNotEmpty) {
+        _selectedMaterials.clear();
+        _selectedMaterials.addAll(mats);
+      }
+
+      final sty = (attrs['style_tags'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      if (sty.isNotEmpty) {
+        _selectedStyleTags.clear();
+        _selectedStyleTags.addAll(sty);
+      }
+
+      if (attrs.containsKey('fit')) {
+        _selectedFit = attrs['fit']?.toString() ?? _selectedFit;
+      }
+      if (attrs.containsKey('warmth_level')) {
+        _selectedWarmth = (attrs['warmth_level'] as num).toInt();
+      }
+      if (attrs.containsKey('water_resistance')) {
+        _selectedWater = (attrs['water_resistance'] as num).toInt();
+      }
+      if (attrs.containsKey('wind_resistance')) {
+        _selectedWind = (attrs['wind_resistance'] as num).toInt();
+      }
+      if (attrs.containsKey('breathability')) {
+        _selectedBreath = (attrs['breathability'] as num).toInt();
+      }
+      if (attrs.containsKey('stretch')) {
+        _selectedStretch = (attrs['stretch'] as num).toInt();
+      }
+      if (attrs.containsKey('formality')) {
+        final formStored = attrs['formality']?.toString() ?? '';
+        if (formStored.isNotEmpty) {
+          final match = _formalityLevels.firstWhere(
+            (f) => f.toLowerCase() == formStored.toLowerCase(),
+            orElse: () => '',
+          );
+          if (match.isNotEmpty) _selectedFormality = match;
+        }
+      }
+    }
+
+    final usage = item.usageConstraints ?? {};
+    if (usage.isNotEmpty) {
+      if (usage.containsKey('weather_min_temp')) {
+        _minTempController.text = usage['weather_min_temp']?.toString() ?? '';
+      }
+      if (usage.containsKey('weather_max_temp')) {
+        _maxTempController.text = usage['weather_max_temp']?.toString() ?? '';
+      }
+
+      final optimal = (usage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      if (optimal.isNotEmpty) {
+        _selectedOptimalActivities.clear();
+        _selectedOptimalActivities.addAll(optimal);
+      }
+
+      final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      if (unsuitable.isNotEmpty) {
+        _selectedUnsuitable.clear();
+        _selectedUnsuitable.addAll(unsuitable);
+      }
     }
 
     setState(() {});
