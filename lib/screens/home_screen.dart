@@ -360,11 +360,14 @@ class _HomeScreenState extends State<HomeScreen> {
         rainProbability = 0.8;
       }
 
+      final double windSpeed = weather.windSpeed ?? 0.0;
+
       // Generate multiple outfits and randomly select from top 5
       final outfits = outfitEngine.generateOutfits(
         temperature: weather.temperature ?? 20.0,
         activities: activities,
         rainProbability: rainProbability,
+        windSpeed: windSpeed,
         weatherCondition: weather.condition,
         coldThreshold: coldThreshold,
         warmThreshold: warmThreshold,

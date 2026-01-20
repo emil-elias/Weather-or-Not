@@ -16,6 +16,7 @@ class OutfitEngine {
     required double temperature,
     required List<String> activities,
     double rainProbability = 0.0,
+    double windSpeed = 0.0,
     String? weatherCondition,
     double? coldThreshold,
     double? warmThreshold,
@@ -32,6 +33,7 @@ class OutfitEngine {
       temperature: temperature,
       activities: activities,
       rainProbability: rp,
+      windSpeed: windSpeed,
       weatherCondition: weatherCondition,
       coldThreshold: coldThreshold,
       warmThreshold: warmThreshold,
@@ -51,7 +53,23 @@ class OutfitEngine {
       print('OutfitEngine.generate: selected top outfit score=${top.score.toStringAsFixed(2)} base=${top.baseScore.toStringAsFixed(2)} style=${top.styleScore.toStringAsFixed(1)} color=${top.colorScore.toStringAsFixed(1)} items=[$itemNames]');
       return top;
     } else {
-      final fallback = _buildOutfit(_scoreCandidates(wardrobe, temperature, activities, rp, coldThreshold: coldThreshold, warmThreshold: warmThreshold), temperature, activities, rp, coldThreshold: coldThreshold, warmThreshold: warmThreshold);
+      final fallback = _buildOutfit(
+        _scoreCandidates(
+          wardrobe,
+          temperature,
+          activities,
+          rp,
+          windSpeed: windSpeed,
+          coldThreshold: coldThreshold,
+          warmThreshold: warmThreshold,
+        ),
+        temperature,
+        activities,
+        rp,
+        windSpeed: windSpeed,
+        coldThreshold: coldThreshold,
+        warmThreshold: warmThreshold,
+      );
       print('OutfitEngine.generate: no multi-outfits generated, using fallback outfit score=${fallback.score.toStringAsFixed(2)}');
       return fallback;
     }
@@ -76,7 +94,15 @@ class OutfitEngine {
   }
 
   /// Score all provided items. Values are heuristics: higher = better.
-  Map<ClothingItem, double> _scoreCandidates(List<ClothingItem> items, double temp, List<String> activities, double rainProbability, {double? coldThreshold, double? warmThreshold}) {
+  Map<ClothingItem, double> _scoreCandidates(
+    List<ClothingItem> items,
+    double temp,
+    List<String> activities,
+    double rainProbability, {
+    double windSpeed = 0.0,
+    double? coldThreshold,
+    double? warmThreshold,
+  }) {
     final scores = <ClothingItem, double>{};
     final int actCount = activities.isNotEmpty ? activities.length : 1;
     final double actWeight = 1.0 / actCount;
@@ -146,7 +172,17 @@ class OutfitEngine {
       // 5) Rain-specific: prefer items with higher water resistance proportional to rainProbability
       score += rainProbability * item.attributes.waterResistance * 1.5;
 
-      // 6) Small tie-breakers (optional): use formality or metadata if available (not implemented here)
+      // 6) Wind-specific: prefer higher wind resistance when wind is strong
+      final double windFactor = (windSpeed / 20.0).clamp(0.0, 2.0); // ~0-2 for 0-40 m/s
+      score += windFactor * item.attributes.windResistance * 1.2;
+
+      // 7) Formality alignment: match item formality to activity expectations
+      final double desiredFormality = _desiredFormalityLevel(activities);
+      final double itemFormality = _formalityValue(item.attributes.formality);
+      final double formalityDiff = (itemFormality - desiredFormality).abs();
+      score += max(0, 12 - formalityDiff * 2.4); // tighter curve gives stronger preference
+
+      // 8) Small tie-breakers (optional): metadata tie-breaker slot (unused)
       // Logging to help tuning
       print('ScoreCalc: ${item.subtype} (${item.category}) => score=${score.toStringAsFixed(2)} (tempDiff=${tempDiff.toStringAsFixed(1)}, idealWarmth=${idealWarmth.toStringAsFixed(2)}, warmth=${item.attributes.warmthLevel}, rainProb=${rainProbability.toStringAsFixed(2)})');
       scores[item] = score;
@@ -155,7 +191,15 @@ class OutfitEngine {
     return scores;
   }
 
-  Outfit _buildOutfit(Map<ClothingItem, double> scores, double temp, List<String> activities, double rainProbability, {double? coldThreshold, double? warmThreshold}) {
+  Outfit _buildOutfit(
+    Map<ClothingItem, double> scores,
+    double temp,
+    List<String> activities,
+    double rainProbability, {
+    double windSpeed = 0.0,
+    double? coldThreshold,
+    double? warmThreshold,
+  }) {
     ClothingItem? shirt;
     ClothingItem? pullover;
     ClothingItem? bottom;
@@ -163,7 +207,7 @@ class OutfitEngine {
     ClothingItem? outer;
     List<ClothingItem> accessories = [];
 
-    double computeFallbackScoreForItem(ClothingItem item, List<String> activities, double rainProbability) {
+    double computeFallbackScoreForItem(ClothingItem item, List<String> activities, double rainProbability, double windSpeed) {
       // Keep a fallback heuristic similar to _scoreCandidates (for consistency)
       final c = item.usageConstraints;
       double tempDiff;
@@ -202,6 +246,14 @@ class OutfitEngine {
 
       s += rainProbability * item.attributes.waterResistance * 1.5;
 
+      final double windFactor = (windSpeed / 20.0).clamp(0.0, 2.0);
+      s += windFactor * item.attributes.windResistance * 1.2;
+
+      final double desiredFormality = _desiredFormalityLevel(activities);
+      final double itemFormality = _formalityValue(item.attributes.formality);
+      final double formalityDiff = (itemFormality - desiredFormality).abs();
+      s += max(0, 12 - formalityDiff * 2.4);
+
       return s;
     }
 
@@ -232,7 +284,7 @@ class OutfitEngine {
       }
 
       final scoredFallback = fallbackCandidates
-          .map((item) => MapEntry(item, computeFallbackScoreForItem(item, activities, rainProbability)))
+          .map((item) => MapEntry(item, computeFallbackScoreForItem(item, activities, rainProbability, windSpeed)))
           .toList()
             ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -257,7 +309,7 @@ class OutfitEngine {
 
     if (accessories.length < 2) {
       final fallbackAccessories = wardrobe.where((item) => item.category.toLowerCase().contains("access")).toList()
-        ..sort((a, b) => computeFallbackScoreForItem(b, activities, rainProbability).compareTo(computeFallbackScoreForItem(a, activities, rainProbability)));
+        ..sort((a, b) => computeFallbackScoreForItem(b, activities, rainProbability, windSpeed).compareTo(computeFallbackScoreForItem(a, activities, rainProbability, windSpeed)));
       for (final a in fallbackAccessories) {
         if (!accessories.contains(a)) accessories.add(a);
         if (accessories.length >= 2) break;
@@ -271,7 +323,7 @@ class OutfitEngine {
       if (scores.containsKey(item)) {
         total += scores[item]!;
       } else {
-        total += computeFallbackScoreForItem(item, activities, rainProbability);
+        total += computeFallbackScoreForItem(item, activities, rainProbability, windSpeed);
       }
     }
     final scoreSum = chosenItems.isNotEmpty ? total / chosenItems.length : 0;
@@ -321,6 +373,7 @@ class OutfitEngine {
     required double temperature,
     required List<String> activities,
     double rainProbability = 0.0,
+    double windSpeed = 0.0,
     String? weatherCondition,
     double? coldThreshold,
     double? warmThreshold,
@@ -336,7 +389,15 @@ class OutfitEngine {
 
     print('OutfitEngine: Generating multiple outfits with topN=$topNPerCategory and maxOutfits=$maxOutfits (rainProb=${rp.toStringAsFixed(2)})');
 
-    final scores = _scoreCandidates(wardrobe, temperature, activities, rp, coldThreshold: coldThreshold, warmThreshold: warmThreshold);
+    final scores = _scoreCandidates(
+      wardrobe,
+      temperature,
+      activities,
+      rp,
+      windSpeed: windSpeed,
+      coldThreshold: coldThreshold,
+      warmThreshold: warmThreshold,
+    );
 
     List<ClothingItem> pickTopNByCategory(List<String> categoryVariations, int n) {
       final filtered = scores.entries
@@ -350,7 +411,15 @@ class OutfitEngine {
       if (filtered.isNotEmpty) return filtered.take(n).map((e) => e.key).toList();
 
       // Fallback: score wardrobe items manually and pick top n
-      double computeFallback(ClothingItem item) => _fallbackScoreForItem(item, temperature, activities, rainProbability, coldThreshold: coldThreshold, warmThreshold: warmThreshold);
+      double computeFallback(ClothingItem item) => _fallbackScoreForItem(
+        item,
+        temperature,
+        activities,
+        rainProbability,
+        windSpeed: windSpeed,
+        coldThreshold: coldThreshold,
+        warmThreshold: warmThreshold,
+          );
 
       final fallbackCandidates = wardrobe.where((item) {
         final catLower = item.category.toLowerCase();
@@ -393,7 +462,17 @@ class OutfitEngine {
                 if (accessories.length >= 2) break;
               }
 
-              final outfit = _createOutfitFromSelection(chosen, accessories, scores, temperature, activities, rainProbability, coldThreshold: coldThreshold, warmThreshold: warmThreshold);
+              final outfit = _createOutfitFromSelection(
+                chosen,
+                accessories,
+                scores,
+                temperature,
+                activities,
+                rainProbability,
+                windSpeed: windSpeed,
+                coldThreshold: coldThreshold,
+                warmThreshold: warmThreshold,
+              );
               allOutfits.add(outfit);
             }
           }
@@ -415,7 +494,15 @@ class OutfitEngine {
     return allOutfits.take(maxOutfits).toList();
   }
 
-  double _fallbackScoreForItem(ClothingItem item, double temp, List<String> activities, double rainProbability, {double? coldThreshold, double? warmThreshold}) {
+  double _fallbackScoreForItem(
+    ClothingItem item,
+    double temp,
+    List<String> activities,
+    double rainProbability, {
+    double windSpeed = 0.0,
+    double? coldThreshold,
+    double? warmThreshold,
+  }) {
     final c = item.usageConstraints;
     double tempDiff;
     if (temp < c.weatherMinTemp) {
@@ -454,6 +541,14 @@ class OutfitEngine {
 
     s += rainProbability * item.attributes.waterResistance * 1.5;
 
+    final double windFactor = (windSpeed / 20.0).clamp(0.0, 2.0);
+    s += windFactor * item.attributes.windResistance * 1.2;
+
+    final double desiredFormality = _desiredFormalityLevel(activities);
+    final double itemFormality = _formalityValue(item.attributes.formality);
+    final double formalityDiff = (itemFormality - desiredFormality).abs();
+    s += max(0, 12 - formalityDiff * 2.4);
+
     return s;
   }
 
@@ -465,14 +560,34 @@ class OutfitEngine {
     return null;
   }
 
-  Outfit _createOutfitFromSelection(List<ClothingItem> chosen, List<ClothingItem> accessories, Map<ClothingItem, double> scores, double temp, List<String> activities, double rainProbability, {double? coldThreshold, double? warmThreshold}) {
+  Outfit _createOutfitFromSelection(
+    List<ClothingItem> chosen,
+    List<ClothingItem> accessories,
+    Map<ClothingItem, double> scores,
+    double temp,
+    List<String> activities,
+    double rainProbability, {
+    double windSpeed = 0.0,
+    double? coldThreshold,
+    double? warmThreshold,
+  }) {
     final items = [...chosen, ...accessories];
 
     // base score
     double total = 0;
     for (final item in items) {
       if (scores.containsKey(item)) total += scores[item]!;
-      else total += _fallbackScoreForItem(item, temp, activities, rainProbability, coldThreshold: coldThreshold, warmThreshold: warmThreshold);
+      else {
+        total += _fallbackScoreForItem(
+          item,
+          temp,
+          activities,
+          rainProbability,
+          windSpeed: windSpeed,
+          coldThreshold: coldThreshold,
+          warmThreshold: warmThreshold,
+        );
+      }
     }
     final baseScore = items.isNotEmpty ? total / items.length : 0.0;
 
@@ -509,8 +624,16 @@ class OutfitEngine {
       print('OutfitEngine._createOutfitFromSelection: built outfit items=${items.map((i) => i.subtype).join(', ')} final=${finalScore.toStringAsFixed(2)} base=${baseScore.toStringAsFixed(2)} style=${styleScore.toStringAsFixed(1)} color=${colorScore.toStringAsFixed(1)}');
       for (final item in items) {
         final double itemScore = scores.containsKey(item)
-            ? scores[item]!
-            : _fallbackScoreForItem(item, temp, activities, rainProbability, coldThreshold: coldThreshold, warmThreshold: warmThreshold);
+          ? scores[item]!
+          : _fallbackScoreForItem(
+            item,
+            temp,
+            activities,
+            rainProbability,
+            windSpeed: windSpeed,
+            coldThreshold: coldThreshold,
+            warmThreshold: warmThreshold,
+            );
         print('  - ${item.subtype} (${item.category}): score=${itemScore.toStringAsFixed(2)} warmth=${item.attributes.warmthLevel} water=${item.attributes.waterResistance} optimalActs=${item.usageConstraints.optimalActivities}');
       }
     } catch (e) {
@@ -532,6 +655,58 @@ class OutfitEngine {
     );
   }
 
+  // Map stored formality strings to a numeric scale for scoring
+  double _formalityValue(String formality) {
+    switch (formality.toLowerCase()) {
+      case 'black_tie':
+        return 10.0;
+      case 'formal':
+        return 9.0;
+      case 'business_formal':
+      case 'business':
+        return 8.0;
+      case 'smart_casual':
+      case 'business_casual':
+        return 6.5;
+      case 'casual':
+        return 4.5;
+      case 'sport':
+      case 'athletic':
+        return 2.5;
+      default:
+        return 4.5;
+    }
+  }
+
+  // Estimate desired formality from activities (keywords derived from activities.json)
+  double _desiredFormalityLevel(List<String> activities) {
+    final acts = activities.map((a) => a.toLowerCase()).toList();
+
+    if (acts.any((a) => a.contains('wedding') || a.contains('dinner_event') || a.contains('formal'))) {
+      return 8.5;
+    }
+    if (acts.any((a) => a.contains('presentation') || a.contains('dates') || a.contains('night_out') || a.contains('party'))) {
+      return 7.5;
+    }
+    if (acts.any((a) => a.contains('office') || a.contains('business') || a.contains('meeting') || a.contains('work'))) {
+      return 7.0;
+    }
+    if (acts.any((a) => a.contains('manual') || a.contains('workshop') || a.contains('construction'))) {
+      return 5.0;
+    }
+    if (acts.any((a) => a.contains('sports') || a.contains('gym') || a.contains('run') || a.contains('cycling') || a.contains('yoga'))) {
+      return 3.0;
+    }
+    if (acts.any((a) => a.contains('hiking') || a.contains('outdoor') || a.contains('camping'))) {
+      return 4.0;
+    }
+    if (acts.any((a) => a.contains('travel') || a.contains('commute') || a.contains('transport'))) {
+      return 4.5;
+    }
+
+    return 4.5; // default casual
+  }
+
   double _composeFinalScore(double baseScore, double styleScore, double colorScore) {
     const baseWeight = 0.6;
     const styleWeight = 0.25;
@@ -542,16 +717,34 @@ class OutfitEngine {
 
   double _computeStyleScore(List<ClothingItem> items) {
     if (items.isEmpty) return 0.0;
+
+    // Style tags cohesion
     final tagCounts = <String, int>{};
     for (final item in items) {
       for (final tag in item.attributes.styleTags) {
         tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
       }
     }
-    if (tagCounts.isEmpty) return 0.0;
-    final mostCommonCount = tagCounts.values.reduce(max);
-    final scoreRatio = mostCommonCount / items.length; // 0..1
-    return scoreRatio * 100.0;
+    final bool hasStyleTags = tagCounts.isNotEmpty;
+    final double styleTagScore = hasStyleTags
+        ? (tagCounts.values.reduce(max) / items.length) * 100.0
+        : 0.0;
+
+    // Fit cohesion (e.g., regular/slim/relaxed); rewards consistent fit within outfit
+    final fitCounts = <String, int>{};
+    for (final item in items) {
+      final fit = item.attributes.fit.toLowerCase();
+      fitCounts[fit] = (fitCounts[fit] ?? 0) + 1;
+    }
+    final bool hasFits = fitCounts.isNotEmpty;
+    final double fitScore = hasFits
+        ? (fitCounts.values.reduce(max) / items.length) * 100.0
+        : 0.0;
+
+    if (!hasStyleTags && !hasFits) return 0.0;
+
+    // Blend style cohesion and fit cohesion (70/30)
+    return styleTagScore * 0.7 + fitScore * 0.3;
   }
 
   double _computeColorScore(List<ClothingItem> items, ClothingItem? shirt, ClothingItem? pullover, ClothingItem? bottom) {

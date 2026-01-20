@@ -218,6 +218,9 @@ class _PlannerScreenState extends State<PlannerScreen>
       rainProbability = 0.6;
     }
 
+    final double windSpeed =
+        dayForecast.windSpeed ?? provider.currentWeather?.windSpeed ?? 0.0;
+
     final activities = List<String>.from(_getActivitiesForDay(day));
 
     // Add transportation as an activity so the engine can prefer appropriate items
@@ -253,6 +256,7 @@ class _PlannerScreenState extends State<PlannerScreen>
       temperature: temp,
       activities: activities,
       rainProbability: rainProbability,
+      windSpeed: windSpeed,
       weatherCondition: null,
       coldThreshold: coldThreshold,
       warmThreshold: warmThreshold,

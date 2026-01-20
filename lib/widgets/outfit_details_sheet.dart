@@ -71,17 +71,6 @@ Future<void> showOutfitDetailsSheet(
                         ),
                         const SizedBox(height: 12),
                       ],
-                      if (score != null) ...[
-                        Text('Score: ${score.toStringAsFixed(1)}'),
-                        const SizedBox(height: 12),
-                      ],
-                      Text(
-                        'Items (${items.length})',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
                       ...items.map((item) {
                         String? imagePath;
                         String titleText = '';
