@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/outfit.dart';
+import 'wardrobe_service.dart';
+import '../models/wardrobe_item.dart';
 
 class OutfitStorageService {
   static const String _outfitPrefix = 'outfit_';
+  final WardrobeService _wardrobeService = WardrobeService();
 
   /// Generate a storage key from a date
   String _dateToKey(DateTime date) {
@@ -32,12 +36,27 @@ class OutfitStorageService {
       final key = _dateToKey(date);
       final outfitJson = prefs.getString(key);
 
+      final wardrobeItems = await _wardrobeService.getWardrobeItems();
+
+      Map<String, dynamic> _subtypesAttributesData = {};
+
+      try {
+        final String jsonString = await rootBundle.loadString(
+          'assets/subtypes_attributes.json',
+        );
+        final jsonData = jsonDecode(jsonString);
+
+        _subtypesAttributesData = jsonData;
+      } catch (e) {
+        print('Error loading subtypes attributes: $e');
+      }
+
       if (outfitJson == null) {
         return null;
       }
 
       final Map<String, dynamic> json = jsonDecode(outfitJson);
-      return _outfitFromJson(json);
+      return _outfitFromJson(json, wardrobeItems, _subtypesAttributesData);
     } catch (e) {
       print('Error loading outfit for date: $e');
       return null;
@@ -61,7 +80,9 @@ class OutfitStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys();
-      final outfitKeys = keys.where((k) => k.startsWith(_outfitPrefix)).toList();
+      final outfitKeys = keys
+          .where((k) => k.startsWith(_outfitPrefix))
+          .toList();
 
       for (final key in outfitKeys) {
         await prefs.remove(key);
@@ -74,27 +95,57 @@ class OutfitStorageService {
   }
 
   /// Parse outfit from JSON
-  Outfit _outfitFromJson(Map<String, dynamic> json) {
+  Outfit _outfitFromJson(
+    Map<String, dynamic> json,
+    List<WardrobeItem> wardrobeItems,
+    Map<String, dynamic> _subtypesAttributesData,
+  ) {
     return Outfit(
       shirt: json['shirt'] != null
-          ? _clothingItemFromJson(json['shirt'] as Map<String, dynamic>)
+          ? _clothingItemFromJson(
+              json['shirt'] as Map<String, dynamic>,
+              wardrobeItems,
+              _subtypesAttributesData,
+            )
           : null,
       pullover: json['pullover'] != null
-          ? _clothingItemFromJson(json['pullover'] as Map<String, dynamic>)
+          ? _clothingItemFromJson(
+              json['pullover'] as Map<String, dynamic>,
+              wardrobeItems,
+              _subtypesAttributesData,
+            )
           : null,
       bottom: json['bottom'] != null
-          ? _clothingItemFromJson(json['bottom'] as Map<String, dynamic>)
+          ? _clothingItemFromJson(
+              json['bottom'] as Map<String, dynamic>,
+              wardrobeItems,
+              _subtypesAttributesData,
+            )
           : null,
       outerwear: json['outerwear'] != null
-          ? _clothingItemFromJson(json['outerwear'] as Map<String, dynamic>)
+          ? _clothingItemFromJson(
+              json['outerwear'] as Map<String, dynamic>,
+              wardrobeItems,
+              _subtypesAttributesData,
+            )
           : null,
       shoes: json['shoes'] != null
-          ? _clothingItemFromJson(json['shoes'] as Map<String, dynamic>)
+          ? _clothingItemFromJson(
+              json['shoes'] as Map<String, dynamic>,
+              wardrobeItems,
+              _subtypesAttributesData,
+            )
           : null,
       accessories: json['accessories'] != null
           ? (json['accessories'] as List<dynamic>)
-              .map((a) => _clothingItemFromJson(a as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (a) => _clothingItemFromJson(
+                    a as Map<String, dynamic>,
+                    wardrobeItems,
+                    _subtypesAttributesData,
+                  ),
+                )
+                .toList()
           : [],
       score: (json['score'] as num).toDouble(),
       baseScore: (json['base_score'] as num).toDouble(),
@@ -104,7 +155,19 @@ class OutfitStorageService {
     );
   }
 
-  ClothingItem _clothingItemFromJson(Map<String, dynamic> json) {
+  ClothingItem _clothingItemFromJson(
+    Map<String, dynamic> json,
+    List<WardrobeItem>? wardrobeItems,
+    Map<String, dynamic>? _subtypesAttributesData,
+  ) {
+    final correspondingWardrobeItem = wardrobeItems?.firstWhere(
+      (item) => item.id == json['id'],
+    );
+
+    if (correspondingWardrobeItem != null && _subtypesAttributesData != null) {
+      return correspondingWardrobeItem.toClothingItem(_subtypesAttributesData);
+    }
+
     return ClothingItem.fromJson(json);
   }
 

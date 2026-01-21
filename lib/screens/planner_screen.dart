@@ -32,7 +32,8 @@ class _PlannerScreenState extends State<PlannerScreen>
   final PreferencesService _preferencesService = PreferencesService();
   final OutfitStorageService _outfitStorageService = OutfitStorageService();
   final Map<String, Outfit> _plannedOutfits = {}; // dateKey -> Outfit
-  final Map<String, Set<String>> _inWashItemIdsByDate = {}; // dateKey -> ids of items in wash
+  final Map<String, Set<String>> _inWashItemIdsByDate =
+      {}; // dateKey -> ids of items in wash
 
   // Activities data
   Map<String, dynamic> _activitiesData = {};
@@ -175,7 +176,7 @@ class _PlannerScreenState extends State<PlannerScreen>
 
   Future<void> _generateOutfitForIndex(int forecastIndex, DateTime day) async {
     final key = _dateToString(day);
-    
+
     // Check if outfit is already stored for this date
     final storedOutfit = await _outfitStorageService.getOutfitForDate(day);
     if (storedOutfit != null) {
@@ -250,7 +251,7 @@ class _PlannerScreenState extends State<PlannerScreen>
     );
 
     final engine = OutfitEngine(clothingItems);
-    
+
     // Generate multiple outfits and randomly select from top 5
     final outfits = engine.generateOutfits(
       temperature: temp,
@@ -268,10 +269,10 @@ class _PlannerScreenState extends State<PlannerScreen>
       // Randomly select from top 5 outfits
       final random = Random();
       final outfit = outfits[random.nextInt(outfits.length)];
-      
+
       // Save the outfit to storage
       await _outfitStorageService.saveOutfitForDate(day, outfit);
-      
+
       // Collect any outfit pieces currently in wash
       final inWashIds = await _collectInWashItemIds(outfit);
 
@@ -382,7 +383,7 @@ class _PlannerScreenState extends State<PlannerScreen>
     }).toList();
   }
 
-  Widget _buildPlannedOutfitPreview(DateTime day, ThemeData theme) {
+  Widget _buildPlannedOutfitPreview(DateTime day, ThemeData theme, VoidCallback? onTap) {
     final key = _dateToString(day);
     final outfit = _plannedOutfits[key];
     if (outfit == null) {
@@ -477,26 +478,48 @@ class _PlannerScreenState extends State<PlannerScreen>
     }
 
     return Card(
-      margin: const EdgeInsets.only(top: 8, bottom: 8),
+      margin: const EdgeInsets.only(top: 0, bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _showOutfitDetails(outfit),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+        //onTap: () => _showOutfitDetails(outfit),
+        onTap: onTap ?? () => _showOutfitDetails(outfit),
+
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
               Row(
                 children: [
-                  Expanded(child: buildItemPreview(outfit.outerwear, Icons.shield)),
-                  const SizedBox(width: 8),
-                  Expanded(child: buildItemPreview(outfit.pullover, Icons.layers)),
-                  const SizedBox(width: 8),
-                  Expanded(child: buildItemPreview(outfit.shirt, Icons.checkroom)),
-                  const SizedBox(width: 8),
-                  Expanded(child: buildItemPreview(outfit.bottom, Icons.checkroom)),
+                  Expanded(
+                    child: buildItemPreview(outfit.outerwear, Icons.shield),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: buildItemPreview(outfit.shoes, Icons.directions_walk),
+                    child: buildItemPreview(outfit.pullover, Icons.layers),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: buildItemPreview(outfit.shirt, Icons.checkroom),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: buildItemPreview(outfit.bottom, Icons.checkroom),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: buildItemPreview(
+                      outfit.shoes,
+                      Icons.directions_walk,
+                    ),
                   ),
                 ],
               ),
@@ -604,6 +627,8 @@ class _PlannerScreenState extends State<PlannerScreen>
 
     MainProvider provider = context.watch<MainProvider>();
 
+    
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -616,6 +641,20 @@ class _PlannerScreenState extends State<PlannerScreen>
             DateTime day = now.add(Duration(days: idx));
             String dayName = DateFormat('EEEE').format(day);
             String date = DateFormat('MMM d').format(day);
+
+            void onTap() async {
+                    await navigatorKey.currentState?.push(
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(
+                          live: false,
+                          title: dayName,
+                          forecastIndex: idx,
+                        ),
+                      ),
+                    );
+                    // Reload outfit after returning from HomeScreen
+                    await _generateOutfitForIndex(idx, day);
+                  }
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -631,23 +670,15 @@ class _PlannerScreenState extends State<PlannerScreen>
                 WeatherCard(
                   isLoading: false,
                   forecast: provider.forecast,
+                  flatBottomCorners: _plannedOutfits
+                          .containsKey(_dateToString(day))
+                      ? true
+                      : false,
                   forecastIndex: idx,
-                  onTap: () async {
-                    await navigatorKey.currentState?.push(
-                      MaterialPageRoute(
-                        builder: (context) => HomeScreen(
-                          live: false,
-                          title: dayName,
-                          forecastIndex: idx,
-                        ),
-                      ),
-                    );
-                    // Reload outfit after returning from HomeScreen
-                    await _generateOutfitForIndex(idx, day);
-                  },
+                  onTap: onTap
                 ),
-                const SizedBox(height: 12),
-                _buildPlannedOutfitPreview(day, theme),
+                //const SizedBox(height: 12),
+                _buildPlannedOutfitPreview(day, theme, onTap),
                 const SizedBox(height: 16),
               ],
             );
@@ -732,10 +763,12 @@ class _PlannerScreenState extends State<PlannerScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  DateFormat('EEEE, MMMM d, y').format(_selectedDay),
+                  DateFormat('EEEE, MMM d, y').format(_selectedDay),
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 FilledButton.icon(
                   onPressed: () => _showAddActivityDialog(context),
@@ -920,7 +953,9 @@ class _PlannerScreenState extends State<PlannerScreen>
             }
 
             return AlertDialog(
-              title: Text('Add Activity to ${DateFormat('MMM d').format(_selectedDay)}'),
+              title: Text(
+                'Add Activity to ${DateFormat('MMM d').format(_selectedDay)}',
+              ),
               content: SizedBox(
                 width: double.maxFinite,
                 child: SingleChildScrollView(
@@ -991,8 +1026,8 @@ class _PlannerScreenState extends State<PlannerScreen>
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: activities.map((activity) {
-                                    final isSelected =
-                                        selectedActivities.contains(activity);
+                                    final isSelected = selectedActivities
+                                        .contains(activity);
                                     return FilterChip(
                                       label: Text(_formatActivityKey(activity)),
                                       selected: isSelected,
@@ -1000,10 +1035,8 @@ class _PlannerScreenState extends State<PlannerScreen>
                                         setDialogState(() {
                                           if (selected) {
                                             selectedActivities.add(activity);
-                                          
                                           } else {
                                             selectedActivities.remove(activity);
-                                            
                                           }
                                         });
                                       },
@@ -1025,7 +1058,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
-                  onPressed: selectedActivities.isEmpty 
+                  onPressed: selectedActivities.isEmpty
                       ? null
                       : () async {
                           for (final activity in selectedActivities) {
@@ -1038,13 +1071,17 @@ class _PlannerScreenState extends State<PlannerScreen>
                           await _loadAllDayActivities();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${selectedActivities.length} activities added')),
+                              SnackBar(
+                                content: Text(
+                                  '${selectedActivities.length} activities added',
+                                ),
+                              ),
                             );
                             Navigator.pop(context);
                           }
                         },
                   child: const Text('Add'),
-                )
+                ),
               ],
             );
           },

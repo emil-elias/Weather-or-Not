@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:weatherornot/models/forecast.dart';
+import 'package:weatherornot/models/wardrobe_item.dart';
 import 'package:weatherornot/screens/weather_screen.dart';
 import 'package:weatherornot/services/outfit_generator.dart';
 import 'package:weatherornot/services/outfit_storage_service.dart';
@@ -479,137 +480,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Convert WardrobeItem to ClothingItem for the outfit engine
   /// Uses attributes from subtypes_attributes.json if available
-  List<ClothingItem> _convertToClothingItems(List<dynamic> wardrobeItems) {
+  List<ClothingItem> _convertToClothingItems(List<WardrobeItem> wardrobeItems) {
     return wardrobeItems.map((item) {
-      // Raw values from stored WardrobeItem
-      final rawCategory = (item.category ?? '').toString().toLowerCase();
-      final rawSubtype = (item.subcategory ?? '').toString().toLowerCase();
-      final name = item.name ?? '';
-      final imagePath = item.imagePath;
-
-      // Try to look up attributes from JSON using the subcategory as key
-      Map<String, dynamic>? foundSubtypeData =
-          _subtypesAttributesData[rawSubtype];
-
-      // If not found, try normalizing spaces/hyphens to underscores
-      if (foundSubtypeData == null) {
-        final normalizedSubtype = rawSubtype
-            .replaceAll(' ', '_')
-            .replaceAll('-', '_');
-        foundSubtypeData = _subtypesAttributesData[normalizedSubtype];
-
-        if (foundSubtypeData != null) {
-          print(
-            'Found subtype via normalization: "$rawSubtype" -> "$normalizedSubtype"',
-          );
-        }
-      }
-
-      // If still not found, log a warning
-      if (foundSubtypeData == null) {
-        print(
-          'Warning: Subtype "$rawSubtype" not found in subtypes_attributes.json (tried normalized: ${rawSubtype.replaceAll(' ', '_').replaceAll('-', '_')}), using defaults',
-        );
-      } else {
-        print('Loaded attributes for "$rawSubtype" from JSON');
-      }
-
-      // Prefer stored attributes/usage constraints from the WardrobeItem, but merge them over JSON defaults
-      final Map<String, dynamic> storedAttributes =
-          (item.attributes as Map<String, dynamic>?)?.cast<String, dynamic>() ??
-          {};
-      final Map<String, dynamic> storedUsage =
-          (item.usageConstraints as Map<String, dynamic>?)
-              ?.cast<String, dynamic>() ??
-          {};
-
-      final Map<String, dynamic> jsonAttributes =
-          (foundSubtypeData != null && foundSubtypeData['attributes'] is Map)
-          ? Map<String, dynamic>.from(foundSubtypeData['attributes'] as Map)
-          : {};
-      final Map<String, dynamic> jsonUsage =
-          (foundSubtypeData != null &&
-              foundSubtypeData['usage_constraints'] is Map)
-          ? Map<String, dynamic>.from(
-              foundSubtypeData['usage_constraints'] as Map,
-            )
-          : {};
-
-      // merge JSON defaults with stored overrides (stored wins)
-      final attributesData = {...jsonAttributes, ...storedAttributes};
-      final usageConstraintsData = {...jsonUsage, ...storedUsage};
-
-      if (storedAttributes.isNotEmpty) {
-        final overridden = storedAttributes.keys.join(', ');
-        print(
-          'Converting item ${item.id}: merging stored attributes over JSON defaults (overrides: $overridden)',
-        );
-      } else if (jsonAttributes.isNotEmpty) {
-        print('Converting item ${item.id}: using JSON attributes for subtype');
-      }
-
-      if (storedUsage.isNotEmpty) {
-        final overridden = storedUsage.keys.join(', ');
-        print(
-          'Converting item ${item.id}: merging stored usage constraints over JSON defaults (overrides: $overridden)',
-        );
-      } else if (jsonUsage.isNotEmpty) {
-        print(
-          'Converting item ${item.id}: using JSON usage constraints for subtype',
-        );
-      }
-
-      // Parse attributes with fallback defaults
-      final materials = List<String>.from(attributesData['materials'] ?? []);
-      final warmthLevel =
-          attributesData['warmth_level'] ??
-          _getWarmthLevel(item.formalityLevel ?? 'casual');
-      final waterResistance = attributesData['water_resistance'] ?? 5;
-      final windResistance = attributesData['wind_resistance'] ?? 5;
-      final breathability = attributesData['breathability'] ?? 5;
-      final stretch = attributesData['stretch'] ?? 5;
-      final formality =
-          attributesData['formality'] ?? (item.formalityLevel ?? 'casual');
-      final styleTags = List<String>.from(
-        attributesData['style_tags'] ?? (item.tags ?? []),
-      );
-      final fit = attributesData['fit'] ?? 'regular';
-
-      // Parse usage constraints with fallback defaults
-      final weatherMinTemp = usageConstraintsData['weather_min_temp'] ?? -40;
-      final weatherMaxTemp = usageConstraintsData['weather_max_temp'] ?? 45;
-      final optimalActivities = List<String>.from(
-        usageConstraintsData['optimal_activities'] ?? ['daily', 'casual'],
-      );
-      final unsuitableFor = List<String>.from(
-        usageConstraintsData['unsuitable_for'] ?? [],
-      );
-
-      // Build ClothingItem using data from JSON
-      return ClothingItem(
-        id: item.id,
-        category: rawCategory,
-        subtype: rawSubtype,
-        attributes: ClothingAttributes(
-          materials: materials,
-          warmthLevel: warmthLevel,
-          waterResistance: waterResistance,
-          windResistance: windResistance,
-          breathability: breathability,
-          stretch: stretch,
-          formality: formality,
-          styleTags: styleTags,
-          fit: fit,
-        ),
-        usageConstraints: UsageConstraints(
-          weatherMinTemp: weatherMinTemp,
-          weatherMaxTemp: weatherMaxTemp,
-          optimalActivities: optimalActivities,
-          unsuitableFor: unsuitableFor,
-        ),
-        extractedColors: [],
-        metadata: {'imagePath': imagePath, 'name': name},
-      );
+      return item.toClothingItem(_subtypesAttributesData);
     }).toList();
   }
 

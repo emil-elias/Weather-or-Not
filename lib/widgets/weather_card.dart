@@ -6,6 +6,7 @@ import 'package:weatherornot/services/weather_service.dart';
 
 class WeatherCard extends StatelessWidget {
   final bool isLoading;
+  final bool? flatBottomCorners;
   final String? errorMessage;
   final Weather? currentWeather;
   final Forecast? forecast;
@@ -16,6 +17,7 @@ class WeatherCard extends StatelessWidget {
   WeatherCard({
     super.key,
     required this.isLoading,
+    this.flatBottomCorners,
     this.errorMessage,
     this.currentWeather,
     this.forecast,
@@ -57,7 +59,10 @@ class WeatherCard extends StatelessWidget {
               forecastIndex,
             ),
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: flatBottomCorners == null || flatBottomCorners != true ? BorderRadius.circular(24) : const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF5855D6).withOpacity(0.3),
