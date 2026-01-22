@@ -1,4 +1,5 @@
 {
+  
   "basic_tee": {
     "attributes": {
       "materials": ["cotton"],
@@ -14,10 +15,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "cold_weather"]
+      "optimal_activities": ["walk", "park", "coffee", "meeting_friends"],
+      "unsuitable_for": ["skiing", "snowboarding", "mountain_hiking", "cold_days"]
     }
   },
+
   "graphic_tee": {
     "attributes": {
       "materials": ["cotton"],
@@ -33,10 +35,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "cold_weather"]
+      "optimal_activities": ["walk", "coffee", "meeting_friends", "street_fair"],
+      "unsuitable_for": ["trail_hiking", "mountain_hiking", "skiing", "cold_days"]
     }
   },
+
   "oversized_tshirt": {
     "attributes": {
       "materials": ["cotton", "polyester"],
@@ -52,10 +55,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "sports"]
+      "optimal_activities": ["walk", "park", "urban_outdoor", "open_air"],
+      "unsuitable_for": ["strength_training", "cardio", "mountain_hiking", "snow_days"]
     }
   },
+
   "slim_fit_tshirt": {
     "attributes": {
       "materials": ["cotton", "elastane"],
@@ -71,10 +75,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "sports"]
+      "optimal_activities": ["walk", "coffee", "meeting_friends", "on Foot"],
+      "unsuitable_for": ["trail_hiking", "mountain_hiking", "skiing", "snowboarding"]
     }
   },
+
   "vneck_tshirt": {
     "attributes": {
       "materials": ["cotton"],
@@ -90,10 +95,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "sports"]
+      "optimal_activities": ["coffee", "meeting_friends", "dates", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "camping"]
     }
   },
+
   "longline_tshirt": {
     "attributes": {
       "materials": ["cotton", "polyester"],
@@ -109,10 +115,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "sports"]
+      "optimal_activities": ["night_out", "clubbing", "market", "street_fair"],
+      "unsuitable_for": ["mountain_hiking", "bushcraft", "snow_days", "skiing"]
     }
   },
+
   "tank_top": {
     "attributes": {
       "materials": ["cotton", "polyester"],
@@ -128,10 +135,11 @@
     "usage_constraints": {
       "weather_min_temp": 22,
       "weather_max_temp": 40,
-      "optimal_activities": ["sports", "casual", "walk"],
-      "unsuitable_for": ["cold_weather"]
+      "optimal_activities": ["strength_training", "cardio", "jogging", "swimming"],
+      "unsuitable_for": ["cold_days", "snow_days", "skiing", "snowboarding"]
     }
   },
+
   "sleeveless_top": {
     "attributes": {
       "materials": ["cotton", "polyester"],
@@ -147,10 +155,11 @@
     "usage_constraints": {
       "weather_min_temp": 22,
       "weather_max_temp": 40,
-      "optimal_activities": ["sports", "casual", "walk"],
-      "unsuitable_for": ["cold_weather"]
+      "optimal_activities": ["strength_training", "cardio", "pilates", "studio_yoga"],
+      "unsuitable_for": ["cold_days", "snow_days", "skiing", "mountain_hiking"]
     }
   },
+
   "crop_top": {
     "attributes": {
       "materials": ["cotton", "polyester", "elastane"],
@@ -166,10 +175,11 @@
     "usage_constraints": {
       "weather_min_temp": 20,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk"],
-      "unsuitable_for": ["cycling", "cold_weather"]
+      "optimal_activities": ["night_out", "dates", "coffee", "meeting_friends"],
+      "unsuitable_for": ["trail_hiking", "mountain_hiking", "snow_days", "cold_days"]
     }
   },
+
   "dress_shirt": {
     "attributes": {
       "materials": ["cotton", "linen"],
@@ -185,10 +195,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "formal_events"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_formal", "presentations", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "camping"]
     }
   },
+
   "oxford_shirt": {
     "attributes": {
       "materials": ["cotton", "oxford_cloth"],
@@ -204,10 +215,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "casual", "office"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_casual", "office", "presentations", "train_travel"],
+      "unsuitable_for": ["strength_training", "cardio", "mountain_hiking", "bushcraft"]
     }
   },
+
   "flannel_shirt": {
     "attributes": {
       "materials": ["cotton", "wool"],
@@ -223,10 +235,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 25,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["sports", "formal_events"]
+      "optimal_activities": ["walk", "park", "meeting_friends", "street_fair"],
+      "unsuitable_for": ["strength_training", "cardio", "skiing", "snowboarding"]
     }
   },
+
   "short_sleeve_shirt": {
     "attributes": {
       "materials": ["cotton", "linen"],
@@ -242,10 +255,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk", "summer_outings"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["walk", "park", "coffee", "meeting_friends"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking"]
     }
   },
+
   "blouse": {
     "attributes": {
       "materials": ["cotton", "silk", "polyester"],
@@ -261,10 +275,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "casual", "dining"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_casual", "presentations", "coffee"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "tunic": {
     "attributes": {
       "materials": ["cotton", "linen"],
@@ -280,10 +295,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["walk", "park", "meeting_friends"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
     }
   },
+
   "wrap_blouse": {
     "attributes": {
       "materials": ["cotton", "silk"],
@@ -299,10 +315,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "dining", "casual"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_casual", "presentations", "dates"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "peplum_blouse": {
     "attributes": {
       "materials": ["cotton", "polyester", "silk"],
@@ -318,10 +335,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "dining", "casual"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_formal", "presentations", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "sweater": {
     "attributes": {
       "materials": ["wool", "cotton"],
@@ -337,10 +355,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 20,
-      "optimal_activities": ["casual", "walk", "work"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["walk", "park", "home_office"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
     }
   },
+
   "crewneck_sweater": {
     "attributes": {
       "materials": ["wool", "cotton"],
@@ -356,10 +375,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 20,
-      "optimal_activities": ["casual", "walk", "work"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["walk", "park", "home_office"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "vneck_pullover": {
     "attributes": {
       "materials": ["wool", "cotton"],
@@ -375,10 +395,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 20,
-      "optimal_activities": ["work", "casual"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_casual", "office", "train_travel"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
     }
   },
+
   "turtleneck_pullover": {
     "attributes": {
       "materials": ["wool", "cashmere"],
@@ -394,10 +415,11 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 18,
-      "optimal_activities": ["work", "casual", "dining"],
-      "unsuitable_for": ["sports", "cycling", "hot_weather"]
+      "optimal_activities": ["business_formal", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "heat_days"]
     }
   },
+
   "turtleneck": {
     "attributes": {
       "materials": ["wool", "cashmere"],
@@ -413,10 +435,11 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 18,
-      "optimal_activities": ["work", "casual", "dining"],
-      "unsuitable_for": ["sports", "cycling", "hot_weather"]
+      "optimal_activities": ["business_formal", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "heat_days"]
     }
   },
+
   "cardigan": {
     "attributes": {
       "materials": ["wool", "cotton"],
@@ -432,10 +455,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 20,
-      "optimal_activities": ["casual", "walk", "home", "work"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["home_office", "reading", "walk"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "knit_jacket": {
     "attributes": {
       "materials": ["wool", "polyester"],
@@ -451,10 +475,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 18,
-      "optimal_activities": ["walk", "casual", "commuting"],
-      "unsuitable_for": ["sports", "hot_weather"]
+      "optimal_activities": ["commuting", "train_travel", "urban_outdoor"],
+      "unsuitable_for": ["strength_training", "cardio", "heat_days"]
     }
   },
+
   "poncho": {
     "attributes": {
       "materials": ["wool", "cotton", "polyester"],
@@ -470,10 +495,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 18,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["walk", "park", "street_fair", "reading"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "cape": {
     "attributes": {
       "materials": ["wool", "polyester"],
@@ -489,10 +515,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 18,
-      "optimal_activities": ["casual", "dining", "walk"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["dates", "dinner_event", "urban_outdoor"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
     }
   },
+
   "hoodie": {
     "attributes": {
       "materials": ["cotton", "polyester", "fleece"],
@@ -508,10 +535,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 25,
-      "optimal_activities": ["casual", "walk", "commuting"],
-      "unsuitable_for": ["formal_events", "sports"]
+      "optimal_activities": ["commuting", "walk", "meeting_friends", "home_office"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "zip_hoodie": {
     "attributes": {
       "materials": ["cotton", "polyester", "fleece"],
@@ -527,10 +555,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 25,
-      "optimal_activities": ["casual", "walk", "commuting"],
-      "unsuitable_for": ["formal_events", "sports"]
+      "optimal_activities": ["commuting", "train_travel", "urban_outdoor"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "sweatshirt": {
     "attributes": {
       "materials": ["cotton", "polyester", "fleece"],
@@ -546,10 +575,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 25,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["formal_events", "sports"]
+      "optimal_activities": ["walk", "park", "reading", "home_office"],
+      "unsuitable_for": ["business_formal", "wedding", "presentations"]
     }
   },
+
   "quarter_zip": {
     "attributes": {
       "materials": ["cotton", "polyester", "fleece"],
@@ -565,10 +595,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 25,
-      "optimal_activities": ["casual", "sports", "walk"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["jogging", "walk", "commuting"],
+      "unsuitable_for": ["business_formal", "wedding"]
     }
   },
+
   "fleece_pullover": {
     "attributes": {
       "materials": ["polyester", "fleece"],
@@ -584,10 +615,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 20,
-      "optimal_activities": ["sports", "walk", "hiking", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["trail_hiking", "camping", "outdoor_photography"],
+      "unsuitable_for": ["business_formal", "dinner_event"]
     }
   },
+
   "performance_shirt": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -603,10 +635,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 35,
-      "optimal_activities": ["running", "gym", "cycling", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding"]
     }
   },
+
   "running_shirt": {
     "attributes": {
       "materials": ["polyester", "nylon"],
@@ -622,10 +655,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["running", "gym", "cycling"],
-      "unsuitable_for": ["formal_events", "cold_weather"]
+      "optimal_activities": ["jogging", "long_distance", "cardio"],
+      "unsuitable_for": ["business_formal", "snow_days"]
     }
   },
+
   "training_top": {
     "attributes": {
       "materials": ["polyester", "elastane"],
@@ -641,10 +675,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["gym", "workout", "running"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "studio_yoga"],
+      "unsuitable_for": ["business_formal", "wedding"]
     }
   },
+
   "compression_shirt": {
     "attributes": {
       "materials": ["polyester", "elastane"],
@@ -660,10 +695,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["gym", "running", "cycling"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding"]
     }
   },
+
   "bodysuit": {
     "attributes": {
       "materials": ["cotton", "elastane", "polyester"],
@@ -679,10 +715,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "work", "dining"],
-      "unsuitable_for": ["sports", "cycling", "cold_weather"]
+      "optimal_activities": ["dates", "dinner_event", "business_casual"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "bralette": {
     "attributes": {
       "materials": ["cotton", "elastane", "lace"],
@@ -698,10 +735,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "leisure", "sports_light"],
-      "unsuitable_for": ["formal_events", "cold_weather"]
+      "optimal_activities": ["home_office", "lounging", "studio_yoga"],
+      "unsuitable_for": ["business_formal", "cold_days"]
     }
   },
+
   "tube_top": {
     "attributes": {
       "materials": ["cotton", "elastane"],
@@ -717,10 +755,11 @@
     "usage_constraints": {
       "weather_min_temp": 20,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["cold_weather", "formal_events"]
+      "optimal_activities": ["coffee", "meeting_friends", "walk", "night_out"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "wedding"]
     }
   },
+
   "bustier": {
     "attributes": {
       "materials": ["cotton", "elastane", "polyester"],
@@ -736,10 +775,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["dining", "casual", "party"],
-      "unsuitable_for": ["cold_weather", "sports"]
+      "optimal_activities": ["clubbing", "night_out", "dates", "dinner_event"],
+      "unsuitable_for": ["cold_days", "snow_days", "strength_training", "cardio"]
     }
   },
+
   "corsage": {
     "attributes": {
       "materials": ["cotton", "polyester", "lace"],
@@ -755,10 +795,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["dining", "casual", "party"],
-      "unsuitable_for": ["sports", "cycling", "cold_weather"]
+      "optimal_activities": ["dinner_event", "dates", "clubbing", "night_out"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "cold_days"]
     }
   },
+
   "jeans": {
     "attributes": {
       "materials": ["cotton", "elastane", "denim"],
@@ -774,10 +815,11 @@
     "usage_constraints": {
       "weather_min_temp": -10,
       "weather_max_temp": 30,
-      "optimal_activities": ["casual", "walk", "work"],
-      "unsuitable_for": ["sports", "swimming"]
+      "optimal_activities": ["walk", "commuting", "workshop", "meeting_friends"],
+      "unsuitable_for": ["swimming", "surfing", "strength_training", "cardio"]
     }
   },
+
   "chinos": {
     "attributes": {
       "materials": ["cotton", "stretch_cotton"],
@@ -793,10 +835,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "casual", "dining"],
-      "unsuitable_for": ["sports", "swimming"]
+      "optimal_activities": ["business_casual", "office", "presentations", "train_travel"],
+      "unsuitable_for": ["swimming", "surfing", "strength_training", "cardio"]
     }
   },
+
   "dress_trousers": {
     "attributes": {
       "materials": ["wool", "polyester", "cotton"],
@@ -812,10 +855,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 28,
-      "optimal_activities": ["work", "formal_events"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_formal", "presentations", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
     }
   },
+
   "cargo_pants": {
     "attributes": {
       "materials": ["cotton", "polyester"],
@@ -831,10 +875,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 28,
-      "optimal_activities": ["walk", "casual", "hiking"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["trail_hiking", "camping", "urban_outdoor", "day_trips"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "sweatpants": {
     "attributes": {
       "materials": ["cotton", "polyester", "fleece"],
@@ -850,10 +895,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 25,
-      "optimal_activities": ["gym", "walk", "casual", "home"],
-      "unsuitable_for": ["formal_events", "cycling"]
+      "optimal_activities": ["lounging", "resting", "home_office", "walk"],
+      "unsuitable_for": ["business_formal", "wedding", "commuter_cycling"]
     }
   },
+
   "joggers": {
     "attributes": {
       "materials": ["cotton", "polyester", "elastane"],
@@ -869,10 +915,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 28,
-      "optimal_activities": ["gym", "running", "walk", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["jogging", "cardio", "strength_training", "walk"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "leggings": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -888,10 +935,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["gym", "yoga", "casual", "walk"],
-      "unsuitable_for": ["formal_events", "swimming"]
+      "optimal_activities": ["studio_yoga", "pilates", "cardio", "strength_training"],
+      "unsuitable_for": ["business_formal", "wedding", "swimming"]
     }
   },
+
   "denim_shorts": {
     "attributes": {
       "materials": ["cotton", "elastane", "denim"],
@@ -907,10 +955,11 @@
     "usage_constraints": {
       "weather_min_temp": 20,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["formal_events", "cold_weather"]
+      "optimal_activities": ["walk", "park", "market", "street_fair"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "wedding"]
     }
   },
+
   "casual_shorts": {
     "attributes": {
       "materials": ["cotton", "linen", "polyester"],
@@ -926,10 +975,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["formal_events", "cold_weather"]
+      "optimal_activities": ["walk", "coffee", "meeting_friends", "day_trips"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "wedding"]
     }
   },
+
   "sport_shorts": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -945,10 +995,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["running", "gym", "cycling", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "jogging", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "chino_shorts": {
     "attributes": {
       "materials": ["cotton", "stretch_cotton"],
@@ -964,10 +1015,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["work", "casual", "dining"],
-      "unsuitable_for": ["sports", "cold_weather"]
+      "optimal_activities": ["business_casual", "office", "coffee", "meeting_friends"],
+      "unsuitable_for": ["cold_days", "snow_days", "strength_training", "cardio"]
     }
   },
+
   "bike_shorts": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -983,10 +1035,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["cycling", "running", "gym", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["road_cycling", "commuter_cycling", "cardio", "jogging"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "mini_skirt": {
     "attributes": {
       "materials": ["cotton", "polyester", "denim"],
@@ -1002,10 +1055,11 @@
     "usage_constraints": {
       "weather_min_temp": 18,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk", "leisure", "party"],
-      "unsuitable_for": ["cold_weather", "formal_work"]
+      "optimal_activities": ["meeting_friends", "coffee", "night_out", "clubbing"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "presentations"]
     }
   },
+
   "midi_skirt": {
     "attributes": {
       "materials": ["cotton", "polyester", "linen"],
@@ -1021,10 +1075,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["casual", "dining", "work", "walk"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["dates", "dinner_event", "presentations", "business_casual"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling", "commuter_cycling"]
     }
   },
+
   "maxi_skirt": {
     "attributes": {
       "materials": ["cotton", "polyester", "linen"],
@@ -1040,10 +1095,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["casual", "dining", "walk", "leisure"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["walk", "sightseeing", "coffee", "market"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
     }
   },
+
   "pencil_skirt": {
     "attributes": {
       "materials": ["cotton", "polyester", "wool"],
@@ -1059,10 +1115,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 28,
-      "optimal_activities": ["work", "formal_events"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_formal", "presentations", "office", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
     }
   },
+
   "pleated_skirt": {
     "attributes": {
       "materials": ["cotton", "polyester", "linen"],
@@ -1078,10 +1135,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 30,
-      "optimal_activities": ["casual", "dining", "walk", "leisure"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["dates", "dinner_event", "market", "street_fair"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
     }
   },
+
   "running_tights": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -1097,10 +1155,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 35,
-      "optimal_activities": ["running", "gym", "cycling"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["jogging", "long_distance", "cardio", "strength_training"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "training_pants": {
     "attributes": {
       "materials": ["polyester", "cotton", "elastane"],
@@ -1116,10 +1175,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 28,
-      "optimal_activities": ["gym", "running", "walk", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "jogging", "walk"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "compression_tights": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -1135,10 +1195,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 35,
-      "optimal_activities": ["gym", "running", "cycling"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["jogging", "long_distance", "cardio", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "track_pants": {
     "attributes": {
       "materials": ["polyester", "cotton", "elastane"],
@@ -1154,10 +1215,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 28,
-      "optimal_activities": ["gym", "running", "walk", "casual"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "walk", "home_office"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "denim_jacket": {
     "attributes": {
       "materials": ["cotton", "denim"],
@@ -1173,10 +1235,11 @@
     "usage_constraints": {
       "weather_min_temp": 12,
       "weather_max_temp": 25,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["formal_events", "rainy_weather"]
+      "optimal_activities": ["walk", "park", "meeting_friends", "day_trips"],
+      "unsuitable_for": ["cold_days", "snow_days", "swimming", "surfing"]
     }
   },
+
   "bomber_jacket": {
     "attributes": {
       "materials": ["polyester", "cotton", "nylon"],
@@ -1192,10 +1255,11 @@
     "usage_constraints": {
       "weather_min_temp": 8,
       "weather_max_temp": 20,
-      "optimal_activities": ["casual", "walk", "commuting"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["commuting", "Public Transit", "on Foot", "walk"],
+      "unsuitable_for": ["heat_days", "sunbathing", "swimming", "surfing"]
     }
   },
+
   "leather_jacket": {
     "attributes": {
       "materials": ["leather", "polyester_lining"],
@@ -1211,10 +1275,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 22,
-      "optimal_activities": ["casual", "walk", "dining"],
-      "unsuitable_for": ["sports", "formal_events", "heavy_rain"]
+      "optimal_activities": ["meeting_friends", "coffee", "walk", "night_out"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "mountain_hiking"]
     }
   },
+
   "varsity_jacket": {
     "attributes": {
       "materials": ["wool", "cotton", "polyester"],
@@ -1230,10 +1295,11 @@
     "usage_constraints": {
       "weather_min_temp": 8,
       "weather_max_temp": 20,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["meeting_friends", "coffee", "walk", "park"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "fleece_jacket": {
     "attributes": {
       "materials": ["polyester", "fleece"],
@@ -1249,10 +1315,11 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 18,
-      "optimal_activities": ["hiking", "casual", "walk", "sports_light"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["trail_hiking", "mountain_hiking", "walk", "camping"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
     }
   },
+
   "trench_coat": {
     "attributes": {
       "materials": ["cotton", "polyester", "gabardine"],
@@ -1268,10 +1335,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 22,
-      "optimal_activities": ["work", "dining", "walk", "casual"],
-      "unsuitable_for": ["sports", "heavy_rain"]
+      "optimal_activities": ["business_casual", "office", "dates", "walk"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking"]
     }
   },
+
   "wool_coat": {
     "attributes": {
       "materials": ["wool", "polyester_lining"],
@@ -1287,10 +1355,11 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 15,
-      "optimal_activities": ["work", "formal_events", "dining", "walk"],
-      "unsuitable_for": ["sports", "cycling"]
+      "optimal_activities": ["business_formal", "presentations", "dinner_event", "walk"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
     }
   },
+
   "puffer_coat": {
     "attributes": {
       "materials": ["polyester", "nylon", "down"],
@@ -1306,10 +1375,11 @@
     "usage_constraints": {
       "weather_min_temp": -10,
       "weather_max_temp": 10,
-      "optimal_activities": ["walking", "hiking", "casual", "outdoor"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["walk", "commuting", "day_trips", "snow_days"],
+      "unsuitable_for": ["wedding", "business_formal"]
     }
   },
+
   "overcoat": {
     "attributes": {
       "materials": ["wool", "cashmere", "polyester_lining"],
@@ -1325,10 +1395,11 @@
     "usage_constraints": {
       "weather_min_temp": -5,
       "weather_max_temp": 15,
-      "optimal_activities": ["work", "formal_events", "dining"],
-      "unsuitable_for": ["sports", "casual_sport"]
+      "optimal_activities": ["business_formal", "presentations", "air_travel"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking"]
     }
   },
+
   "rain_jacket": {
     "attributes": {
       "materials": ["polyester", "PU_coating", "nylon"],
@@ -1344,10 +1415,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 25,
-      "optimal_activities": ["walking", "hiking", "commuting", "cycling"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["walk", "commuter_cycling", "day_trips"],
+      "unsuitable_for": ["wedding", "business_formal"]
     }
   },
+
   "windbreaker": {
     "attributes": {
       "materials": ["nylon", "polyester"],
@@ -1363,10 +1435,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 20,
-      "optimal_activities": ["running", "cycling", "walk", "casual"],
-      "unsuitable_for": ["formal_events", "cold_weather"]
+      "optimal_activities": ["jogging", "commuter_cycling", "walk"],
+      "unsuitable_for": ["business_formal", "cold_days"]
     }
   },
+
   "parka": {
     "attributes": {
       "materials": ["polyester", "nylon", "down"],
@@ -1382,10 +1455,11 @@
     "usage_constraints": {
       "weather_min_temp": -15,
       "weather_max_temp": 10,
-      "optimal_activities": ["walking", "hiking", "commuting", "outdoor"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["snow_days", "commuting", "walk", "day_trips"],
+      "unsuitable_for": ["wedding", "business_formal"]
     }
   },
+
   "softshell_jacket": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -1401,10 +1475,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 20,
-      "optimal_activities": ["hiking", "cycling", "running", "walk"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["trail_hiking", "commuter_cycling", "walk"],
+      "unsuitable_for": ["wedding", "business_formal"]
     }
   },
+
   "hardshell_jacket": {
     "attributes": {
       "materials": ["Gore-Tex", "nylon", "polyester"],
@@ -1420,10 +1495,11 @@
     "usage_constraints": {
       "weather_min_temp": -10,
       "weather_max_temp": 15,
-      "optimal_activities": ["hiking", "mountaineering", "cycling", "walk"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["mountain_hiking", "camping", "walk"],
+      "unsuitable_for": ["wedding", "business_formal"]
     }
   },
+
   "sneakers": {
     "attributes": {
       "materials": ["leather", "synthetic", "mesh"],
@@ -1439,10 +1515,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walking", "travel", "light_sports"],
-      "unsuitable_for": ["formal_events", "heavy_rain"]
+      "optimal_activities": ["walk", "commuting", "day_trips"],
+      "unsuitable_for": ["wedding", "business_formal"]
     }
   },
+
   "slip_ons": {
     "attributes": {
       "materials": ["canvas", "leather", "synthetic"],
@@ -1458,10 +1535,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walk", "leisure"],
-      "unsuitable_for": ["formal_events", "cold_weather", "sports"]
+      "optimal_activities": ["meeting_friends", "coffee", "walk"],
+      "unsuitable_for": ["snow_days", "strength_training"]
     }
   },
+
   "canvas_shoes": {
     "attributes": {
       "materials": ["canvas", "rubber"],
@@ -1477,10 +1555,11 @@
     "usage_constraints": {
       "weather_min_temp": 15,
       "weather_max_temp": 35,
-      "optimal_activities": ["casual", "walking", "leisure"],
-      "unsuitable_for": ["formal_events", "cold_weather", "sports"]
+      "optimal_activities": ["walk", "market", "street_fair"],
+      "unsuitable_for": ["snow_days", "strength_training"]
     }
   },
+
   "oxfords": {
     "attributes": {
       "materials": ["leather", "leather_lining"],
@@ -1496,10 +1575,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "formal_events", "dining"],
-      "unsuitable_for": ["sports", "casual_walks", "heavy_rain"]
+      "optimal_activities": ["business_formal", "presentations", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "mountain_hiking"]
     }
   },
+
   "derbies": {
     "attributes": {
       "materials": ["leather", "synthetic"],
@@ -1515,10 +1595,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "formal_events", "dining"],
-      "unsuitable_for": ["sports", "casual_walks", "heavy_rain"]
+      "optimal_activities": ["business_casual", "business_formal", "presentations"],
+      "unsuitable_for": ["strength_training", "cardio", "soccer"]
     }
   },
+
   "loafers": {
     "attributes": {
       "materials": ["leather", "suede"],
@@ -1534,10 +1615,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "casual_dining", "formal_events"],
-      "unsuitable_for": ["sports", "heavy_rain"]
+      "optimal_activities": ["business_casual", "dates", "dinner_event"],
+      "unsuitable_for": ["trail_hiking", "strength_training"]
     }
   },
+
   "heels": {
     "attributes": {
       "materials": ["leather", "synthetic"],
@@ -1553,10 +1635,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["formal_events", "dining", "work"],
-      "unsuitable_for": ["sports", "hiking", "casual_walks"]
+      "optimal_activities": ["wedding", "dinner_event", "presentations"],
+      "unsuitable_for": ["trail_hiking", "cardio", "long_distance"]
     }
   },
+
   "ballet_flats": {
     "attributes": {
       "materials": ["leather", "canvas", "synthetic"],
@@ -1572,10 +1655,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 30,
-      "optimal_activities": ["work", "formal_events", "dining", "casual_walks"],
-      "unsuitable_for": ["sports", "hiking", "heavy_rain"]
+      "optimal_activities": ["business_casual", "walk", "dates"],
+      "unsuitable_for": ["trail_hiking", "cardio", "soccer"]
     }
   },
+
   "running_shoes": {
     "attributes": {
       "materials": ["mesh", "synthetic", "rubber"],
@@ -1591,10 +1675,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 35,
-      "optimal_activities": ["running", "gym", "walking", "cycling"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["jogging", "long_distance", "cardio"],
+      "unsuitable_for": ["business_formal", "wedding"]
     }
   },
+
   "training_shoes": {
     "attributes": {
       "materials": ["synthetic", "mesh", "rubber"],
@@ -1610,10 +1695,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 35,
-      "optimal_activities": ["gym", "fitness", "walking", "training"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["strength_training", "cardio", "studio_yoga"],
+      "unsuitable_for": ["business_formal", "wedding"]
     }
   },
+
   "basketball_shoes": {
     "attributes": {
       "materials": ["synthetic", "leather", "rubber"],
@@ -1629,10 +1715,11 @@
     "usage_constraints": {
       "weather_min_temp": 10,
       "weather_max_temp": 35,
-      "optimal_activities": ["basketball", "gym", "indoor_sports"],
-      "unsuitable_for": ["formal_events", "outdoor_running_in_rain"]
+      "optimal_activities": ["basketball", "strength_training"],
+      "unsuitable_for": ["business_formal", "dinner_event"]
     }
   },
+
   "football_boots": {
     "attributes": {
       "materials": ["leather", "synthetic", "rubber"],
@@ -1648,10 +1735,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 25,
-      "optimal_activities": ["football", "soccer", "training"],
-      "unsuitable_for": ["formal_events", "casual_wear", "walking_long_distances"]
+      "optimal_activities": ["soccer"],
+      "unsuitable_for": ["business_formal", "walk"]
     }
   },
+
   "chelsea_boots": {
     "attributes": {
       "materials": ["leather", "synthetic"],
@@ -1667,10 +1755,11 @@
     "usage_constraints": {
       "weather_min_temp": 5,
       "weather_max_temp": 25,
-      "optimal_activities": ["work", "dining", "casual_walks"],
-      "unsuitable_for": ["sports", "hiking", "heavy_rain"]
+      "optimal_activities": ["business_casual", "dates", "walk"],
+      "unsuitable_for": ["trail_hiking", "cardio"]
     }
   },
+
   "combat_boots": {
     "attributes": {
       "materials": ["leather", "rubber", "synthetic"],
@@ -1686,10 +1775,11 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 20,
-      "optimal_activities": ["walking", "casual", "light_hiking"],
-      "unsuitable_for": ["formal_events", "sports"]
+      "optimal_activities": ["urban_outdoor", "walk", "commuting"],
+      "unsuitable_for": ["business_formal", "presentations"]
     }
   },
+
   "winter_boots": {
     "attributes": {
       "materials": ["leather", "synthetic", "fur_lining"],
@@ -1705,10 +1795,11 @@
     "usage_constraints": {
       "weather_min_temp": -20,
       "weather_max_temp": 10,
-      "optimal_activities": ["walking", "snow", "casual", "outdoor"],
-      "unsuitable_for": ["formal_events"]
+      "optimal_activities": ["snow_days", "commuting", "walk"],
+      "unsuitable_for": ["business_formal"]
     }
   },
+
   "hiking_boots": {
     "attributes": {
       "materials": ["leather", "synthetic", "rubber"],
@@ -1724,10 +1815,11 @@
     "usage_constraints": {
       "weather_min_temp": -5,
       "weather_max_temp": 20,
-      "optimal_activities": ["hiking", "walking", "outdoor", "trekking"],
-      "unsuitable_for": ["formal_events", "sports_indoor"]
+      "optimal_activities": ["trail_hiking", "mountain_hiking", "camping"],
+      "unsuitable_for": ["business_formal", "dinner_event"]
     }
   },
+
   "thermal_top": {
     "attributes": {
       "materials": ["merino_wool", "polyester", "elastane"],
@@ -1743,10 +1835,11 @@
     "usage_constraints": {
       "weather_min_temp": -20,
       "weather_max_temp": 10,
-      "optimal_activities": ["hiking", "skiing", "cycling", "outdoor"],
-      "unsuitable_for": ["formal_events", "casual_warm_weather"]
+      "optimal_activities": ["skiing", "snowboarding", "mountain_hiking"],
+      "unsuitable_for": ["business_formal"]
     }
   },
+
   "thermal_bottom": {
     "attributes": {
       "materials": ["merino_wool", "polyester", "elastane"],
@@ -1762,10 +1855,11 @@
     "usage_constraints": {
       "weather_min_temp": -20,
       "weather_max_temp": 10,
-      "optimal_activities": ["hiking", "skiing", "cycling", "outdoor"],
-      "unsuitable_for": ["formal_events", "casual_warm_weather"]
+      "optimal_activities": ["skiing", "snowboarding", "mountain_hiking"],
+      "unsuitable_for": ["business_formal"]
     }
   },
+
   "base_layer_top": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -1781,10 +1875,11 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 20,
-      "optimal_activities": ["running", "cycling", "gym", "hiking"],
-      "unsuitable_for": ["formal_events", "casual_hot_weather"]
+      "optimal_activities": ["jogging", "road_cycling", "trail_hiking"],
+      "unsuitable_for": ["business_formal"]
     }
   },
+
   "base_layer_bottom": {
     "attributes": {
       "materials": ["polyester", "elastane", "nylon"],
@@ -1800,8 +1895,9 @@
     "usage_constraints": {
       "weather_min_temp": 0,
       "weather_max_temp": 20,
-      "optimal_activities": ["running", "cycling", "gym", "hiking"],
-      "unsuitable_for": ["formal_events", "casual_hot_weather"]
+      "optimal_activities": ["jogging", "road_cycling", "trail_hiking"],
+      "unsuitable_for": ["business_formal"]
     }
   }
 }
+

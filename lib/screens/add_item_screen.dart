@@ -742,14 +742,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
         _maxTempController.text = usage['weather_max_temp']?.toString() ?? '';
       }
 
-      final optimal = (usage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
-      if (optimal.isNotEmpty) {
+      if (usage.containsKey('optimal_activities')) {
+        final optimal = (usage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
         _selectedOptimalActivities.clear();
         _selectedOptimalActivities.addAll(optimal);
       }
 
-      final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
-      if (unsuitable.isNotEmpty) {
+      if (usage.containsKey('unsuitable_for')) {
+        final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
         _selectedUnsuitable.clear();
         _selectedUnsuitable.addAll(unsuitable);
       }

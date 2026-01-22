@@ -6,7 +6,7 @@
     },
 
     "casual": {
-      "daily_commute": ["errands", "shopping", "public_transport"],
+      "daily_commute": ["Public Transit", "on Foot", "Car", "E-Scooter", "Bike"],
       "social": ["meeting_friends", "coffee"],
       "light_outdoor": ["walk", "park"]
     },
@@ -56,5 +56,6 @@
       "music_festival": ["open_air", "crowded_events"],
       "cultural_events": ["street_fair", "market"]
     }
+    
   }
 }

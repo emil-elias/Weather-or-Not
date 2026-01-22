@@ -27,8 +27,6 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
   Map<String, dynamic> _subtypesAttributes = {};
   Map<String, List<String>> _activityGroups = {};
   List<String> _activityGroupOrder = [];
-  final TextEditingController _optimalSearchController = TextEditingController();
-  final TextEditingController _unsuitableSearchController = TextEditingController();
 
   @override
   void initState() {
@@ -40,8 +38,6 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
 
   @override
   void dispose() {
-    _optimalSearchController.dispose();
-    _unsuitableSearchController.dispose();
     super.dispose();
   }
 
@@ -617,12 +613,11 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
           // Optimal Activities (grouped and collapsed)
           Builder(builder: (context) {
             final optimal = (mergedUsage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
-            final search = _optimalSearchController.text.trim().toLowerCase();
-            // build a list of group children that have matching activities (and match search)
+            // build a list of group children that have matching activities
             final children = _activityGroupOrder.map((group) {
               final acts = _activityGroups[group] ?? [];
               final matches = acts.where((a) => optimal.contains(a)).toList();
-              final display = search.isEmpty ? matches : matches.where((a) => a.toLowerCase().contains(search)).toList();
+              final display = matches;
               if (display.isEmpty) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical:6.0),
@@ -646,29 +641,17 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
               title: Row(children: [Icon(Icons.fitness_center_outlined, size:20, color: theme.colorScheme.primary), const SizedBox(width:8), Text('Optimal Activities')]),
               initiallyExpanded: false,
               childrenPadding: const EdgeInsets.symmetric(horizontal:0, vertical:8),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: TextField(
-                    controller: _optimalSearchController,
-                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'Search activities', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), isDense: true,),
-                    onChanged: (v) => setState(() {}),
-                  ),
-                ),
-                const SizedBox(height:8),
-                ...children,
-              ],
+              children: children,
             );
           }),
           const SizedBox(height: 12),
           // Unsuitable For (grouped and collapsed)
           Builder(builder: (context) {
             final unsuitable = (mergedUsage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
-            final search = _unsuitableSearchController.text.trim().toLowerCase();
             final children = _activityGroupOrder.map((group) {
               final acts = _activityGroups[group] ?? [];
               final matches = acts.where((a) => unsuitable.contains(a)).toList();
-              final display = search.isEmpty ? matches : matches.where((a) => a.toLowerCase().contains(search)).toList();
+              final display = matches;
               if (display.isEmpty) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical:6.0),
@@ -691,18 +674,7 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
               title: Row(children: [Icon(Icons.block_outlined, size:20, color: theme.colorScheme.primary), const SizedBox(width:8), Text('Unsuitable For')]),
               initiallyExpanded: false,
               childrenPadding: const EdgeInsets.symmetric(horizontal:0, vertical:8),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: TextField(
-                    controller: _unsuitableSearchController,
-                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'Search activities', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), isDense: true,),
-                    onChanged: (v) => setState(() {}),
-                  ),
-                ),
-                const SizedBox(height:8),
-                ...children,
-              ],
+              children: children,
             );
           }),
         ],

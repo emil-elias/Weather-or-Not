@@ -257,29 +257,66 @@ class OutfitEngine {
       return s;
     }
 
-    ClothingItem? pickByCategory(List<String> categoryVariations) {
+    ClothingItem? pickByCategory(List<String> categoryVariations, {List<String>? subtypeFilter, int? maxWarmth}) {
       // First, prefer items that match the requested category among the scored items
-      final filtered = scores.entries
+      var filtered = scores.entries
           .where((e) {
             final catLower = e.key.category.toLowerCase();
             return categoryVariations.any((cat) => catLower.contains(cat.toLowerCase()));
           })
           .toList();
 
+      // Apply subtype filter if provided (to differentiate shirts from pullovers within tops)
+      if (subtypeFilter != null && subtypeFilter.isNotEmpty) {
+        filtered = filtered.where((e) {
+          final subtypeLower = e.key.subtype.toLowerCase();
+          return subtypeFilter.any((subtype) => subtypeLower.contains(subtype.toLowerCase()));
+        }).toList();
+      }
+
+      // Apply warmth filter if provided
+      if (maxWarmth != null) {
+        filtered = filtered.where((e) => e.key.attributes.warmthLevel <= maxWarmth).toList();
+      }
+
       if (filtered.isNotEmpty) {
         filtered.sort((a, b) => b.value.compareTo(a.value));
-        print("Pick: Selected from scored candidates $categoryVariations: ${filtered.first.key.subtype} (${filtered.first.key.category}) with score ${filtered.first.value.toStringAsFixed(2)}");
+        print("Pick: Selected from scored candidates $categoryVariations (subtypes=$subtypeFilter, maxWarmth=$maxWarmth): ${filtered.first.key.subtype} (${filtered.first.key.category}) with score ${filtered.first.value.toStringAsFixed(2)}");
         return filtered.first.key;
       }
 
       // If no scored candidate exists for that category (edge case), fallback to scoring wardrobe items manually
-      final fallbackCandidates = wardrobe.where((item) {
+      var fallbackCandidates = wardrobe.where((item) {
         final catLower = item.category.toLowerCase();
         return categoryVariations.any((cat) => catLower.contains(cat.toLowerCase()));
       }).toList();
 
+      // Apply subtype filter to fallback
+      if (subtypeFilter != null && subtypeFilter.isNotEmpty) {
+        fallbackCandidates = fallbackCandidates.where((item) {
+          final subtypeLower = item.subtype.toLowerCase();
+          return subtypeFilter.any((subtype) => subtypeLower.contains(subtype.toLowerCase()));
+        }).toList();
+      }
+
+      // Apply warmth filter to fallback
+      if (maxWarmth != null) {
+        fallbackCandidates = fallbackCandidates.where((item) => item.attributes.warmthLevel <= maxWarmth).toList();
+      }
+
       if (fallbackCandidates.isEmpty) {
-        print('Pick: No items found at all for categories=$categoryVariations');
+        // Absolute fallback: pick the best-scoring non-accessory item overall so the outfit is never missing pieces
+        final anyFallback = scores.entries
+            .where((e) => !e.key.category.toLowerCase().contains('access'))
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+        if (anyFallback.isNotEmpty) {
+          print('Pick: No category match for $categoryVariations, using best overall ${anyFallback.first.key.subtype} (${anyFallback.first.key.category})');
+          return anyFallback.first.key;
+        }
+
+        print('Pick: No items available in wardrobe to satisfy categories=$categoryVariations');
         return null;
       }
 
@@ -292,12 +329,28 @@ class OutfitEngine {
       return scoredFallback.first.key;
     }
 
-    // Pick items based on actual category names
-    shirt = pickByCategory(['t-shirts', 'shirts & blouses', 'knitwear', 'sportswear', 'tops']);
-    pullover = pickByCategory(['sweat', 'hoodie', 'sweater', 'pullover']);
-    bottom = pickByCategory(['bottom', 'trousers', 'pant', 'shorts', 'skirts', 'jean', 'sports_bottoms']);
-    shoes = pickByCategory(['casual_shoes', 'boots', 'dress_shoes', 'sport_shoes']);
-    outer = pickByCategory(['outerwear', 'jacket', 'coat', 'technical_outerwear']);
+    // Pick items based on subcategory group names from categories.json
+    // Lighter tops (t-shirts, shirts & blouses, sportswear, women specific) - prefer items with lower warmth
+    shirt = pickByCategory(
+      ['t-shirt', 't-shirts', 'tshirt', 'tshirts', 'shirt', 'shirts', 'blouse', 'blouses', 'shirts & blouses', 'shirts_blouses', 'sportswear', 'women specific', 'women_specific', 'tops'],
+      subtypeFilter: ['tee', 'shirt', 'blouse', 'tank', 'sleeveless', 'crop', 'tunic', 'top', 'performance', 'running', 'training', 'compression', 'bodysuit', 'bralette', 'tube', 'bustier', 'corsage'],
+      maxWarmth: 4
+    );
+    
+    // Heavier tops (knitwear, sweat) - prefer warmer items
+    pullover = pickByCategory(
+      ['knitwear', 'knits', 'sweat', 'sweats', 'sweater', 'sweaters'],
+      subtypeFilter: ['sweater', 'pullover', 'turtleneck', 'cardigan', 'hoodie', 'sweatshirt', 'fleece', 'poncho', 'cape', 'knit', 'crewneck', 'vneck', 'quarter', 'zip']
+    );
+    
+    // Bottoms - all groups under bottoms category
+    bottom = pickByCategory(['trouser', 'trousers', 'short', 'shorts', 'skirt', 'skirts', 'sports bottom', 'sports_bottoms', 'sports_bottom', 'pant', 'pants', 'jean', 'jeans']);
+    
+    // Shoes - all groups under shoes category
+    shoes = pickByCategory(['casual shoe', 'casual_shoes', 'casual_shoe', 'dress shoe', 'dress_shoes', 'dress_shoe', 'sport shoe', 'sport_shoes', 'sport_shoe', 'boot', 'boots', 'shoes']);
+    
+    // Outerwear - all groups under outerwear category
+    outer = pickByCategory(['jacket', 'jackets', 'coat', 'coats', 'technical outerwear', 'technical_outerwear', 'outerwear', 'outer']);
 
     // Accessories: pick up to 2 highest-score from scores first, then fallback to wardrobe
     final accessoryEntries = scores.entries
@@ -315,6 +368,62 @@ class OutfitEngine {
         if (accessories.length >= 2) break;
       }
     }
+
+    // Ensure mandatory pieces exist by falling back to best-scoring non-accessory items
+    ClothingItem? bestOverall(Set<ClothingItem> exclude) {
+      final sorted = scores.entries
+          .where((e) => !exclude.contains(e.key) && !e.key.category.toLowerCase().contains('access'))
+          .toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      if (sorted.isNotEmpty) return sorted.first.key;
+      final fallback = wardrobe.where((w) => !exclude.contains(w) && !w.category.toLowerCase().contains('access')).toList();
+      if (fallback.isEmpty) return null;
+      fallback.sort((a, b) => computeFallbackScoreForItem(b, activities, rainProbability, windSpeed).compareTo(computeFallbackScoreForItem(a, activities, rainProbability, windSpeed)));
+      return fallback.first;
+    }
+
+    ClothingItem? bestWarmTop(Set<ClothingItem> exclude) {
+      final sorted = scores.entries
+          .where((e) {
+            if (exclude.contains(e.key)) return false;
+            final cat = e.key.category.toLowerCase();
+            final warmCat = cat.contains('knit') || cat.contains('sweat') || cat.contains('hood') || cat.contains('pullover') || cat.contains('sweater');
+            return !cat.contains('access') && (warmCat || e.key.attributes.warmthLevel >= 4);
+          })
+          .toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      if (sorted.isNotEmpty) return sorted.first.key;
+      final fallback = wardrobe.where((w) {
+        if (exclude.contains(w)) return false;
+        final cat = w.category.toLowerCase();
+        final warmCat = cat.contains('knit') || cat.contains('sweat') || cat.contains('hood') || cat.contains('pullover') || cat.contains('sweater');
+        return !cat.contains('access') && (warmCat || w.attributes.warmthLevel >= 4);
+      }).toList();
+      if (fallback.isEmpty) return null;
+      fallback.sort((a, b) => computeFallbackScoreForItem(b, activities, rainProbability, windSpeed).compareTo(computeFallbackScoreForItem(a, activities, rainProbability, windSpeed)));
+      return fallback.first;
+    }
+
+    final chosenSet = <ClothingItem>{
+      if (shirt != null) shirt!,
+      if (pullover != null) pullover!,
+      if (bottom != null) bottom!,
+      if (shoes != null) shoes!,
+      if (outer != null) outer!,
+      ...accessories,
+    };
+
+    shirt ??= bestOverall(chosenSet);
+    if (shirt != null) chosenSet.add(shirt!);
+    pullover ??= bestWarmTop(chosenSet);
+    pullover ??= bestOverall(chosenSet);
+    if (pullover != null) chosenSet.add(pullover!);
+    bottom ??= bestOverall(chosenSet);
+    if (bottom != null) chosenSet.add(bottom!);
+    shoes ??= bestOverall(chosenSet);
+    if (shoes != null) chosenSet.add(shoes!);
+    outer ??= bestOverall(chosenSet);
+    if (outer != null) chosenSet.add(outer!);
 
     // Compute average score from the chosen items (use scored values when available, else fallback heuristic)
     final chosenItems = [if (shirt != null) shirt, if (pullover != null) pullover, if (bottom != null) bottom, if (shoes != null) shoes, if (outer != null) outer, ...accessories];
@@ -399,14 +508,28 @@ class OutfitEngine {
       warmThreshold: warmThreshold,
     );
 
-    List<ClothingItem> pickTopNByCategory(List<String> categoryVariations, int n) {
-      final filtered = scores.entries
+    List<ClothingItem> pickTopNByCategory(List<String> categoryVariations, int n, {List<String>? subtypeFilter, int? maxWarmth}) {
+      var filtered = scores.entries
           .where((e) {
             final catLower = e.key.category.toLowerCase();
             return categoryVariations.any((cat) => catLower.contains(cat.toLowerCase()));
           })
-          .toList()
-            ..sort((a, b) => b.value.compareTo(a.value));
+          .toList();
+
+      // Apply subtype filter if provided
+      if (subtypeFilter != null && subtypeFilter.isNotEmpty) {
+        filtered = filtered.where((e) {
+          final subtypeLower = e.key.subtype.toLowerCase();
+          return subtypeFilter.any((subtype) => subtypeLower.contains(subtype.toLowerCase()));
+        }).toList();
+      }
+
+      // Apply warmth filter if provided
+      if (maxWarmth != null) {
+        filtered = filtered.where((e) => e.key.attributes.warmthLevel <= maxWarmth).toList();
+      }
+
+      filtered.sort((a, b) => b.value.compareTo(a.value));
 
       if (filtered.isNotEmpty) return filtered.take(n).map((e) => e.key).toList();
 
@@ -421,39 +544,108 @@ class OutfitEngine {
         warmThreshold: warmThreshold,
           );
 
-      final fallbackCandidates = wardrobe.where((item) {
+      var fallbackCandidates = wardrobe.where((item) {
         final catLower = item.category.toLowerCase();
         return categoryVariations.any((cat) => catLower.contains(cat.toLowerCase()));
       }).toList();
 
-      final scoredFallback = fallbackCandidates.map((item) => MapEntry(item, computeFallback(item))).toList()
+      // Apply subtype filter to fallback
+      if (subtypeFilter != null && subtypeFilter.isNotEmpty) {
+        fallbackCandidates = fallbackCandidates.where((item) {
+          final subtypeLower = item.subtype.toLowerCase();
+          return subtypeFilter.any((subtype) => subtypeLower.contains(subtype.toLowerCase()));
+        }).toList();
+      }
+
+      // Apply warmth filter to fallback
+      if (maxWarmth != null) {
+        fallbackCandidates = fallbackCandidates.where((item) => item.attributes.warmthLevel <= maxWarmth).toList();
+      }
+
+      if (fallbackCandidates.isNotEmpty) {
+        final scoredFallback = fallbackCandidates.map((item) => MapEntry(item, computeFallback(item))).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+        return scoredFallback.take(n).map((e) => e.key).toList();
+      }
+
+      // Absolute fallback: best-scoring non-accessory items overall
+      final anyFallback = scores.entries
+          .where((e) => !e.key.category.toLowerCase().contains('access'))
+          .toList()
         ..sort((a, b) => b.value.compareTo(a.value));
 
-      return scoredFallback.take(n).map((e) => e.key).toList();
+      return anyFallback.take(n).map((e) => e.key).toList();
     }
 
-    // Candidate pools
-    final shirts = pickTopNByCategory(['t-shirts', 'shirts & blouses', 'knitwear', 'sportswear', 'tops'], topNPerCategory);
-    final pullovers = pickTopNByCategory(['sweat', 'hoodie', 'sweater', 'pullover'], topNPerCategory);
-    final bottoms = pickTopNByCategory(['bottom', 'trousers', 'pant', 'shorts', 'skirts', 'jean', 'sports_bottoms'], topNPerCategory);
-    final shoes = pickTopNByCategory(['casual_shoes', 'boots', 'dress_shoes', 'sport_shoes'], topNPerCategory);
-    final outers = pickTopNByCategory(['outerwear', 'jacket', 'coat', 'technical_outerwear'], topNPerCategory);
+    // Candidate pools - use subcategory group names from categories.json
+    // Lighter tops (t-shirts, shirts & blouses, sportswear, women specific)
+    final shirts = pickTopNByCategory(
+      ['t-shirt', 't-shirts', 'tshirt', 'tshirts', 'shirt', 'shirts', 'blouse', 'blouses', 'shirts & blouses', 'shirts_blouses', 'sportswear', 'women specific', 'women_specific', 'tops'],
+      topNPerCategory,
+      subtypeFilter: ['tee', 'shirt', 'blouse', 'tank', 'sleeveless', 'crop', 'tunic', 'top', 'performance', 'running', 'training', 'compression', 'bodysuit', 'bralette', 'tube', 'bustier', 'corsage'],
+      maxWarmth: 4
+    );
+    
+    // Heavier tops (knitwear, sweat)
+    final pullovers = pickTopNByCategory(
+      ['knitwear', 'knits', 'sweat', 'sweats', 'sweater', 'sweaters'],
+      topNPerCategory,
+      subtypeFilter: ['sweater', 'pullover', 'turtleneck', 'cardigan', 'hoodie', 'sweatshirt', 'fleece', 'poncho', 'cape', 'knit', 'crewneck', 'vneck', 'quarter', 'zip']
+    );
+    
+    // Bottoms - all groups under bottoms category
+    final bottoms = pickTopNByCategory(['trouser', 'trousers', 'short', 'shorts', 'skirt', 'skirts', 'sports bottom', 'sports_bottoms', 'sports_bottom', 'pant', 'pants', 'jean', 'jeans'], topNPerCategory);
+    
+    // Shoes - all groups under shoes category
+    final shoes = pickTopNByCategory(['casual shoe', 'casual_shoes', 'casual_shoe', 'dress shoe', 'dress_shoes', 'dress_shoe', 'sport shoe', 'sport_shoes', 'sport_shoe', 'boot', 'boots', 'shoes'], topNPerCategory);
+    
+    // Outerwear - all groups under outerwear category
+    final outers = pickTopNByCategory(['jacket', 'jackets', 'coat', 'coats', 'technical outerwear', 'technical_outerwear', 'outerwear', 'outer'], topNPerCategory);
     print('OutfitEngine: pickTopNByCategory(outers) found ${outers.length} candidates => ${outers.map((o) => '${o.subtype}(${o.category})').join(', ')}');
 
     final accessoryEntries = scores.entries.where((e) => e.key.category.toLowerCase().contains('access')).toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final topAccessories = accessoryEntries.map((e) => e.key).toList();
 
+    // Ensure every required category has at least one candidate (fall back to best-scoring overall items)
+    List<ClothingItem> ensureNonEmpty(List<ClothingItem> list) {
+      if (list.isNotEmpty) return list;
+      final fallback = scores.entries
+          .where((e) => !e.key.category.toLowerCase().contains('access'))
+          .toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      return fallback.take(topNPerCategory).map((e) => e.key).toList();
+    }
+
+    List<ClothingItem> ensureWarmPullovers(List<ClothingItem> list) {
+      if (list.isNotEmpty) return list;
+      final warmFallback = scores.entries
+          .where((e) {
+            final cat = e.key.category.toLowerCase();
+            final warmCat = cat.contains('knit') || cat.contains('sweat') || cat.contains('hood') || cat.contains('pullover') || cat.contains('sweater');
+            return !cat.contains('access') && (warmCat || e.key.attributes.warmthLevel >= 4);
+          })
+          .toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      return warmFallback.take(topNPerCategory).map((e) => e.key).toList();
+    }
+
+    final shirtsNonEmpty = ensureNonEmpty(shirts);
+    final pulloversNonEmpty = ensureWarmPullovers(pullovers);
+    final bottomsNonEmpty = ensureNonEmpty(bottoms);
+    final shoesNonEmpty = ensureNonEmpty(shoes);
+    final outersNonEmpty = ensureNonEmpty(outers);
+
     final List<Outfit> allOutfits = [];
 
-    // Build combinations (cartesian product)
-    for (final sh in (shirts.isEmpty ? [null] : shirts)) {
-      for (final pu in (pullovers.isEmpty ? [null] : pullovers)) {
-        for (final bo in (bottoms.isEmpty ? [null] : bottoms)) {
-          for (final shs in (shoes.isEmpty ? [null] : shoes)) {
-            for (final ou in (outers.isEmpty ? [null] : outers)) {
-              final chosen = [if (sh != null) sh, if (pu != null) pu, if (bo != null) bo, if (shs != null) shs, if (ou != null) ou];
-              if (chosen.isEmpty) continue;
+    // Build combinations (cartesian product) - all required slots are non-empty, so no nulls
+    for (final sh in shirtsNonEmpty) {
+      for (final pu in pulloversNonEmpty) {
+        for (final bo in bottomsNonEmpty) {
+          for (final shs in shoesNonEmpty) {
+            for (final ou in outersNonEmpty) {
+              final chosen = [sh, pu, bo, shs, ou];
 
               // choose up to 2 accessories that are not already part of chosen
               final accessories = <ClothingItem>[];
@@ -472,6 +664,7 @@ class OutfitEngine {
                 windSpeed: windSpeed,
                 coldThreshold: coldThreshold,
                 warmThreshold: warmThreshold,
+                pulloverHint: pu,
               );
               allOutfits.add(outfit);
             }
@@ -570,6 +763,7 @@ class OutfitEngine {
     double windSpeed = 0.0,
     double? coldThreshold,
     double? warmThreshold,
+    ClothingItem? pulloverHint,
   }) {
     final items = [...chosen, ...accessories];
 
@@ -592,7 +786,7 @@ class OutfitEngine {
     final baseScore = items.isNotEmpty ? total / items.length : 0.0;
 
     final shirt = _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('top') || c.category.toLowerCase().contains('t-shirt') || c.category.toLowerCase().contains('shirt') || c.category.toLowerCase().contains('tops'));
-    final pullover = _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('sweat') || c.category.toLowerCase().contains('hoodie') || c.category.toLowerCase().contains('pullover') || c.category.toLowerCase().contains('sweater'));
+    final pullover = pulloverHint ?? _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('sweat') || c.category.toLowerCase().contains('hoodie') || c.category.toLowerCase().contains('pullover') || c.category.toLowerCase().contains('sweater'));
     final bottom = _firstWhereOrNull(chosen, (c) => c.category.toLowerCase().contains('bottom') || c.category.toLowerCase().contains('trous') || c.category.toLowerCase().contains('pant') || c.category.toLowerCase().contains('short') || c.category.toLowerCase().contains('skirt') || c.category.toLowerCase().contains('jean'));
 
     final styleScore = _computeStyleScore(items);
