@@ -856,7 +856,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
               // Attributes editor (preselected from subtype defaults)
               ExpansionTile(
                 initiallyExpanded: false,
-                title: const Text('Attributes & Usage'),
+                title: const Text('(Advanced) Attributes & Usage'),
                 childrenPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                 children: [
                   // Materials

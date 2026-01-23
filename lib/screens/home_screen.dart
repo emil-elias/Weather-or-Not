@@ -277,10 +277,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadOrGenerateOutfit() async {
     try {
       final displayDate = _getDisplayDate();
-      
+
       // Try to load stored outfit for the display date
-      final storedOutfit = await _outfitStorageService.getOutfitForDate(displayDate);
-      
+      final storedOutfit = await _outfitStorageService.getOutfitForDate(
+        displayDate,
+      );
+
       if (storedOutfit != null) {
         // Use stored outfit
         await _hasOutfitItemsInWash(storedOutfit);
@@ -290,14 +292,17 @@ class _HomeScreenState extends State<HomeScreen> {
         print('HomeScreen: Loaded stored outfit for $displayDate');
         return;
       }
-      
+
       // If no stored outfit, wait for weather to be loaded then generate one
       if (_currentWeather != null) {
         await _generateOutfit(_currentWeather!);
-        
+
         // Save the generated outfit for the display date
         if (_generatedOutfit != null) {
-          await _outfitStorageService.saveOutfitForDate(displayDate, _generatedOutfit!);
+          await _outfitStorageService.saveOutfitForDate(
+            displayDate,
+            _generatedOutfit!,
+          );
           print('HomeScreen: Generated and stored outfit for $displayDate');
         }
       }
@@ -381,14 +386,17 @@ class _HomeScreenState extends State<HomeScreen> {
         final random = Random();
         final selectedOutfit = outfits[random.nextInt(outfits.length)];
         await _hasOutfitItemsInWash(selectedOutfit);
-        
+
         setState(() {
           _generatedOutfit = selectedOutfit;
         });
-        
+
         // Save the generated outfit for the display date
         final displayDate = _getDisplayDate();
-        await _outfitStorageService.saveOutfitForDate(displayDate, selectedOutfit);
+        await _outfitStorageService.saveOutfitForDate(
+          displayDate,
+          selectedOutfit,
+        );
         print('HomeScreen: Generated and saved outfit for $displayDate');
       }
     } catch (e) {
@@ -533,244 +541,277 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Determine display title based on date
     final displayDate = _getDisplayDate();
-    final isToday = displayDate.day == DateTime.now().day &&
+    final isToday =
+        displayDate.day == DateTime.now().day &&
         displayDate.month == DateTime.now().month &&
         displayDate.year == DateTime.now().year;
-    final displayTitle = isToday 
+    final displayTitle = isToday
         ? 'Today'
         : (widget.title ?? _formatDate(displayDate));
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: Navigator(
-        key: homeNavigatorKey,
-        onGenerateRoute: (settings) => MaterialPageRoute(
-          builder: (_) => SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        children: [
-                          if (Navigator.canPop(context))
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back),
-                              tooltip: 'Back',
-                              onPressed: () => Navigator.maybePop(context),
-                            ),
-                          const SizedBox(width: 8),
-                          Text(
-                            displayTitle,
-                            style: displayTitle == "Today"
-                                ? theme.textTheme.headlineLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  )
-                                : theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      LocationDropdown(
-                        selectedLocation: _selectedLocation,
-                        onLocationChanged: _onLocationChanged,
-                        closestLocations: _provider.closestLocations,
-                        locationAccessDenied: _provider.locationAccessDenied,
-                        onRequestLocationPermission: () =>
-                            _provider.getClosestLocation(),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  WeatherCard(
-                    isLoading: _isLoading,
-                    errorMessage: _errorMessage,
-                    currentWeather: widget.live == true
-                        ? _currentWeather
-                        : null,
-                    forecast: _forecast,
-                    forecastIndex: widget.forecastIndex,
-                    onTap: widget.live == true && _currentWeather?.icon != 32
-                        ? () {
-                            homeNavigatorKey.currentState?.push(
-                              MaterialPageRoute(
-                                builder: (context) => const WeatherScreen(),
-                              ),
-                            );
-                          }
-                        : null,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Add activities button
-                  GestureDetector(
-                    onTap: () => _showAddActivityDialog(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.show_chart_rounded,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Add activities for ${isToday ? 'today' : displayTitle.toLowerCase()}',
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              size: 20,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Activities list
-                  // Activities list
-                  if (_todayActivities.isNotEmpty) ...[
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _todayActivities.map((activity) {
-                        return Chip(
-                          label: Text(activity.name),
-                          deleteIcon: const Icon(Icons.close, size: 18),
-                          onDeleted: () async {
-                            setState(() {
-                              _todayActivities.remove(activity);
-                            });
-                            // Remove from planner
-                            final displayDate = _getDisplayDate();
-                            await _plannerService.removeActivityFromDay(
-                              displayDate,
-                              activity.name.toLowerCase().replaceAll(' ', '_'),
-                            );
-                            // Regenerate outfit when activity is removed
-                            if (_currentWeather != null) {
-                              _generateOutfit(_currentWeather!);
-                            }
-                          },
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          labelStyle: TextStyle(
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Your outfit section
-                  Text(
-                    'Your outfit',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Generate Outfit Button
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _currentWeather != null
-                              ? () => _generateOutfit(_currentWeather!)
-                              : null,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Generate New Outfit'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _generatedOutfit != null
-                              ? _saveOutfit
-                              : null,
-                          icon: const Icon(Icons.save_outlined),
-                          label: const Text('Save Outfit'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Outfit cards — vertical ordered list (Outerwear → Pullover → Shirt → Bottom → Shoes)
-                  if (_generatedOutfit != null)
-                    Column(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (route, result) {
+        if (homeNavigatorKey.currentState != null &&
+            homeNavigatorKey.currentState!.canPop()) {
+          homeNavigatorKey.currentState!.pop(result);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        body: Navigator(
+          key: homeNavigatorKey,
+          onGenerateRoute: (settings) => MaterialPageRoute(
+            builder: (_) => SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                  top: 12,
+                  left: 24,
+                  right: 24,
+                  bottom: 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.outerwear,
-                          label: 'Outerwear',
-                          isLarge: true,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              if (Navigator.canPop(context))
+                                Transform.translate(
+                                  offset: const Offset(
+                                    -12,
+                                    0,
+                                  ), // Shift the button 8 pixels to the left
+                                  child: IconButton(
+                                    icon: const Icon(Icons.arrow_back),
+                                    padding: EdgeInsets.zero,
+                                    tooltip: 'Back',
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  ),
+                                ),
+                              //const SizedBox(width: 0),
+                              Flexible(
+                                child: Text(
+                                  displayTitle,
+                                  style: displayTitle == "Today"
+                                      ? theme.textTheme.headlineLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        )
+                                      : theme.textTheme.headlineSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: false,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.pullover,
-                          label: 'Pullover',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.shirt,
-                          label: 'Shirt',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.bottom,
-                          label: 'Bottom',
-                          isLarge: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOutfitCard(
-                          context,
-                          _generatedOutfit!.shoes,
-                          label: 'Shoes',
-                          isLarge: true,
+
+                        const SizedBox(width: 16),
+
+                        LocationDropdown(
+                          selectedLocation: _selectedLocation,
+                          onLocationChanged: _onLocationChanged,
+                          closestLocations: _provider.closestLocations,
+                          locationAccessDenied: _provider.locationAccessDenied,
+                          onRequestLocationPermission: () =>
+                              _provider.getClosestLocation(),
                         ),
                       ],
                     ),
-                  const SizedBox(height: 24),
-                ],
+
+                    const SizedBox(height: 24),
+
+                    WeatherCard(
+                      isLoading: _isLoading,
+                      errorMessage: _errorMessage,
+                      currentWeather: widget.live == true
+                          ? _currentWeather
+                          : null,
+                      forecast: _forecast,
+                      forecastIndex: widget.forecastIndex,
+                      onTap: widget.live == true && _currentWeather?.icon != 32
+                          ? () {
+                              homeNavigatorKey.currentState?.push(
+                                MaterialPageRoute(
+                                  builder: (context) => const WeatherScreen(),
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Add activities button
+                    GestureDetector(
+                      onTap: () => _showAddActivityDialog(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.show_chart_rounded,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Add activities for ${isToday ? 'today' : displayTitle.toLowerCase()}',
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                size: 20,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Activities list
+                    // Activities list
+                    if (_todayActivities.isNotEmpty) ...[
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _todayActivities.map((activity) {
+                          return Chip(
+                            label: Text(activity.name),
+                            deleteIcon: const Icon(Icons.close, size: 18),
+                            onDeleted: () async {
+                              setState(() {
+                                _todayActivities.remove(activity);
+                              });
+                              // Remove from planner
+                              final displayDate = _getDisplayDate();
+                              await _plannerService.removeActivityFromDay(
+                                displayDate,
+                                activity.name.toLowerCase().replaceAll(
+                                  ' ',
+                                  '_',
+                                ),
+                              );
+                              // Regenerate outfit when activity is removed
+                              if (_currentWeather != null) {
+                                _generateOutfit(_currentWeather!);
+                              }
+                            },
+                            backgroundColor: theme.colorScheme.primaryContainer,
+                            labelStyle: TextStyle(
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // Your outfit section
+                    Text(
+                      'Your outfit',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Generate Outfit Button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _currentWeather != null
+                                ? () => _generateOutfit(_currentWeather!)
+                                : null,
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Generate New Outfit'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _generatedOutfit != null
+                                ? _saveOutfit
+                                : null,
+                            icon: const Icon(Icons.save_outlined),
+                            label: const Text('Save Outfit'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Outfit cards — vertical ordered list (Outerwear → Pullover → Shirt → Bottom → Shoes)
+                    if (_generatedOutfit != null)
+                      Column(
+                        children: [
+                          _buildOutfitCard(
+                            context,
+                            _generatedOutfit!.outerwear,
+                            label: 'Outerwear',
+                            isLarge: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildOutfitCard(
+                            context,
+                            _generatedOutfit!.pullover,
+                            label: 'Pullover',
+                            isLarge: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildOutfitCard(
+                            context,
+                            _generatedOutfit!.shirt,
+                            label: 'Shirt',
+                            isLarge: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildOutfitCard(
+                            context,
+                            _generatedOutfit!.bottom,
+                            label: 'Bottom',
+                            isLarge: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildOutfitCard(
+                            context,
+                            _generatedOutfit!.shoes,
+                            label: 'Shoes',
+                            isLarge: true,
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1184,6 +1225,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Open a chooser allowing the user to pick a different item for the given role label (e.g., "Shirt", "Outerwear")
   Future<void> _openCategoryChooser(BuildContext context, String label) async {
+    if (!mounted) return;
+
     final wardrobeItems = await _wardrobeService.getWardrobeItems();
     if (wardrobeItems.isEmpty) {
       if (mounted)
@@ -1233,6 +1276,8 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList(),
       );
     }
+
+    if (!mounted) return;
 
     // Show chooser
     final result = await showModalBottomSheet<ClothingItem>(
@@ -1513,9 +1558,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final displayDate = _getDisplayDate();
       await _outfitStorageService.saveOutfitForDate(displayDate, outfit);
       await _hasOutfitItemsInWash(outfit);
-      
+
       print('HomeScreen: Saved modified outfit for $displayDate');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1817,8 +1862,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 

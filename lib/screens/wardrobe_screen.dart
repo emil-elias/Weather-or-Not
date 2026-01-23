@@ -100,8 +100,12 @@ class _WardrobeScreenState extends State<WardrobeScreen>
 
   Future<void> _loadCategoryData() async {
     try {
-      final categoriesJson = await rootBundle.loadString('assets/categories.json');
-      final subcategoriesJson = await rootBundle.loadString('assets/subcategories.json');
+      final categoriesJson = await rootBundle.loadString(
+        'assets/categories.json',
+      );
+      final subcategoriesJson = await rootBundle.loadString(
+        'assets/subcategories.json',
+      );
 
       final categoriesData = json.decode(categoriesJson);
       final subcategoriesData = json.decode(subcategoriesJson);
@@ -112,10 +116,12 @@ class _WardrobeScreenState extends State<WardrobeScreen>
           _subcategoriesData = subcategoriesData;
 
           _categoryOptions = (_categoriesData['categories'] as List)
-              .map((cat) => {
-                    'id': cat['id'] as String,
-                    'label': cat['label'] as String,
-                  })
+              .map(
+                (cat) => {
+                  'id': cat['id'] as String,
+                  'label': cat['label'] as String,
+                },
+              )
               .toList();
         });
       }
@@ -156,39 +162,47 @@ class _WardrobeScreenState extends State<WardrobeScreen>
 
     if (_selectedCategory != null) {
       // Get all group labels for this category
-      final categoryId = _categoryOptions
-          .firstWhere(
-            (cat) => cat['label'] == _selectedCategory,
-            orElse: () => {'id': '', 'label': ''},
-          )['id'];
+      final categoryId = _categoryOptions.firstWhere(
+        (cat) => cat['label'] == _selectedCategory,
+        orElse: () => {'id': '', 'label': ''},
+      )['id'];
 
-      if (categoryId != null && categoryId.isNotEmpty && _categoriesData.isNotEmpty) {
-        final category = (_categoriesData['categories'] as List)
-            .firstWhere(
-              (cat) => cat['id'] == categoryId,
-              orElse: () => {'groups': []},
-            );
-        
+      if (categoryId != null &&
+          categoryId.isNotEmpty &&
+          _categoriesData.isNotEmpty) {
+        final category = (_categoriesData['categories'] as List).firstWhere(
+          (cat) => cat['id'] == categoryId,
+          orElse: () => {'groups': []},
+        );
+
         final groupLabels = (category['groups'] as List)
             .map((g) => (g['label'] as String).toLowerCase())
             .toSet();
 
-        items = items.where((item) => 
-          groupLabels.contains(item.category.toLowerCase())
-        ).toList();
+        items = items
+            .where((item) => groupLabels.contains(item.category.toLowerCase()))
+            .toList();
       }
     }
 
     if (_selectedSubcategory != null) {
-      items = items.where((item) => 
-        item.subcategory.toLowerCase() == _selectedSubcategory!.toLowerCase()
-      ).toList();
+      items = items
+          .where(
+            (item) =>
+                item.subcategory.toLowerCase() ==
+                _selectedSubcategory!.toLowerCase(),
+          )
+          .toList();
     }
 
     if (_selectedFormalityLevel != null) {
-      items = items.where((item) => 
-        item.formalityLevel.toLowerCase() == _selectedFormalityLevel!.toLowerCase()
-      ).toList();
+      items = items
+          .where(
+            (item) =>
+                item.formalityLevel.toLowerCase() ==
+                _selectedFormalityLevel!.toLowerCase(),
+          )
+          .toList();
     }
 
     return items;
@@ -203,19 +217,17 @@ class _WardrobeScreenState extends State<WardrobeScreen>
       return [];
     }
 
-    final categoryId = _categoryOptions
-        .firstWhere(
-          (cat) => cat['label'] == _selectedCategory,
-          orElse: () => {'id': '', 'label': ''},
-        )['id'];
+    final categoryId = _categoryOptions.firstWhere(
+      (cat) => cat['label'] == _selectedCategory,
+      orElse: () => {'id': '', 'label': ''},
+    )['id'];
 
     if (categoryId == null || categoryId.isEmpty) return [];
 
-    final category = (_categoriesData['categories'] as List)
-        .firstWhere(
-          (cat) => cat['id'] == categoryId,
-          orElse: () => {'groups': []},
-        );
+    final category = (_categoriesData['categories'] as List).firstWhere(
+      (cat) => cat['id'] == categoryId,
+      orElse: () => {'groups': []},
+    );
 
     if (category['groups'] == null) return [];
 
@@ -234,12 +246,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   }
 
   List<String> _getUniqueFormalityLevels() {
-    return [
-      'Casual',
-      'Smart Casual',
-      'Business',
-      'Formal',
-    ];
+    return ['Casual', 'Smart Casual', 'Business', 'Formal'];
   }
 
   void _clearFilters() {
@@ -261,121 +268,157 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (_showAddItemScreen) {
-      return AddItemScreen(onBack: _navigateBackToList);
-    }
+    final GlobalKey<NavigatorState> wardrobeNavigatorKey =
+        GlobalKey<NavigatorState>();
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
-        centerTitle: false,
-        title: Text(
-          'My Wardrobe',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: theme.colorScheme.primary,
-            labelColor: theme.colorScheme.onSurface,
-            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-            tabs: const [
-              Tab(icon: Icon(Icons.checkroom_outlined), text: 'Clothes'),
-              Tab(icon: Icon(Icons.watch_later_outlined), text: 'Past outfits'),
-              Tab(icon: Icon(Icons.favorite_outline), text: 'Favorites'),
-            ],
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
+    /*if (_showAddItemScreen) {
+      return AddItemScreen(onBack: _navigateBackToList);
+    }*/
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (route, result) {
+        if (wardrobeNavigatorKey.currentState != null &&
+            wardrobeNavigatorKey.currentState!.canPop()) {
+          wardrobeNavigatorKey.currentState!.pop(result);
+        }
+      },
+      child: Navigator(
+        key: wardrobeNavigatorKey,
+        onGenerateRoute: (settings) => MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: theme.colorScheme.surface,
+            appBar: AppBar(
+              backgroundColor: theme.colorScheme.surface,
+              elevation: 0,
+              centerTitle: false,
+              title: Padding(
+                padding: const EdgeInsets.only(
+                  top: 24.0,
+                  left: 10.0,
+                  bottom: 8,
+                ),
+                child: Text(
+                  'My Wardrobe',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(64),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: theme.colorScheme.primary,
+                  labelColor: theme.colorScheme.onSurface,
+                  unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.checkroom_outlined), text: 'Clothes'),
+                    Tab(
+                      icon: Icon(Icons.watch_later_outlined),
+                      text: 'Saved outfits',
+                    ),
+                    Tab(icon: Icon(Icons.favorite_outline), text: 'Favorites'),
+                  ],
+                ),
+              ),
+            ),
+            body: Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search...',
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            filled: true,
+                            fillColor: theme.colorScheme.surfaceContainerHighest
+                                .withOpacity(0.3),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                                width: 2,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _hasActiveFilters
+                              ? theme.colorScheme.primaryContainer
+                              : null,
+                          border: Border.all(
+                            color: _hasActiveFilters
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.tune_rounded,
+                            color: _hasActiveFilters
+                                ? theme.colorScheme.onPrimaryContainer
+                                : null,
+                          ),
+                          onPressed: () => _showFilterBottomSheet(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      filled: true,
-                      fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: _hasActiveFilters
-                        ? theme.colorScheme.primaryContainer
-                        : null,
-                    border: Border.all(
-                      color: _hasActiveFilters
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.outline,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.tune_rounded,
-                      color: _hasActiveFilters
-                          ? theme.colorScheme.onPrimaryContainer
-                          : null,
-                    ),
-                    onPressed: () => _showFilterBottomSheet(context),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildClothesTab(theme),
+                      _buildPastOutfitsTab(theme),
+                      _buildFavoriteOutfitsTab(theme),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildClothesTab(theme),
-                _buildPastOutfitsTab(theme),
-                _buildFavoriteOutfitsTab(theme),
-              ],
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => {
+                wardrobeNavigatorKey.currentState?.push(
+                  MaterialPageRoute(
+                    builder: (context) => AddItemScreen(
+                      onBack: _navigateBackToList,
+                    ),
+                  ),
+                ),
+              },
+              backgroundColor: theme.colorScheme.primaryContainer,
+              child: Icon(
+                Icons.add_rounded,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
             ),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddItem,
-        backgroundColor: theme.colorScheme.primaryContainer,
-        child: Icon(
-          Icons.add_rounded,
-          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );
@@ -473,100 +516,100 @@ class _WardrobeScreenState extends State<WardrobeScreen>
             child: Padding(
               padding: const EdgeInsets.all(10.0),
               child: Row(
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: item.imagePath != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                File(item.imagePath!),
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Icon(
-                              Icons.checkroom_rounded,
-                              color: theme.colorScheme.onPrimaryContainer,
-                              size: 32,
-                            ),
-                    ),
-                    if (item.isInWash)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.local_laundry_service,
-                            color: theme.colorScheme.onPrimary,
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
                     children: [
-                      Text(
-                        item.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        child: item.imagePath != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  File(item.imagePath!),
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Icon(
+                                Icons.checkroom_rounded,
+                                color: theme.colorScheme.onPrimaryContainer,
+                                size: 32,
+                              ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.description.isEmpty
-                            ? '${item.category} • ${item.color}'
-                            : item.description,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                      if (item.isInWash)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.local_laundry_service,
+                              color: theme.colorScheme.onPrimary,
+                              size: 16,
+                            ),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (item.tags.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: item.tags.take(3).map((tag) {
-                            return Chip(
-                              label: Text(tag),
-                              padding: EdgeInsets.zero,
-                              labelStyle: theme.textTheme.labelSmall,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            );
-                          }).toList(),
-                        ),
-                      ],
                     ],
                   ),
-                ),
-                Column(
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.description.isEmpty
+                              ? '${item.category} • ${item.color}'
+                              : item.description,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (item.tags.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: item.tags.take(3).map((tag) {
+                              return Chip(
+                                label: Text(tag),
+                                padding: EdgeInsets.zero,
+                                labelStyle: theme.textTheme.labelSmall,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Column(
                     children: [
                       IconButton(
                         icon: Icon(
@@ -574,9 +617,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                               ? Icons.favorite
                               : Icons.favorite_outline,
                         ),
-                        color: item.isFavorite
-                            ? theme.colorScheme.error
-                            : null,
+                        color: item.isFavorite ? theme.colorScheme.error : null,
                         iconSize: 20,
                         visualDensity: VisualDensity.compact,
                         onPressed: () => _toggleFavorite(item),
@@ -587,9 +628,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                               ? Icons.local_laundry_service
                               : Icons.local_laundry_service_outlined,
                         ),
-                        color: item.isInWash
-                            ? theme.colorScheme.primary
-                            : null,
+                        color: item.isInWash ? theme.colorScheme.primary : null,
                         iconSize: 20,
                         visualDensity: VisualDensity.compact,
                         onPressed: () => _toggleInWash(item),
@@ -601,11 +640,11 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                         onPressed: () => _deleteItem(item.id),
                       ),
                     ],
-                  )
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         );
       },
     );
@@ -762,10 +801,12 @@ class _WardrobeScreenState extends State<WardrobeScreen>
               outfit.accessoryIds.contains(item.id);
         });
 
-        return outfitItems.any((item) =>
-            item.name.toLowerCase().contains(query) ||
-            item.category.toLowerCase().contains(query) ||
-            item.subcategory.toLowerCase().contains(query));
+        return outfitItems.any(
+          (item) =>
+              item.name.toLowerCase().contains(query) ||
+              item.category.toLowerCase().contains(query) ||
+              item.subcategory.toLowerCase().contains(query),
+        );
       }).toList();
     }
 
@@ -786,9 +827,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => _showOutfitDetails(outfit, outfitItems),
         borderRadius: BorderRadius.circular(16),
@@ -842,34 +881,53 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                       // Show up to 4 items in a grid
                       GridView.builder(
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 2,
-                          crossAxisSpacing: 2,
-                        ),
-                        itemCount: outfitItems.length > 4 ? 4 : outfitItems.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 2,
+                              crossAxisSpacing: 2,
+                            ),
+                        itemCount: outfitItems.length > 4
+                            ? 4
+                            : outfitItems.length,
                         itemBuilder: (context, i) {
                           final item = outfitItems[i];
                           return Container(
                             decoration: BoxDecoration(
                               color: theme.colorScheme.primaryContainer,
                               borderRadius: i == 0
-                                  ? const BorderRadius.only(topLeft: Radius.circular(12))
+                                  ? const BorderRadius.only(
+                                      topLeft: Radius.circular(12),
+                                    )
                                   : i == 1
-                                      ? const BorderRadius.only(topRight: Radius.circular(12))
-                                      : i == 2
-                                          ? const BorderRadius.only(bottomLeft: Radius.circular(12))
-                                          : const BorderRadius.only(bottomRight: Radius.circular(12)),
+                                  ? const BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                    )
+                                  : i == 2
+                                  ? const BorderRadius.only(
+                                      bottomLeft: Radius.circular(12),
+                                    )
+                                  : const BorderRadius.only(
+                                      bottomRight: Radius.circular(12),
+                                    ),
                             ),
                             child: item.imagePath != null
                                 ? ClipRRect(
                                     borderRadius: i == 0
-                                        ? const BorderRadius.only(topLeft: Radius.circular(12))
+                                        ? const BorderRadius.only(
+                                            topLeft: Radius.circular(12),
+                                          )
                                         : i == 1
-                                            ? const BorderRadius.only(topRight: Radius.circular(12))
-                                            : i == 2
-                                                ? const BorderRadius.only(bottomLeft: Radius.circular(12))
-                                                : const BorderRadius.only(bottomRight: Radius.circular(12)),
+                                        ? const BorderRadius.only(
+                                            topRight: Radius.circular(12),
+                                          )
+                                        : i == 2
+                                        ? const BorderRadius.only(
+                                            bottomLeft: Radius.circular(12),
+                                          )
+                                        : const BorderRadius.only(
+                                            bottomRight: Radius.circular(12),
+                                          ),
                                     child: Image.file(
                                       File(item.imagePath!),
                                       fit: BoxFit.cover,
@@ -924,9 +982,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                           ? Icons.favorite
                           : Icons.favorite_outline,
                     ),
-                    color: outfit.isFavorite
-                        ? theme.colorScheme.error
-                        : null,
+                    color: outfit.isFavorite ? theme.colorScheme.error : null,
                     iconSize: 20,
                     visualDensity: VisualDensity.compact,
                     onPressed: () => _toggleOutfitFavorite(outfit),
@@ -1024,12 +1080,17 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     }
 
     final filteredItems = _getFilteredItems();
-    final favoriteItems = filteredItems.where((item) => item.isFavorite).toList();
+    final favoriteItems = filteredItems
+        .where((item) => item.isFavorite)
+        .toList();
     final filteredOutfits = _getFilteredOutfits();
-    final favoriteOutfits = filteredOutfits.where((outfit) => outfit.isFavorite).toList();
+    final favoriteOutfits = filteredOutfits
+        .where((outfit) => outfit.isFavorite)
+        .toList();
 
     if (favoriteItems.isEmpty && favoriteOutfits.isEmpty) {
-      final hasAnyFavorites = _wardrobeItems.any((item) => item.isFavorite) ||
+      final hasAnyFavorites =
+          _wardrobeItems.any((item) => item.isFavorite) ||
           _savedOutfits.any((outfit) => outfit.isFavorite);
 
       return Center(
@@ -1043,7 +1104,9 @@ class _WardrobeScreenState extends State<WardrobeScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              hasAnyFavorites ? 'No favorites match your search' : 'No favorites yet',
+              hasAnyFavorites
+                  ? 'No favorites match your search'
+                  : 'No favorites yet',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -1076,156 +1139,158 @@ class _WardrobeScreenState extends State<WardrobeScreen>
               ),
             ),
           ),
-          ...favoriteItems.map((item) => Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            elevation: 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: InkWell(
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WardrobeItemDetailScreen(
-                      item: item,
-                      onUpdate: _loadWardrobeItems,
-                    ),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: item.imagePath != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    File(item.imagePath!),
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.checkroom_rounded,
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                  size: 32,
-                                ),
-                        ),
-                        if (item.isInWash)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.local_laundry_service,
-                                color: theme.colorScheme.onPrimary,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.description.isEmpty
-                                ? '${item.category} • ${item.color}'
-                                : item.description,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (item.tags.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: item.tags.take(3).map((tag) {
-                                return Chip(
-                                  label: Text(tag),
-                                  padding: EdgeInsets.zero,
-                                  labelStyle: theme.textTheme.labelSmall,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ],
+          ...favoriteItems.map(
+            (item) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: InkWell(
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WardrobeItemDetailScreen(
+                        item: item,
+                        onUpdate: _loadWardrobeItems,
                       ),
                     ),
-                    Column(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.favorite),
-                          color: theme.colorScheme.error,
-                          iconSize: 20,
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => _toggleFavorite(item),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            item.isInWash
-                                ? Icons.local_laundry_service
-                                : Icons.local_laundry_service_outlined,
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    children: [
+                      Stack(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: item.imagePath != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      File(item.imagePath!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.checkroom_rounded,
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                    size: 32,
+                                  ),
                           ),
-                          color: item.isInWash
-                              ? theme.colorScheme.primary
-                              : null,
-                          iconSize: 20,
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => _toggleInWash(item),
+                          if (item.isInWash)
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.local_laundry_service,
+                                  color: theme.colorScheme.onPrimary,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.description.isEmpty
+                                  ? '${item.category} • ${item.color}'
+                                  : item.description,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (item.tags.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: item.tags.take(3).map((tag) {
+                                  return Chip(
+                                    label: Text(tag),
+                                    padding: EdgeInsets.zero,
+                                    labelStyle: theme.textTheme.labelSmall,
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          iconSize: 20,
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => _deleteItem(item.id),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      Column(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.favorite),
+                            color: theme.colorScheme.error,
+                            iconSize: 20,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _toggleFavorite(item),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              item.isInWash
+                                  ? Icons.local_laundry_service
+                                  : Icons.local_laundry_service_outlined,
+                            ),
+                            color: item.isInWash
+                                ? theme.colorScheme.primary
+                                : null,
+                            iconSize: 20,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _toggleInWash(item),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            iconSize: 20,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _deleteItem(item.id),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          )),
+          ),
         ],
         // Favorite Outfits Section
         if (favoriteOutfits.isNotEmpty) ...[
@@ -1312,8 +1377,11 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                               if (value == null) {
                                 _selectedSubcategory = null;
                               } else if (_selectedSubcategory != null) {
-                                final availableSubcats = _getUniqueSubcategories();
-                                if (!availableSubcats.contains(_selectedSubcategory)) {
+                                final availableSubcats =
+                                    _getUniqueSubcategories();
+                                if (!availableSubcats.contains(
+                                  _selectedSubcategory,
+                                )) {
                                   _selectedSubcategory = null;
                                 }
                               }

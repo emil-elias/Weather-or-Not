@@ -3,7 +3,7 @@ import '../services/location_service.dart';
 
 class LocationDropdown extends StatelessWidget {
   final Map<String, dynamic> selectedLocation;
-  final Function(Map<String,dynamic>) onLocationChanged;
+  final Function(Map<String, dynamic>) onLocationChanged;
   final List<Map<String, dynamic>>? closestLocations;
   final bool locationAccessDenied;
   final VoidCallback? onRequestLocationPermission;
@@ -22,30 +22,42 @@ class LocationDropdown extends StatelessWidget {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => _showLocationPicker(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.location_on_outlined,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(selectedLocation["name"], style: theme.textTheme.bodyMedium),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 200,
+        ), // Set the maximum width here
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 20,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  selectedLocation["name"],
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 20,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -155,9 +167,16 @@ class LocationDropdown extends StatelessWidget {
                                   if (selectedLocation != null) ...[
                                     ListTile(
                                       leading: const Icon(Icons.location_on),
-                                      title: Text(selectedLocation['name']?.toString() ?? ''),
-                                      subtitle: (selectedLocation['lat'] != null && selectedLocation['lon'] != null)
-                                          ? Text('${selectedLocation['lat']}, ${selectedLocation['lon']}')
+                                      title: Text(
+                                        selectedLocation['name']?.toString() ??
+                                            '',
+                                      ),
+                                      subtitle:
+                                          (selectedLocation['lat'] != null &&
+                                              selectedLocation['lon'] != null)
+                                          ? Text(
+                                              '${selectedLocation['lat']}, ${selectedLocation['lon']}',
+                                            )
                                           : null,
                                       onTap: () {
                                         onLocationChanged(selectedLocation);
@@ -171,7 +190,9 @@ class LocationDropdown extends StatelessWidget {
                                     ListTile(
                                       leading: const Icon(Icons.location_off),
                                       title: const Text('Enable location'),
-                                      subtitle: const Text('Allow location access to find nearby stations'),
+                                      subtitle: const Text(
+                                        'Allow location access to find nearby stations',
+                                      ),
                                       trailing: TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
@@ -184,22 +205,37 @@ class LocationDropdown extends StatelessWidget {
                                         onRequestLocationPermission?.call();
                                       },
                                     )
-                                  else if (closestLocations != null && closestLocations!.isNotEmpty)
+                                  else if (closestLocations != null &&
+                                      closestLocations!.isNotEmpty)
                                     ListTile(
                                       leading: const Icon(Icons.my_location),
-                                      title: Text(closestLocations!.first['name']?.toString() ?? ''),
-                                      subtitle: closestLocations!.first['distance'] != null
-                                          ? Text('${(closestLocations!.first['distance'] as double).toStringAsFixed(1)} km away')
+                                      title: Text(
+                                        closestLocations!.first['name']
+                                                ?.toString() ??
+                                            '',
+                                      ),
+                                      subtitle:
+                                          closestLocations!.first['distance'] !=
+                                              null
+                                          ? Text(
+                                              '${(closestLocations!.first['distance'] as double).toStringAsFixed(1)} km away',
+                                            )
                                           : null,
                                       onTap: () {
-                                        onLocationChanged(closestLocations!.first);
+                                        onLocationChanged(
+                                          closestLocations!.first,
+                                        );
                                         Navigator.pop(context);
                                       },
                                     )
                                   else
                                     const Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 24.0),
-                                      child: Center(child: Text('No nearby stations')),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 24.0,
+                                      ),
+                                      child: Center(
+                                        child: Text('No nearby stations'),
+                                      ),
                                     ),
                                 ],
                               ),
@@ -236,9 +272,7 @@ class LocationDropdown extends StatelessWidget {
     ).whenComplete(() {
       // Delay disposal to allow dismissal animation to complete
       Future.delayed(const Duration(milliseconds: 300), () {
-        
-          controller.dispose();
-        
+        controller.dispose();
       });
     });
   }

@@ -175,6 +175,8 @@ class _PlannerScreenState extends State<PlannerScreen>
   }
 
   Future<void> _generateOutfitForIndex(int forecastIndex, DateTime day) async {
+    if (!mounted) return;
+
     final key = _dateToString(day);
 
     // Check if outfit is already stored for this date
@@ -191,8 +193,12 @@ class _PlannerScreenState extends State<PlannerScreen>
       return;
     }
 
+    if (!mounted) return;
+
     final provider = context.read<MainProvider>();
+
     final forecast = provider.forecast;
+
     if (forecast == null ||
         forecast.days == null ||
         forecast.days!.length <= forecastIndex) {
@@ -383,12 +389,16 @@ class _PlannerScreenState extends State<PlannerScreen>
     }).toList();
   }
 
-  Widget _buildPlannedOutfitPreview(DateTime day, ThemeData theme, VoidCallback? onTap) {
+  Widget _buildPlannedOutfitPreview(
+    DateTime day,
+    ThemeData theme,
+    VoidCallback? onTap,
+  ) {
     final key = _dateToString(day);
     final outfit = _plannedOutfits[key];
     if (outfit == null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
         child: Text(
           'No outfit generated for this day',
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -570,48 +580,64 @@ class _PlannerScreenState extends State<PlannerScreen>
     final GlobalKey<NavigatorState> plannerNavigatorKey =
         GlobalKey<NavigatorState>();
 
-    return Navigator(
-      key: plannerNavigatorKey,
-      onGenerateRoute: (settings) => MaterialPageRoute(
-        builder: (_) => Scaffold(
-          backgroundColor: theme.colorScheme.surface,
-          appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (route, result) {
+        if (plannerNavigatorKey.currentState != null &&
+            plannerNavigatorKey.currentState!.canPop()) {
+          plannerNavigatorKey.currentState!.pop(result);
+        }
+      },
+      child: Navigator(
+        key: plannerNavigatorKey,
+        onGenerateRoute: (settings) => MaterialPageRoute(
+          builder: (_) => Scaffold(
             backgroundColor: theme.colorScheme.surface,
-            elevation: 0,
-            centerTitle: false,
-            title: Text(
-              'Planner',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+            appBar: AppBar(
+              backgroundColor: theme.colorScheme.surface,
+              elevation: 0,
+              centerTitle: false,
+              title: Padding(
+                padding: const EdgeInsets.only(
+                  top: 24.0,
+                  left: 10.0,
+                  bottom: 8,
+                ),
+                child: Text(
+                  'Planner',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
 
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: TabBar(
-                controller: _tabController,
-                indicatorColor: theme.colorScheme.primary,
-                labelColor: theme.colorScheme.onSurface,
-                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                tabs: const [
-                  Tab(
-                    icon: Icon(Icons.wb_sunny_outlined),
-                    text: 'Week forecast',
-                  ),
-                  Tab(
-                    icon: Icon(Icons.show_chart_rounded),
-                    text: 'Week activities',
-                  ),
-                ],
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(64),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: theme.colorScheme.primary,
+                  labelColor: theme.colorScheme.onSurface,
+                  unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                  tabs: const [
+                    Tab(
+                      icon: Icon(Icons.wb_sunny_outlined),
+                      text: 'Week forecast',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.show_chart_rounded),
+                      text: 'Week activities',
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildForecastTab(theme, context, plannerNavigatorKey),
-              _buildActivitiesTab(theme),
-            ],
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildForecastTab(theme, context, plannerNavigatorKey),
+                _buildActivitiesTab(theme),
+              ],
+            ),
           ),
         ),
       ),
@@ -627,8 +653,6 @@ class _PlannerScreenState extends State<PlannerScreen>
 
     MainProvider provider = context.watch<MainProvider>();
 
-    
-
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -643,18 +667,18 @@ class _PlannerScreenState extends State<PlannerScreen>
             String date = DateFormat('MMM d').format(day);
 
             void onTap() async {
-                    await navigatorKey.currentState?.push(
-                      MaterialPageRoute(
-                        builder: (context) => HomeScreen(
-                          live: false,
-                          title: dayName,
-                          forecastIndex: idx,
-                        ),
-                      ),
-                    );
-                    // Reload outfit after returning from HomeScreen
-                    await _generateOutfitForIndex(idx, day);
-                  }
+              await navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(
+                    live: false,
+                    title: dayName,
+                    forecastIndex: idx,
+                  ),
+                ),
+              );
+              // Reload outfit after returning from HomeScreen
+              await _generateOutfitForIndex(idx, day);
+            }
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -670,12 +694,12 @@ class _PlannerScreenState extends State<PlannerScreen>
                 WeatherCard(
                   isLoading: false,
                   forecast: provider.forecast,
-                  flatBottomCorners: _plannedOutfits
-                          .containsKey(_dateToString(day))
+                  flatBottomCorners:
+                      _plannedOutfits.containsKey(_dateToString(day))
                       ? true
                       : false,
                   forecastIndex: idx,
-                  onTap: onTap
+                  onTap: onTap,
                 ),
                 //const SizedBox(height: 12),
                 _buildPlannedOutfitPreview(day, theme, onTap),
@@ -846,64 +870,6 @@ class _PlannerScreenState extends State<PlannerScreen>
       ),
     );
   }
-
-  /// Show dialog to add activity to selected day
-  /*void _showAddActivityDialog(BuildContext context, ThemeData theme) {
-    final allActivities = _getAllActivitySubcategories();
-    final currentActivities = _getActivitiesForDay(_selectedDay);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-
-        return AlertDialog(
-          title: Text(
-            'Add Activity to ${DateFormat('MMM d').format(_selectedDay)}',
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: allActivities.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: allActivities.length,
-                    itemBuilder: (context, index) {
-                      final activity = allActivities[index];
-                      final isAlreadyAdded = currentActivities.contains(
-                        activity,
-                      );
-
-                      return ListTile(
-                        leading: Icon(
-                          isAlreadyAdded
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: isAlreadyAdded
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        title: Text(_formatActivityKey(activity)),
-                        enabled: !isAlreadyAdded,
-                        onTap: isAlreadyAdded
-                            ? null
-                            : () {
-                                _addActivityToDay(activity);
-                                Navigator.pop(context);
-                              },
-                      );
-                    },
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }*/
 
   void _showAddActivityDialog(BuildContext context) {
     String? selectedActivityCategory;

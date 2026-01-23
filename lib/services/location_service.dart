@@ -110,14 +110,15 @@ class LocationService {
           .replaceAll('Ä'.toLowerCase(), 'ae')
           .replaceAll('Ö'.toLowerCase(), 'oe')
           .replaceAll('Ü'.toLowerCase(), 'ue')
-          .replaceAll('ß', 'ss');
+          .replaceAll('ß', 'ss')
+          .replaceAll("-", " ");
     }
 
     final normQuery = normalize(query);
     List<Map<String, dynamic>> matchingLocations = [];
 
     for (var location in locations) {
-      final name = (location['name'] ?? '').toString();
+      final name = (location['name'] ?? '').toString().replaceAll("-", " ");
       if (normalize(name).contains(normQuery)) {
         matchingLocations.add(location);
       }
