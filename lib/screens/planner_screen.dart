@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:weatherornot/models/weather.dart';
 import 'package:weatherornot/providers/main_provider.dart';
 import 'package:weatherornot/screens/home_screen.dart';
 import 'package:weatherornot/services/planner_service.dart';
@@ -691,6 +692,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                   ),
                 ),
                 SizedBox(height: 16),
+
                 WeatherCard(
                   isLoading: false,
                   forecast: provider.forecast,

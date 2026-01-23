@@ -59,10 +59,12 @@ class WeatherCard extends StatelessWidget {
               forecastIndex,
             ),
           ),
-          borderRadius: flatBottomCorners == null || flatBottomCorners != true ? BorderRadius.circular(24) : const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
+          borderRadius: flatBottomCorners == null || flatBottomCorners != true
+              ? BorderRadius.circular(24)
+              : const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF5855D6).withOpacity(0.3),
@@ -141,33 +143,33 @@ class WeatherCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
+
             // Weather description
-            
-              Container(
-                padding: const EdgeInsets.all(16),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getWeatherDescription(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      softWrap: true,
-                      overflow: TextOverflow.visible,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDetailRow(),
-                  ],
-                ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _getWeatherDescription(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDetailRow(),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 16),
             // Source
@@ -214,11 +216,14 @@ class WeatherCard extends StatelessWidget {
     if (currentWeather == null &&
         forecastIndex != null &&
         forecast?.days != null &&
-        forecast!.days!.isNotEmpty &&
-        forecast!.days!.length > forecastIndex!) {
-      return weatherService.getWeatherDescriptionById(
-        forecast!.days![forecastIndex!].icon,
-      );
+        forecast!.days!.isNotEmpty) {
+      if (forecast!.days!.length > forecastIndex!) {
+        return weatherService.getWeatherDescriptionById(
+          forecast!.days![forecastIndex!].icon,
+        );
+      } else {
+        return "No forecast available for this date";
+      }
     } else if (currentWeather != null && currentWeather!.condition != null) {
       return WeatherConditions.getGermanDescription(
         currentWeather!.condition,
@@ -332,7 +337,16 @@ class WeatherCard extends StatelessWidget {
         ],
       );
     } else if (forecast?.days != null && forecast!.days!.isNotEmpty) {
-      int index = forecastIndex ?? 0;
+      int index = 0;
+
+      if (forecastIndex != null) {
+        if (forecast!.days!.length > forecastIndex!) {
+          index = forecastIndex!;
+        } else {
+          return SizedBox.shrink();
+        }
+      }
+
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -363,11 +377,17 @@ class WeatherCard extends StatelessWidget {
         forecastIndex != null &&
         forecast?.days != null &&
         forecast!.days!.isNotEmpty) {
-      return Icon(
-        weatherService.getWeatherIconById(forecast!.days![forecastIndex!].icon),
-        size: 80,
-        color: Colors.white,
-      );
+      if (forecast!.days!.length > forecastIndex!) {
+        return Icon(
+          weatherService.getWeatherIconById(
+            forecast!.days![forecastIndex!].icon,
+          ),
+          size: 80,
+          color: Colors.white,
+        );
+      } else {
+        return Icon(Icons.block, size: 80, color: Colors.white);
+      }
     } else if (currentWeather != null && currentWeather!.condition != null) {
       return Icon(
         weatherService.getWeatherIcon(currentWeather!.condition),
@@ -421,10 +441,14 @@ class WeatherCard extends StatelessWidget {
         forecastIndex != null &&
         forecast?.days != null &&
         forecast!.days!.isNotEmpty) {
-      return Text(
-        '${forecast!.days![forecastIndex!].maxTemperature?.toStringAsFixed(0)}°/${forecast!.days![forecastIndex!].minTemperature?.toStringAsFixed(0)}°',
-        style: style2,
-      );
+      if (forecast!.days!.length > forecastIndex!) {
+        return Text(
+          '${forecast!.days![forecastIndex!].maxTemperature?.toStringAsFixed(0)}°/${forecast!.days![forecastIndex!].minTemperature?.toStringAsFixed(0)}°',
+          style: style2,
+        );
+      } else {
+        return Text("", style: style1);
+      }
     } else if (currentWeather != null &&
         currentWeather!.temperature != null &&
         currentWeather!.temperature! < 3000) {

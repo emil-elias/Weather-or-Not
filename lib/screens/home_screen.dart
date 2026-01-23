@@ -80,8 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    super.initState();
     _isLoading = true;
+    super.initState();
     _loadActivitiesFromAssets();
     _loadSubtypesAttributesFromAssets();
     _loadWeather();
@@ -521,6 +521,9 @@ class _HomeScreenState extends State<HomeScreen> {
             .where((loc) => loc['name'] != newLocation["name"])
             .toList(),
       );
+
+      _generateOutfit(_currentWeather!);
+      
     }
   }
 
@@ -628,7 +631,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 24),
 
-                    WeatherCard(
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      WeatherCard(
                       isLoading: _isLoading,
                       errorMessage: _errorMessage,
                       currentWeather: widget.live == true

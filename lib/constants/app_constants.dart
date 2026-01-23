@@ -1,3 +1,6 @@
+import 'package:weatherornot/models/forecast.dart';
+import 'package:weatherornot/models/weather.dart';
+
 /// Application-wide constants
 class AppConstants {
   // Prevent instantiation
@@ -11,20 +14,25 @@ class AppConstants {
   static const String brightSkyApiBaseUrl = 'https://api.brightsky.dev';
 
   static const String DWDApiBaseUrl = 'https://dwd.api.proxy.bund.dev/v30';
-  static const String DWDApiBaseUrlAlt = 'https://app-prod-ws.warnwetter.de/v30';
+  static const String DWDApiBaseUrlAlt =
+      'https://app-prod-ws.warnwetter.de/v30';
 
-  static const String DWDAWSApiBaseUrl = "https://s3.eu-central-1.amazonaws.com/app-prod-static.warnwetter.de/v16";
+  static const String DWDAWSApiBaseUrl =
+      "https://s3.eu-central-1.amazonaws.com/app-prod-static.warnwetter.de/v16";
 
-  static const String LuftqualitaetApiBaseUrl = 'https://umweltbundesamt.api.proxy.bund.dev/api/air_data/v2/airquality/json?';
+  static const String LuftqualitaetApiBaseUrl =
+      'https://umweltbundesamt.api.proxy.bund.dev/api/air_data/v2/airquality/json?';
 
   static const Map<String, String> stationIDs = {
     'BREMEN': "10224",
     'HAMBURG': "P0489", //(Innenstadt); Fuhlsbüttel: 10147, Neuwiedenthal: C720
-    'BERLIN': "10389", //(Alexanderplatz); Brandenburg: 10385, Buch: G002, Kaniswall: G006, Tempelhof: 10384, ...
+    'BERLIN':
+        "10389", //(Alexanderplatz); Brandenburg: 10385, Buch: G002, Kaniswall: G006, Tempelhof: 10384, ...
     'MÜNCHEN': "10865", //(Stadt); Flughafen: 10870
     'KÖLN': "10513", //(Köln/Bonn); Stammheim: H744
-    'LISBON': "08536", 
+    'LISBON': "08536",
   };
+
 }
 
 /// Weather condition constants from Bright Sky API
@@ -33,25 +41,25 @@ class WeatherConditions {
 
   /// Dry conditions
   static const String dry = 'dry';
-  
+
   /// Fog
   static const String fog = 'fog';
-  
+
   /// Rain
   static const String rain = 'rain';
-  
+
   /// Sleet (mixed rain and snow)
   static const String sleet = 'sleet';
-  
+
   /// Snow
   static const String snow = 'snow';
-  
+
   /// Hail
   static const String hail = 'hail';
-  
+
   /// Thunderstorm
   static const String thunderstorm = 'thunderstorm';
-  
+
   /// German translations for weather conditions
   static const Map<String, String> germanTranslations = {
     dry: 'Trocken',
@@ -62,20 +70,22 @@ class WeatherConditions {
     hail: 'Hagel',
     thunderstorm: 'Gewitter',
   };
-  
+
   /// Get German description for condition with additional context
-  static String getGermanDescription(String? condition, {
+  static String getGermanDescription(
+    String? condition, {
     double? temperature,
     double? windSpeed,
     double? cloudCover,
   }) {
     if (condition == null) return 'Wetter unbekannt';
-    
+
     List<String> descriptions = [];
-    
+
     // Base condition
-    String baseCondition = germanTranslations[condition.toLowerCase()] ?? 'Wechselhaft';
-    
+    String baseCondition =
+        germanTranslations[condition.toLowerCase()] ?? 'Wechselhaft';
+
     // For dry conditions, check cloud cover
     if (condition.toLowerCase() == 'dry') {
       if (cloudCover != null) {
@@ -90,9 +100,9 @@ class WeatherConditions {
         }
       }
     }
-    
+
     descriptions.add(baseCondition);
-    
+
     // Add temperature context
     if (temperature != null) {
       if (temperature >= 28) {
@@ -109,7 +119,7 @@ class WeatherConditions {
         descriptions.add('eisig');
       }
     }
-    
+
     // Add wind context
     if (windSpeed != null) {
       if (windSpeed >= 50) {
@@ -122,7 +132,7 @@ class WeatherConditions {
         descriptions.add('leichter Wind');
       }
     }
-    
+
     // Join descriptions
     if (descriptions.length == 1) {
       return descriptions[0];

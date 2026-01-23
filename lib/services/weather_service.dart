@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:weatherornot/services/test_service.dart';
 import '../models/weather.dart';
 import '../models/forecast.dart';
 import '../models/day_forecast.dart';
@@ -62,6 +63,10 @@ class WeatherService {
     double? fallbackLon,
     String? message,
   }) async {
+    if (stationID == 'TEST0') {
+      return TestService.getTestWeather();
+    }
+
     try {
       final currentWeatherUrl =
           '${AppConstants.DWDAWSApiBaseUrl}/current_measurement_$stationID.json';
@@ -81,40 +86,63 @@ class WeatherService {
             stationId: stationID,
             source:
                 'DWD (station $stationID - current measurement) ${message != null ? '\n$message' : ''}',
-            temperature: weatherData['temperature'] != null && weatherData['temperature'] < 3000
+            temperature:
+                weatherData['temperature'] != null &&
+                    weatherData['temperature'] < 3000
                 ? weatherData['temperature'].toDouble() / 10
                 : null,
-            precipitation: weatherData['precipitation'] != null && weatherData['precipitation'] < 3000
+            precipitation:
+                weatherData['precipitation'] != null &&
+                    weatherData['precipitation'] < 3000
                 ? weatherData['precipitation'].toDouble() / 10
                 : null,
-            precipitation_3h: weatherData['precipitation_3h'] != null && weatherData['precipitation_3h'] < 3000
+            precipitation_3h:
+                weatherData['precipitation_3h'] != null &&
+                    weatherData['precipitation_3h'] < 3000
                 ? weatherData['precipitation_3h'].toDouble() / 10
                 : null,
-            snow: weatherData['totalsnow'] != null && weatherData['totalsnow'] < 3000
+            snow:
+                weatherData['totalsnow'] != null &&
+                    weatherData['totalsnow'] < 3000
                 ? weatherData['totalsnow'].toDouble() / 10
                 : null,
-            dewpoint: weatherData['dewpoint'] != null  && weatherData['dewpoint'] < 3000
+            dewpoint:
+                weatherData['dewpoint'] != null &&
+                    weatherData['dewpoint'] < 3000
                 ? weatherData['dewpoint'].toDouble() / 10
                 : null,
-            sunshine: weatherData['sunshine'] != null && weatherData['sunshine'] < 3000
+            sunshine:
+                weatherData['sunshine'] != null &&
+                    weatherData['sunshine'] < 3000
                 ? (weatherData['sunshine'].toDouble() / 10)
                 : null,
-            windSpeed: weatherData['meanwind'] != null && weatherData['meanwind'] < 3000
+            windSpeed:
+                weatherData['meanwind'] != null &&
+                    weatherData['meanwind'] < 3000
                 ? weatherData['meanwind'].toDouble() / 10
                 : null,
-            windGust: weatherData['maxwind'] != null && weatherData['maxwind'] < 3000
+            windGust:
+                weatherData['maxwind'] != null && weatherData['maxwind'] < 3000
                 ? weatherData['maxwind'].toDouble() / 10
                 : null,
-            windDirection: weatherData['winddirection'] != null && weatherData['winddirection'] < 3000
+            windDirection:
+                weatherData['winddirection'] != null &&
+                    weatherData['winddirection'] < 3000
                 ? weatherData['winddirection'].toDouble() / 10
                 : null,
-            cloudCover: weatherData['cloud_cover_total'] != null && weatherData['cloud_cover_total'] < 3000
+            cloudCover:
+                weatherData['cloud_cover_total'] != null &&
+                    weatherData['cloud_cover_total'] < 3000
                 ? weatherData['cloud_cover_total'].toDouble()
                 : null,
-            humidity: weatherData['humidity'] != null && weatherData['humidity'] < 3000
+            humidity:
+                weatherData['humidity'] != null &&
+                    weatherData['humidity'] < 3000
                 ? weatherData['humidity'].toDouble() / 10
                 : null,
-            pressure: weatherData['pressure'] != null && weatherData['pressure'] < 3000
+            pressure:
+                weatherData['pressure'] != null &&
+                    weatherData['pressure'] < 3000
                 ? weatherData['pressure'].toDouble() / 10
                 : null,
             timestamp: DateTime.fromMillisecondsSinceEpoch(weatherData['time']),
@@ -232,6 +260,10 @@ class WeatherService {
   }
 
   Future<Forecast> getForecastDWDWeatherByStationID(String stationID) async {
+    if (stationID == 'TEST0') {
+      return TestService.getTestForecast();
+    }
+
     try {
       final rawUrl =
           '${AppConstants.DWDApiBaseUrl}/stationOverviewExtended?stationIds=$stationID';
@@ -648,7 +680,8 @@ class WeatherService {
         condition = 'Windy';
         break;
       case 32:
-        condition = 'Unfortunately, we could not get weather data for your location';
+        condition =
+            'Unfortunately, we could not get weather data for your location';
         break;
       default:
         condition = '';
@@ -666,11 +699,11 @@ class WeatherService {
     final hour = DateTime.now().hour;
     final index = forecastIndex ?? 0;
     final sunrise =
-        forecast != null && forecast.days != null && forecast.days!.isNotEmpty
+        forecast != null && forecast.days != null && forecast.days!.isNotEmpty && index < forecast.days!.length
         ? forecast.days![index].sunrise?.hour ?? 6
         : 6;
     final sunset =
-        forecast != null && forecast.days != null && forecast.days!.isNotEmpty
+        forecast != null && forecast.days != null && forecast.days!.isNotEmpty && index < forecast.days!.length
         ? forecast.days![index].sunset?.hour ?? 18
         : 18;
 

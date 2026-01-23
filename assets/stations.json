@@ -1,5 +1,13 @@
 [
   {
+    "id": "TEST0",
+    "icao": "ENJA",
+    "name": "TEST WEATHER",
+    "lat": 0.0,
+    "lon": 0.0,
+    "elev": 0
+  },
+  {
     "id": "01001",
     "icao": "ENJA",
     "name": "JAN MAYEN",

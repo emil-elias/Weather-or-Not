@@ -108,6 +108,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
   Widget _buildCurrentWeather() {
     String currentTemp = "--°";
     int currentIcon = 0;
+    String maxTemp = "--°";
+    String minTemp = "--°";
 
     final now = DateTime.now();
     final hourIndex = _provider.forecast?.start != null
@@ -136,6 +138,17 @@ class _WeatherScreenState extends State<WeatherScreen> {
           hourIndex >= 0 &&
           hourIndex < _provider.forecast!.icon!.length) {
         currentIcon = _provider.forecast!.icon![hourIndex];
+      }
+    }
+
+    if (_provider.forecast?.days != null &&
+        _provider.forecast!.days!.isNotEmpty) {
+      final todayForecast = _provider.forecast!.days!.first;
+      if (todayForecast.maxTemperature != null) {
+        maxTemp = '${todayForecast.maxTemperature!.toStringAsFixed(0)}°';
+      }
+      if (todayForecast.minTemperature != null) {
+        minTemp = '${todayForecast.minTemperature!.toStringAsFixed(0)}°';
       }
     }
 
@@ -177,7 +190,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                                 color: Colors.white,
                               ),
                               Text(
-                                ' ${_provider.forecast?.days?.first.maxTemperature?.toStringAsFixed(0) ?? "--"}°',
+                                ' ${maxTemp}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   //color: Color(0xFF4AFF8C),
@@ -197,7 +210,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                                 color: Colors.white,
                               ),
                               Text(
-                                ' ${_provider.forecast?.days?.first.minTemperature?.toStringAsFixed(0) ?? "--"}°',
+                                ' ${minTemp}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   //color: Color(0xFFFF6B6B),
@@ -449,7 +462,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       '${_provider.forecast!.windSpeed![hourIndex].toStringAsFixed(1)} km/h',
                       Icons.air,
                     ),
-                  if (_provider.forecast?.days?.first.windSpeed != null)
+                  if (_provider.forecast?.days != null && _provider.forecast!.days!.isNotEmpty && _provider.forecast!.days!.first.windSpeed != null)
                     _buildDetailCard(
                       'max. Wind Speed',
                       '${_provider.forecast!.days!.first.windSpeed!.toStringAsFixed(1)} km/h',
@@ -485,7 +498,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       '${_provider.forecast!.pressure![hourIndex].toStringAsFixed(0)} mbar',
                       Icons.compress,
                     ),
-                  if (_provider.forecast?.days?.first.precipitation != null &&
+                  if (_provider.forecast?.days != null && _provider.forecast!.days!.isNotEmpty && _provider.forecast!.days!.first.precipitation != null &&
                       _provider.forecast!.days!.first.precipitation! < 3000)
                     _buildDetailCard(
                       'Precipitation',
@@ -514,7 +527,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       '${_provider.forecast!.cloudCover![hourIndex].clamp(0, 100).toStringAsFixed(0)}%',
                       Icons.cloud,
                     ),
-                  if (_provider.forecast?.days?.first.sunshine != null &&
+                  if (_provider.forecast?.days != null && _provider.forecast!.days!.isNotEmpty && _provider.forecast!.days!.first.sunshine != null &&
                       _provider.forecast!.days!.first.sunshine! < 3000)
                     _buildDetailCard(
                       'Sunshine',
