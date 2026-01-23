@@ -294,14 +294,15 @@ class _WardrobeItemDetailScreenState extends State<WardrobeItemDetailScreen> {
                     )
                   : Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
+                        color: _currentItem.color != '' ? Color(int.parse('0xFF${_currentItem.color.substring(1)}')) : theme.colorScheme.primaryContainer,
+                        /*gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
                             theme.colorScheme.primaryContainer,
                             theme.colorScheme.secondaryContainer,
                           ],
-                        ),
+                        ),*/
                       ),
                       child: Center(
                         child: Icon(

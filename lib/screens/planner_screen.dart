@@ -626,7 +626,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                     ),
                     Tab(
                       icon: Icon(Icons.show_chart_rounded),
-                      text: 'Week activities',
+                      text: 'Activities',
                     ),
                   ],
                 ),

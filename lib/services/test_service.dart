@@ -67,7 +67,7 @@ class TestService {
           date: DateTime.now(),
           minTemperature: 25.0,
           maxTemperature: 30.0,
-          precipitation: 5.0,
+          precipitation: 0.0,
           windSpeed: 20.0,
           windGust: 30.0,
           windDirection: 180.0,

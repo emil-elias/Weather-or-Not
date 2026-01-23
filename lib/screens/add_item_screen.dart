@@ -9,8 +9,6 @@ import '../widgets/custom_text_field.dart';
 import '../models/wardrobe_item.dart';
 import '../services/wardrobe_service.dart';
 
-
-
 class AddItemScreen extends StatefulWidget {
   final VoidCallback onBack;
   final WardrobeItem? initialItem;
@@ -81,8 +79,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Set<String> _fitOptions = {};
   Map<String, List<String>> _activityGroups = {};
   List<String> _activityGroupOrder = [];
-  final TextEditingController _optimalSearchController = TextEditingController();
-  final TextEditingController _unsuitableSearchController = TextEditingController();
+  final TextEditingController _optimalSearchController =
+      TextEditingController();
+  final TextEditingController _unsuitableSearchController =
+      TextEditingController();
 
   // Selected attribute values
   final Set<String> _selectedMaterials = {};
@@ -97,8 +97,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   int _selectedStretch = 2;
   final TextEditingController _minTempController = TextEditingController();
   final TextEditingController _maxTempController = TextEditingController();
-
-
 
   final List<String> _formalityLevels = [
     'Casual',
@@ -125,7 +123,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
         try {
           final hex = cstr.replaceFirst('#', '');
           final value = int.parse(hex, radix: 16);
-          _selectedColor = Color(cstr.length == 7 ? (0xFF000000 | value) : value);
+          _selectedColor = Color(
+            cstr.length == 7 ? (0xFF000000 | value) : value,
+          );
         } catch (_) {}
       }
     }
@@ -134,8 +134,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   Future<void> _initAsync() async {
-    await _loadCategoryData();
     await _loadSubtypesAttributes();
+    await _loadCategoryData();
     await _loadActivityOptions();
 
     // If we were opened in edit mode, pre-populate the form from the initial item
@@ -200,16 +200,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
     });
 
     try {
-      final tags = widget.initialItem != null ? widget.initialItem!.tags : <String>[];
+      final tags = widget.initialItem != null
+          ? widget.initialItem!.tags
+          : <String>[];
 
       final isEditing = widget.initialItem != null;
       final item = WardrobeItem(
-        id: isEditing ? widget.initialItem!.id : DateTime.now().millisecondsSinceEpoch.toString(),
+        id: isEditing
+            ? widget.initialItem!.id
+            : DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
         subcategory: _selectedSubcategory,
-        color: _selectedColor != null ? '#${_selectedColor!.value.toRadixString(16).padLeft(8, '0').substring(2)}' : '',
+        color: _selectedColor != null
+            ? '#${_selectedColor!.value.toRadixString(16).padLeft(8, '0').substring(2)}'
+            : '',
         formalityLevel: _selectedFormality,
         tags: tags,
         attributes: {
@@ -235,14 +241,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
         isInWash: isEditing ? (widget.initialItem!.isInWash) : false,
       );
 
-      final success = isEditing ? await _wardrobeService.updateWardrobeItem(item) : await _wardrobeService.addWardrobeItem(item);
+      final success = isEditing
+          ? await _wardrobeService.updateWardrobeItem(item)
+          : await _wardrobeService.addWardrobeItem(item);
 
       if (!mounted) return;
 
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(isEditing ? 'Item updated successfully!' : 'Item added to wardrobe successfully!')),
+            SnackBar(
+              content: Text(
+                isEditing
+                    ? 'Item updated successfully!'
+                    : 'Item added to wardrobe successfully!',
+              ),
+            ),
           );
         }
         _clearForm();
@@ -314,7 +328,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
-
   Future<void> _openColorDialog(BuildContext context) async {
     final Color? picked = await showDialog<Color>(
       context: context,
@@ -344,7 +357,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
               }).toList(),
             ),
           ),
-          actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
         );
       },
     );
@@ -363,73 +381,87 @@ class _AddItemScreenState extends State<AddItemScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) {
-        return StatefulBuilder(builder: (context, setStateDialog) {
-          final query = controller.text.trim().toLowerCase();
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final query = controller.text.trim().toLowerCase();
 
-          List<Widget> buildGroups() {
-            final groups = _rawCategories.cast<Map<String, dynamic>>();
-            final List<Widget> widgets = [];
-            for (final g in groups) {
-              final gid = g['id'] as String;
-              final label = g['label'] as String;
-              final items = (subtypesData['subtypes'][gid] as List).cast<Map<String, dynamic>>();
-              final filteredItems = query.isEmpty
-                  ? items
-                  : items.where((s) {
-                      final lab = (s['label'] as String).toLowerCase();
-                      return lab.contains(query) || label.toLowerCase().contains(query);
-                    }).toList();
-              if (filteredItems.isEmpty) continue;
+            List<Widget> buildGroups() {
+              final groups = _rawCategories.cast<Map<String, dynamic>>();
+              final List<Widget> widgets = [];
+              for (final g in groups) {
+                final gid = g['id'] as String;
+                final label = g['label'] as String;
+                final items = (subtypesData['subtypes'][gid] as List)
+                    .cast<Map<String, dynamic>>();
+                final filteredItems = query.isEmpty
+                    ? items
+                    : items.where((s) {
+                        final lab = (s['label'] as String).toLowerCase();
+                        return lab.contains(query) ||
+                            label.toLowerCase().contains(query);
+                      }).toList();
+                if (filteredItems.isEmpty) continue;
 
-              widgets.add(ExpansionTile(
-                title: Text(label),
-                children: filteredItems.map((s) {
-                  final subLabel = s['label'] as String;
-                  final subId = s['id'] as String;
-                  return ListTile(
-                    title: Text(subLabel),
-                    onTap: () {
-                      // set chosen subcategory and related category
-                      setState(() {
-                        _selectedSubcategory = subLabel;
-                        _selectedCategory = label;
-                        _subLabelToId[subLabel] = subId;
-                      });
+                widgets.add(
+                  ExpansionTile(
+                    title: Text(label),
+                    children: filteredItems.map((s) {
+                      final subLabel = s['label'] as String;
+                      final subId = s['id'] as String;
+                      return ListTile(
+                        title: Text(subLabel),
+                        onTap: () {
+                          // set chosen subcategory and related category
+                          setState(() {
+                            _selectedSubcategory = subLabel;
+                            _selectedCategory = label;
+                            _subLabelToId[subLabel] = subId;
+                          });
 
-                      // apply defaults if available
-                      if (_subtypesAttributes.isNotEmpty) {
-                        _applyDefaultsForSubcategory(subId);
-                      }
+                          // apply defaults if available
+                          if (_subtypesAttributes.isNotEmpty) {
+                            _applyDefaultsForSubcategory(subId);
+                          }
 
-                      Navigator.of(context).pop();
-                    },
-                  );
-                }).toList(),
-              ));
-            }
-            return widgets;
-          }
-
-          return AlertDialog(
-            title: const Text('Select Subcategory'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: controller,
-                    decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search categories or subcategories'),
-                    onChanged: (_) => setStateDialog(() {}),
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    }).toList(),
                   ),
-                  const SizedBox(height: 12),
-                  Expanded(child: ListView(children: buildGroups())),
-                ],
+                );
+              }
+              return widgets;
+            }
+
+            return AlertDialog(
+              title: const Text('Select Subcategory'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: controller,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        hintText: 'Search categories or subcategories',
+                      ),
+                      onChanged: (_) => setStateDialog(() {}),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(child: ListView(children: buildGroups())),
+                  ],
+                ),
               ),
-            ),
-            actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
-          );
-        });
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }
@@ -463,20 +495,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     // Flatten all groups into a single list
     final allGroups = categoriesJson
-      .expand((category) => category['groups'] as List)
-      .toList();
+        .expand((category) => category['groups'] as List)
+        .toList();
 
     setState(() {
       // Save raw groups so we can map back label → id
       _rawCategories = allGroups;
 
       // TOP-LEVEL CATEGORIES = all group labels
-      _categories = allGroups
-        .map((g) => g['label'] as String)
-        .toList();
+      _categories = allGroups.map((g) => g['label'] as String).toList();
 
       // Select category - respect initial item if present
-      if (widget.initialItem != null && _categories.contains(widget.initialItem!.category)) {
+      if (widget.initialItem != null &&
+          _categories.contains(widget.initialItem!.category)) {
         _selectedCategory = widget.initialItem!.category;
       } else {
         _selectedCategory = _categories.first;
@@ -498,12 +529,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
         return label;
       }).toList();
 
+      
+
       // If we have an initial item, try to pick that subcategory if it exists
-      if (widget.initialItem != null && _subcategories.contains(widget.initialItem!.subcategory)) {
+      if (widget.initialItem != null &&
+          _subcategories.contains(widget.initialItem!.subcategory)) {
         _selectedSubcategory = widget.initialItem!.subcategory;
       } else {
         _selectedSubcategory = _subcategories.first;
       }
+
+      print("Selected subcategory: $_selectedSubcategory");
+      print("Subcategory mapping:");
+      print(_subLabelToId);
+      print(_subtypesAttributes);
 
       // apply defaults if we already loaded attributes
       final initialId = _subLabelToId[_selectedSubcategory];
@@ -513,25 +552,28 @@ class _AddItemScreenState extends State<AddItemScreen> {
     });
   }
 
-
-
   Future<Map<String, dynamic>> loadCategoriesJson() async {
-    final String response =
-        await rootBundle.loadString('assets/categories.json'); // adjust path if needed
+    final String response = await rootBundle.loadString(
+      'assets/categories.json',
+    ); // adjust path if needed
     final data = json.decode(response) as Map<String, dynamic>;
     return data;
   }
 
   Future<Map<String, dynamic>> loadSubtypesJson() async {
-    final String response =
-      await rootBundle.loadString('assets/subcategories.json');
+    final String response = await rootBundle.loadString(
+      'assets/subcategories.json',
+    );
     return json.decode(response);
   }
 
   Future<void> _loadSubtypesAttributes() async {
     try {
-      final String response = await rootBundle.loadString('assets/subtypes_attributes.json');
-      final Map<String, dynamic> data = json.decode(response) as Map<String, dynamic>;
+      final String response = await rootBundle.loadString(
+        'assets/subtypes_attributes.json',
+      );
+      final Map<String, dynamic> data =
+          json.decode(response) as Map<String, dynamic>;
       final Set<String> mats = {};
       final Set<String> forms = {};
       final Set<String> tags = {};
@@ -541,7 +583,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
         if (v is Map<String, dynamic>) {
           final attrs = (v['attributes'] as Map<String, dynamic>?) ?? {};
           final materials = attrs['materials'] as List<dynamic>?;
-          if (materials != null) mats.addAll(materials.map((e) => e.toString()));
+          if (materials != null)
+            mats.addAll(materials.map((e) => e.toString()));
           final form = attrs['formality']?.toString();
           if (form != null) forms.add(form);
           final sty = attrs['style_tags'] as List<dynamic>?;
@@ -565,8 +608,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Future<void> _loadActivityOptions() async {
     try {
-      final String response = await rootBundle.loadString('assets/activities.json');
-      final Map<String, dynamic> data = json.decode(response) as Map<String, dynamic>;
+      final String response = await rootBundle.loadString(
+        'assets/activities.json',
+      );
+      final Map<String, dynamic> data =
+          json.decode(response) as Map<String, dynamic>;
       final Map<String, List<String>> groups = {};
       if (data.containsKey('activities')) {
         final activities = data['activities'] as Map<String, dynamic>;
@@ -583,7 +629,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
       // remove duplicates and sort
       final cleaned = <String, List<String>>{};
-      groups.forEach((k,v) {
+      groups.forEach((k, v) {
         final unique = v.toSet().toList()..sort();
         cleaned[k] = unique;
       });
@@ -605,11 +651,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     setState(() {
       _selectedMaterials.clear();
-      final mats = (attrs['materials'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      final mats =
+          (attrs['materials'] as List<dynamic>?)?.map((e) => e.toString()) ??
+          [];
       _selectedMaterials.addAll(mats);
 
       _selectedStyleTags.clear();
-      final tags = (attrs['style_tags'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      final tags =
+          (attrs['style_tags'] as List<dynamic>?)?.map((e) => e.toString()) ??
+          [];
       _selectedStyleTags.addAll(tags);
 
       final formDefault = (attrs['formality']?.toString() ?? '').trim();
@@ -630,21 +680,39 @@ class _AddItemScreenState extends State<AddItemScreen> {
         if (matchFit.isNotEmpty) _selectedFit = matchFit;
       }
 
-      _selectedWarmth = (attrs['warmth_level'] is num) ? (attrs['warmth_level'] as num).toInt() : _selectedWarmth;
-      _selectedWater = (attrs['water_resistance'] is num) ? (attrs['water_resistance'] as num).toInt() : _selectedWater;
-      _selectedWind = (attrs['wind_resistance'] is num) ? (attrs['wind_resistance'] as num).toInt() : _selectedWind;
-      _selectedBreath = (attrs['breathability'] is num) ? (attrs['breathability'] as num).toInt() : _selectedBreath;
-      _selectedStretch = (attrs['stretch'] is num) ? (attrs['stretch'] as num).toInt() : _selectedStretch;
+      _selectedWarmth = (attrs['warmth_level'] is num)
+          ? (attrs['warmth_level'] as num).toInt()
+          : _selectedWarmth;
+      _selectedWater = (attrs['water_resistance'] is num)
+          ? (attrs['water_resistance'] as num).toInt()
+          : _selectedWater;
+      _selectedWind = (attrs['wind_resistance'] is num)
+          ? (attrs['wind_resistance'] as num).toInt()
+          : _selectedWind;
+      _selectedBreath = (attrs['breathability'] is num)
+          ? (attrs['breathability'] as num).toInt()
+          : _selectedBreath;
+      _selectedStretch = (attrs['stretch'] is num)
+          ? (attrs['stretch'] as num).toInt()
+          : _selectedStretch;
 
       _minTempController.text = usage['weather_min_temp']?.toString() ?? '';
       _maxTempController.text = usage['weather_max_temp']?.toString() ?? '';
 
       _selectedOptimalActivities.clear();
-      final optimal = (usage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      final optimal =
+          (usage['optimal_activities'] as List<dynamic>?)?.map(
+            (e) => e.toString(),
+          ) ??
+          [];
       _selectedOptimalActivities.addAll(optimal);
 
       _selectedUnsuitable.clear();
-      final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      final unsuitable =
+          (usage['unsuitable_for'] as List<dynamic>?)?.map(
+            (e) => e.toString(),
+          ) ??
+          [];
       _selectedUnsuitable.addAll(unsuitable);
 
       // If attributes contain a color hint, set swatch
@@ -653,7 +721,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
         try {
           final hex = colorHint.replaceFirst('#', '');
           final value = int.parse(hex, radix: 16);
-          _selectedColor = Color(colorHint.length == 7 ? (0xFF000000 | value) : value);
+          _selectedColor = Color(
+            colorHint.length == 7 ? (0xFF000000 | value) : value,
+          );
         } catch (_) {}
       }
     });
@@ -691,13 +761,17 @@ class _AddItemScreenState extends State<AddItemScreen> {
     // Then overwrite with stored attributes from the item
     final attrs = item.attributes ?? {};
     if (attrs.isNotEmpty) {
-      final mats = (attrs['materials'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      final mats =
+          (attrs['materials'] as List<dynamic>?)?.map((e) => e.toString()) ??
+          [];
       if (mats.isNotEmpty) {
         _selectedMaterials.clear();
         _selectedMaterials.addAll(mats);
       }
 
-      final sty = (attrs['style_tags'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+      final sty =
+          (attrs['style_tags'] as List<dynamic>?)?.map((e) => e.toString()) ??
+          [];
       if (sty.isNotEmpty) {
         _selectedStyleTags.clear();
         _selectedStyleTags.addAll(sty);
@@ -743,13 +817,21 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
 
       if (usage.containsKey('optimal_activities')) {
-        final optimal = (usage['optimal_activities'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+        final optimal =
+            (usage['optimal_activities'] as List<dynamic>?)?.map(
+              (e) => e.toString(),
+            ) ??
+            [];
         _selectedOptimalActivities.clear();
         _selectedOptimalActivities.addAll(optimal);
       }
 
       if (usage.containsKey('unsuitable_for')) {
-        final unsuitable = (usage['unsuitable_for'] as List<dynamic>?)?.map((e) => e.toString()) ?? [];
+        final unsuitable =
+            (usage['unsuitable_for'] as List<dynamic>?)?.map(
+              (e) => e.toString(),
+            ) ??
+            [];
         _selectedUnsuitable.clear();
         _selectedUnsuitable.addAll(unsuitable);
       }
@@ -758,7 +840,21 @@ class _AddItemScreenState extends State<AddItemScreen> {
     setState(() {});
   }
 
-
+  // Add a dropdown for selecting formality level
+  Widget _buildFormalityDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _selectedFormality,
+      decoration: const InputDecoration(labelText: 'Formality Level'),
+      items: _formalityLevels.map((level) {
+        return DropdownMenuItem<String>(value: level, child: Text(level));
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedFormality = value!;
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -813,11 +909,18 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.list_alt_rounded),
-                      label: Row(children: [
-                        Expanded(child: Text(_selectedSubcategory)),
-                        const SizedBox(width: 8),
-                        Text(_selectedCategory, style: TextStyle(color: theme.colorScheme.onSurfaceVariant))
-                      ]),
+                      label: Row(
+                        children: [
+                          Expanded(child: Text(_selectedSubcategory)),
+                          const SizedBox(width: 8),
+                          Text(
+                            _selectedCategory,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                       onPressed: () => _openSubcategoryChooser(context),
                     ),
                   ),
@@ -838,16 +941,30 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           color: _selectedColor ?? Colors.transparent,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: _selectedColor != null ? theme.colorScheme.primary : Colors.black12,
+                            color: _selectedColor != null
+                                ? theme.colorScheme.primary
+                                : Colors.black12,
                             width: _selectedColor != null ? 3 : 1,
                           ),
                         ),
-                        child: _selectedColor == null ? const Icon(Icons.color_lens_outlined) : null,
+                        child: _selectedColor == null
+                            ? const Icon(Icons.color_lens_outlined)
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(_selectedColor != null ? '#${_selectedColor!.value.toRadixString(16).padLeft(8,'0').substring(2)}' : 'No color selected', style: theme.textTheme.bodyMedium)),
-                    TextButton(onPressed: () => _openColorDialog(context), child: const Text('Choose Color')),
+                    Expanded(
+                      child: Text(
+                        _selectedColor != null
+                            ? '#${_selectedColor!.value.toRadixString(16).padLeft(8, '0').substring(2)}'
+                            : 'No color selected',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _openColorDialog(context),
+                      child: const Text('Choose Color'),
+                    ),
                   ],
                 ),
               ),
@@ -857,7 +974,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
               ExpansionTile(
                 initiallyExpanded: false,
                 title: const Text('(Advanced) Attributes & Usage'),
-                childrenPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                childrenPadding: const EdgeInsets.symmetric(
+                  horizontal: 0,
+                  vertical: 8,
+                ),
                 children: [
                   // Materials
                   Padding(
@@ -874,11 +994,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             return FilterChip(
                               label: Text(m.replaceAll('_', ' ')),
                               selected: sel,
-                              onSelected: (s) { setState(() { if (s) {
-                                _selectedMaterials.add(m);
-                              } else {
-                                _selectedMaterials.remove(m);
-                              } }); },
+                              onSelected: (s) {
+                                setState(() {
+                                  if (s) {
+                                    _selectedMaterials.add(m);
+                                  } else {
+                                    _selectedMaterials.remove(m);
+                                  }
+                                });
+                              },
                             );
                           }).toList(),
                         ),
@@ -890,38 +1014,94 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   // Numeric attributes
                   Row(
                     children: [
-                      Expanded(child: DropdownButtonFormField<int>(
-                        initialValue: _selectedWarmth,
-                        decoration: const InputDecoration(labelText: 'Warmth'),
-                        items: List.generate(6, (i) => DropdownMenuItem(value: i, child: Text(i.toString()))),
-                        onChanged: (v) { if (v != null) setState(() { _selectedWarmth = v; }); },
-                      )),
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          initialValue: _selectedWarmth,
+                          decoration: const InputDecoration(
+                            labelText: 'Warmth',
+                          ),
+                          items: List.generate(
+                            6,
+                            (i) => DropdownMenuItem(
+                              value: i,
+                              child: Text(i.toString()),
+                            ),
+                          ),
+                          onChanged: (v) {
+                            if (v != null)
+                              setState(() {
+                                _selectedWarmth = v;
+                              });
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Expanded(child: DropdownButtonFormField<int>(
-                        initialValue: _selectedWater,
-                        decoration: const InputDecoration(labelText: 'Water'),
-                        items: List.generate(6, (i) => DropdownMenuItem(value: i, child: Text(i.toString()))),
-                        onChanged: (v) { if (v != null) setState(() { _selectedWater = v; }); },
-                      )),
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          initialValue: _selectedWater,
+                          decoration: const InputDecoration(labelText: 'Water'),
+                          items: List.generate(
+                            6,
+                            (i) => DropdownMenuItem(
+                              value: i,
+                              child: Text(i.toString()),
+                            ),
+                          ),
+                          onChanged: (v) {
+                            if (v != null)
+                              setState(() {
+                                _selectedWater = v;
+                              });
+                          },
+                        ),
+                      ),
                     ],
                   ),
 
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Expanded(child: DropdownButtonFormField<int>(
-                        initialValue: _selectedWind,
-                        decoration: const InputDecoration(labelText: 'Wind'),
-                        items: List.generate(6, (i) => DropdownMenuItem(value: i, child: Text(i.toString()))),
-                        onChanged: (v) { if (v != null) setState(() { _selectedWind = v; }); },
-                      )),
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          initialValue: _selectedWind,
+                          decoration: const InputDecoration(labelText: 'Wind'),
+                          items: List.generate(
+                            6,
+                            (i) => DropdownMenuItem(
+                              value: i,
+                              child: Text(i.toString()),
+                            ),
+                          ),
+                          onChanged: (v) {
+                            if (v != null)
+                              setState(() {
+                                _selectedWind = v;
+                              });
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Expanded(child: DropdownButtonFormField<int>(
-                        initialValue: _selectedBreath,
-                        decoration: const InputDecoration(labelText: 'Breathability'),
-                        items: List.generate(6, (i) => DropdownMenuItem(value: i, child: Text(i.toString()))),
-                        onChanged: (v) { if (v != null) setState(() { _selectedBreath = v; }); },
-                      )),
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          initialValue: _selectedBreath,
+                          decoration: const InputDecoration(
+                            labelText: 'Breathability',
+                          ),
+                          items: List.generate(
+                            6,
+                            (i) => DropdownMenuItem(
+                              value: i,
+                              child: Text(i.toString()),
+                            ),
+                          ),
+                          onChanged: (v) {
+                            if (v != null)
+                              setState(() {
+                                _selectedBreath = v;
+                              });
+                          },
+                        ),
+                      ),
                     ],
                   ),
 
@@ -929,18 +1109,52 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   DropdownButtonFormField<int>(
                     initialValue: _selectedStretch,
                     decoration: const InputDecoration(labelText: 'Stretch'),
-                    items: List.generate(6, (i) => DropdownMenuItem(value: i, child: Text(i.toString()))),
-                    onChanged: (v) { if (v != null) setState(() { _selectedStretch = v; }); },
+                    items: List.generate(
+                      6,
+                      (i) =>
+                          DropdownMenuItem(value: i, child: Text(i.toString())),
+                    ),
+                    onChanged: (v) {
+                      if (v != null)
+                        setState(() {
+                          _selectedStretch = v;
+                        });
+                    },
                   ),
-
-
 
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedFit.isNotEmpty ? _selectedFit : null,
                     decoration: const InputDecoration(labelText: 'Fit'),
-                    items: _fitOptions.map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
-                    onChanged: (v) { if (v != null) setState(() { _selectedFit = v; }); },
+                    items: _fitOptions
+                        .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null)
+                        setState(() {
+                          _selectedFit = v;
+                        });
+                    },
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedFormality,
+                    decoration: const InputDecoration(
+                      labelText: 'Formality Level',
+                    ),
+                    items: _formalityLevels.map((level) {
+                      return DropdownMenuItem<String>(
+                        value: level,
+                        child: Text(level),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedFormality = value!;
+                      });
+                    },
                   ),
 
                   const SizedBox(height: 8),
@@ -953,11 +1167,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       return FilterChip(
                         label: Text(t),
                         selected: isSel,
-                        onSelected: (s) { setState(() { if (s) {
-                          _selectedStyleTags.add(t);
-                        } else {
-                          _selectedStyleTags.remove(t);
-                        } }); },
+                        onSelected: (s) {
+                          setState(() {
+                            if (s) {
+                              _selectedStyleTags.add(t);
+                            } else {
+                              _selectedStyleTags.remove(t);
+                            }
+                          });
+                        },
                       );
                     }).toList(),
                   ),
@@ -967,16 +1185,45 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Expanded(child: TextField(controller: _minTempController, decoration: const InputDecoration(labelText: 'Min Temp'), keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: TextField(
+                          controller: _minTempController,
+                          decoration: const InputDecoration(
+                            labelText: 'Min Temp',
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Expanded(child: TextField(controller: _maxTempController, decoration: const InputDecoration(labelText: 'Max Temp'), keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: TextField(
+                          controller: _maxTempController,
+                          decoration: const InputDecoration(
+                            labelText: 'Max Temp',
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                     ],
                   ),
 
                   ExpansionTile(
-                    title: Row(children: [Icon(Icons.fitness_center_outlined, size:20, color: theme.colorScheme.primary), const SizedBox(width:8), Text('Optimal Activities')]),
+                    title: Row(
+                      children: [
+                        Icon(
+                          Icons.fitness_center_outlined,
+                          size: 20,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('Optimal Activities'),
+                      ],
+                    ),
                     initiallyExpanded: false,
-                    childrenPadding: const EdgeInsets.symmetric(horizontal:0, vertical:8),
+                    childrenPadding: const EdgeInsets.symmetric(
+                      horizontal: 0,
+                      vertical: 8,
+                    ),
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -985,7 +1232,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search),
                             hintText: 'Search activities',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             isDense: true,
                           ),
                           onChanged: (v) => setState(() {}),
@@ -994,32 +1243,70 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       const SizedBox(height: 8),
                       ..._activityGroupOrder.map((group) {
                         final acts = _activityGroups[group] ?? [];
-                        final search = _optimalSearchController.text.trim().toLowerCase();
-                        final displayActs = search.isEmpty ? acts : acts.where((a) => a.toLowerCase().contains(search)).toList();
+                        final search = _optimalSearchController.text
+                            .trim()
+                            .toLowerCase();
+                        final displayActs = search.isEmpty
+                            ? acts
+                            : acts
+                                  .where(
+                                    (a) => a.toLowerCase().contains(search),
+                                  )
+                                  .toList();
                         if (displayActs.isEmpty) return const SizedBox.shrink();
                         return Padding(
-                          padding: const EdgeInsets.symmetric(vertical:6.0, horizontal: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6.0,
+                            horizontal: 12.0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(children: [Text(group.replaceAll('_', ' '), style: theme.textTheme.bodySmall), const SizedBox(width:8), Text('(${displayActs.length})', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))]),
-                              const SizedBox(height:8),
+                              Row(
+                                children: [
+                                  Text(
+                                    group.replaceAll('_', ' '),
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '(${displayActs.length})',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 children: displayActs.map((act) {
-                                  final isSel = _selectedOptimalActivities.contains(act);
+                                  final isSel = _selectedOptimalActivities
+                                      .contains(act);
                                   return FilterChip(
                                     label: Text(act.replaceAll('_', ' ')),
                                     selected: isSel,
                                     selectedColor: theme.colorScheme.primary,
                                     checkmarkColor: theme.colorScheme.onPrimary,
-                                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                                    labelStyle: TextStyle(color: isSel ? theme.colorScheme.onPrimary : null),
-                                    onSelected: (s) { setState(() { if (s) {
-                                      _selectedOptimalActivities.add(act);
-                                    } else {
-                                      _selectedOptimalActivities.remove(act);
-                                    } }); },
+                                    backgroundColor: theme
+                                        .colorScheme
+                                        .surfaceContainerHighest,
+                                    labelStyle: TextStyle(
+                                      color: isSel
+                                          ? theme.colorScheme.onPrimary
+                                          : null,
+                                    ),
+                                    onSelected: (s) {
+                                      setState(() {
+                                        if (s) {
+                                          _selectedOptimalActivities.add(act);
+                                        } else {
+                                          _selectedOptimalActivities.remove(
+                                            act,
+                                          );
+                                        }
+                                      });
+                                    },
                                   );
                                 }).toList(),
                               ),
@@ -1031,9 +1318,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   ),
 
                   ExpansionTile(
-                    title: Row(children: [Icon(Icons.block_outlined, size:20, color: theme.colorScheme.primary), const SizedBox(width:8), Text('Unsuitable For')]),
+                    title: Row(
+                      children: [
+                        Icon(
+                          Icons.block_outlined,
+                          size: 20,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('Unsuitable For'),
+                      ],
+                    ),
                     initiallyExpanded: false,
-                    childrenPadding: const EdgeInsets.symmetric(horizontal:0, vertical:8),
+                    childrenPadding: const EdgeInsets.symmetric(
+                      horizontal: 0,
+                      vertical: 8,
+                    ),
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -1042,7 +1342,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search),
                             hintText: 'Search activities',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             isDense: true,
                           ),
                           onChanged: (v) => setState(() {}),
@@ -1051,32 +1353,69 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       const SizedBox(height: 8),
                       ..._activityGroupOrder.map((group) {
                         final acts = _activityGroups[group] ?? [];
-                        final search = _unsuitableSearchController.text.trim().toLowerCase();
-                        final displayActs = search.isEmpty ? acts : acts.where((a) => a.toLowerCase().contains(search)).toList();
+                        final search = _unsuitableSearchController.text
+                            .trim()
+                            .toLowerCase();
+                        final displayActs = search.isEmpty
+                            ? acts
+                            : acts
+                                  .where(
+                                    (a) => a.toLowerCase().contains(search),
+                                  )
+                                  .toList();
                         if (displayActs.isEmpty) return const SizedBox.shrink();
                         return Padding(
-                          padding: const EdgeInsets.symmetric(vertical:6.0, horizontal: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6.0,
+                            horizontal: 12.0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(children: [Text(group.replaceAll('_', ' '), style: theme.textTheme.bodySmall), const SizedBox(width:8), Text('(${displayActs.length})', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))]),
-                              const SizedBox(height:8),
+                              Row(
+                                children: [
+                                  Text(
+                                    group.replaceAll('_', ' '),
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '(${displayActs.length})',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 children: displayActs.map((act) {
-                                  final isSel = _selectedUnsuitable.contains(act);
+                                  final isSel = _selectedUnsuitable.contains(
+                                    act,
+                                  );
                                   return FilterChip(
                                     label: Text(act.replaceAll('_', ' ')),
                                     selected: isSel,
                                     selectedColor: theme.colorScheme.primary,
                                     checkmarkColor: theme.colorScheme.onPrimary,
-                                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                                    labelStyle: TextStyle(color: isSel ? theme.colorScheme.onPrimary : null),
-                                    onSelected: (s) { setState(() { if (s) {
-                                      _selectedUnsuitable.add(act);
-                                    } else {
-                                      _selectedUnsuitable.remove(act);
-                                    } }); },
+                                    backgroundColor: theme
+                                        .colorScheme
+                                        .surfaceContainerHighest,
+                                    labelStyle: TextStyle(
+                                      color: isSel
+                                          ? theme.colorScheme.onPrimary
+                                          : null,
+                                    ),
+                                    onSelected: (s) {
+                                      setState(() {
+                                        if (s) {
+                                          _selectedUnsuitable.add(act);
+                                        } else {
+                                          _selectedUnsuitable.remove(act);
+                                        }
+                                      });
+                                    },
                                   );
                                 }).toList(),
                               ),
@@ -1086,8 +1425,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       }),
                     ],
                   ),
-
-
                 ],
               ),
 
@@ -1107,31 +1444,37 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Builder(
-                    builder: (context) {
-                      final isEditing = widget.initialItem != null;
-                      return FilledButton.icon(
-                        onPressed: _isLoading ? null : _handleAddToWardrobe,
-                        icon: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Icon(isEditing ? Icons.save : Icons.add_rounded),
-                        label: Text(_isLoading
-                            ? (isEditing ? 'Saving...' : 'Adding...')
-                            : (isEditing ? 'Save' : 'Add to wardrobe')),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 18,
-                          ), // Increase height
-                          minimumSize: const Size.fromHeight(
-                            48,
-                          ), // Enforce button height
-                        ),
-                      );
-                    },
-                  ),
+                      builder: (context) {
+                        final isEditing = widget.initialItem != null;
+                        return FilledButton.icon(
+                          onPressed: _isLoading ? null : _handleAddToWardrobe,
+                          icon: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(
+                                  isEditing ? Icons.save : Icons.add_rounded,
+                                ),
+                          label: Text(
+                            _isLoading
+                                ? (isEditing ? 'Saving...' : 'Adding...')
+                                : (isEditing ? 'Save' : 'Add to wardrobe'),
+                          ),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ), // Increase height
+                            minimumSize: const Size.fromHeight(
+                              48,
+                            ), // Enforce button height
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),

@@ -13,7 +13,7 @@ class MainProvider extends ChangeNotifier {
   Weather? _currentWeather;
   Forecast? _forecast;
   String? _errorMessage;
-  bool _isLoading = false;
+  bool _isLoading = true;
   Map<String,dynamic> _selectedLocation = {
     "name": "BREMEN",
     "id": "10224",

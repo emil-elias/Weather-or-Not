@@ -108,7 +108,7 @@ Future<void> showOutfitDetailsSheet(
                               width: 50,
                               height: 50,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
+                                color: item.color != '' ? Color(int.parse('0xFF${item.color != null ? item.color!.substring(1) : 'CCCCCC'}')) : theme.colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: imagePath != null
@@ -121,7 +121,8 @@ Future<void> showOutfitDetailsSheet(
                                     )
                                   : Icon(
                                       Icons.checkroom_rounded,
-                                      color: theme.colorScheme.onPrimaryContainer,
+                                      color: theme.colorScheme.onPrimaryContainer
+                              .withOpacity(0.5),
                                     ),
                             ),
                             title: Text(titleText),
