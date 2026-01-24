@@ -717,7 +717,10 @@ class OutfitEngine {
 
       // Apply minimum score filter if provided
       if (minScore != null) {
-        filtered = filtered.where((e) => e.value >= minScore).toList();
+        final minScorefiltered = filtered.where((e) => e.value >= minScore).toList();
+        if (minScorefiltered.isNotEmpty) {
+          filtered = minScorefiltered;
+        }
       }
 
       filtered.sort((a, b) => b.value.compareTo(a.value));
