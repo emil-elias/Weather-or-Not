@@ -67,9 +67,13 @@ class WeatherCard extends StatelessWidget {
                 ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF5855D6).withOpacity(0.3),
+              color: weatherService.getGradientColors(
+                currentWeather,
+                forecast,
+                forecastIndex,
+              ).last.withOpacity(0.3),
               blurRadius: 20,
-              offset: const Offset(0, 10),
+              offset: const Offset(0, 0),
             ),
           ],
         ),

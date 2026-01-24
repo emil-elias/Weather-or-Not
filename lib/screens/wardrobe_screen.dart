@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+final FocusNode _searchFocusNode = FocusNode();
   final WardrobeService _wardrobeService = WardrobeService();
 
   bool _showAddItemScreen = false;
@@ -37,6 +39,8 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   String? _selectedSubcategory;
   String? _selectedFormalityLevel;
 
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
@@ -46,9 +50,20 @@ class _WardrobeScreenState extends State<WardrobeScreen>
         _loadSavedOutfits();
       }
     });
-    _searchController.addListener(() {
-      setState(() {});
+
+    _searchFocusNode.addListener(() {
+      if (!_searchFocusNode.hasFocus) {
+        // Trigger setState only when the keyboard is dismissed
+        setState(() {});
+      }
     });
+
+    /*_searchController.addListener(() {
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        setState(() {});
+      });
+    });*/
     _loadCategoryData();
     _loadWardrobeItems();
     _loadSavedOutfits();
@@ -134,6 +149,8 @@ class _WardrobeScreenState extends State<WardrobeScreen>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -332,6 +349,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                       Expanded(
                         child: TextField(
                           controller: _searchController,
+                          focusNode: _searchFocusNode,
                           decoration: InputDecoration(
                             hintText: 'Search...',
                             prefixIcon: const Icon(Icons.search_rounded),
@@ -406,9 +424,8 @@ class _WardrobeScreenState extends State<WardrobeScreen>
               onPressed: () => {
                 wardrobeNavigatorKey.currentState?.push(
                   MaterialPageRoute(
-                    builder: (context) => AddItemScreen(
-                      onBack: _navigateBackToList,
-                    ),
+                    builder: (context) =>
+                        AddItemScreen(onBack: _navigateBackToList),
                   ),
                 ),
               },
@@ -523,7 +540,11 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
-                          color: item.color != '' ? Color(int.parse('0xFF${item.color.substring(1)}')) : theme.colorScheme.primaryContainer,
+                          color: item.color != ''
+                              ? Color(
+                                  int.parse('0xFF${item.color.substring(1)}'),
+                                )
+                              : theme.colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: item.imagePath != null
@@ -537,7 +558,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                             : Icon(
                                 Icons.checkroom_rounded,
                                 color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.5),
+                                    .withOpacity(0.5),
                                 size: 32,
                               ),
                       ),
@@ -859,7 +880,11 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                     else if (outfitItems.length == 1)
                       Container(
                         decoration: BoxDecoration(
-                          color: Color(int.parse('0xFF${outfitItems[0].color!.substring(1)}')),
+                          color: Color(
+                            int.parse(
+                              '0xFF${outfitItems[0].color!.substring(1)}',
+                            ),
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: outfitItems[0].imagePath != null
@@ -874,7 +899,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                                 child: Icon(
                                   Icons.checkroom_rounded,
                                   color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.5),
+                                      .withOpacity(0.5),
                                   size: 32,
                                 ),
                               ),
@@ -896,7 +921,13 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                           final item = outfitItems[i];
                           return Container(
                             decoration: BoxDecoration(
-                              color: item.color != "" ? Color(int.parse('0xFF${item.color.substring(1)}')) : theme.colorScheme.primaryContainer,
+                              color: item.color != ""
+                                  ? Color(
+                                      int.parse(
+                                        '0xFF${item.color.substring(1)}',
+                                      ),
+                                    )
+                                  : theme.colorScheme.primaryContainer,
                               borderRadius: i == 0
                                   ? const BorderRadius.only(
                                       topLeft: Radius.circular(12),
@@ -938,7 +969,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                                 : Icon(
                                     Icons.checkroom_rounded,
                                     color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.5),
+                                        .withOpacity(0.5),
                                     size: 16,
                                   ),
                           );
@@ -1172,7 +1203,13 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                             width: 100,
                             height: 100,
                             decoration: BoxDecoration(
-                              color: item.color != "" ? Color(int.parse('0xFF${item.color!.substring(1)}')) : theme.colorScheme.primaryContainer,
+                              color: item.color != ""
+                                  ? Color(
+                                      int.parse(
+                                        '0xFF${item.color!.substring(1)}',
+                                      ),
+                                    )
+                                  : theme.colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: item.imagePath != null
@@ -1186,7 +1223,7 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                                 : Icon(
                                     Icons.checkroom_rounded,
                                     color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.5),
+                                        .withOpacity(0.5),
                                     size: 32,
                                   ),
                           ),

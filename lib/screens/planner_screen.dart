@@ -1004,6 +1004,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                             // Search field
                             TextField(
                               decoration: InputDecoration(
+                                filled: false,
                                 hintText: 'Search',
                                 prefixIcon: const Icon(Icons.search, size: 18),
                                 suffixIcon: searchQuery.isNotEmpty

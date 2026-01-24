@@ -140,6 +140,7 @@ class LocationDropdown extends StatelessWidget {
                       child: TextField(
                         controller: controller,
                         decoration: InputDecoration(
+                          filled: false,
                           hintText: 'Search by name',
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: controller.text.isNotEmpty

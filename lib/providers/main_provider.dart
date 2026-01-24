@@ -14,7 +14,7 @@ class MainProvider extends ChangeNotifier {
   Forecast? _forecast;
   String? _errorMessage;
   bool _isLoading = true;
-  Map<String,dynamic> _selectedLocation = {
+  Map<String, dynamic> _selectedLocation = {
     "name": "BREMEN",
     "id": "10224",
     "lat": 53.0451,
@@ -41,48 +41,53 @@ class MainProvider extends ChangeNotifier {
     'LISBON': {'lat': 38.47, 'lon': -9.08},
   };
 
-  final Map<String, String> stationIDs = Map<String, String>.from(AppConstants.stationIDs);
+  final Map<String, String> stationIDs = Map<String, String>.from(
+    AppConstants.stationIDs,
+  );
 
   Weather? get currentWeather => _currentWeather;
   Forecast? get forecast => _forecast;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
-  Map<String,dynamic> get selectedLocation => _selectedLocation;
+  Map<String, dynamic> get selectedLocation => _selectedLocation;
   List<Map<String, dynamic>> get closestLocations => _closestLocations;
   bool get locationAccessDenied => _locationAccessDenied;
   List<String> get locations => _locations;
-  Map<String, Map<String, double>> get locationCoordinates => _locationCoordinates;
+  Map<String, Map<String, double>> get locationCoordinates =>
+      _locationCoordinates;
 
-
-  void setSelectedLocation(Map<String,dynamic> location) {
+  void setSelectedLocation(Map<String, dynamic> location) {
     _selectedLocation = location;
     notifyListeners();
   }
 
   Future<void> getClosestLocation() async {
     try {
-      final geo.Position userPosition = await _locationService.getCurrentLocation();
-      
-      final List<Map<String, dynamic>> closestList = await _locationService.findClosestLocation(userPosition.latitude, userPosition.longitude);
+      final geo.Position userPosition = await _locationService
+          .getCurrentLocation();
+
+      final List<Map<String, dynamic>> closestList = await _locationService
+          .findClosestLocation(userPosition.latitude, userPosition.longitude);
       //print(closestList);
       final closest = closestList.first;
 
-      print('User position: ${userPosition.latitude}, ${userPosition.longitude}');
+      print(
+        'User position: ${userPosition.latitude}, ${userPosition.longitude}',
+      );
 
       _locations.insert(0, closest['name']);
       stationIDs[closest['name']] = closest['id'];
       _closestLocations = closestList;
       _locationAccessDenied = false;
       setSelectedLocation(closest);
-      
-      loadWeather(
-          closest['id'],
-          closest['name'],
-          fallbackStations: closestList.sublist(1),
-          fallbackLat: userPosition.latitude,
-          fallbackLon: userPosition.longitude
-        );
 
+      loadWeather(
+        closest['id'],
+        closest['name'],
+        fallbackStations: closestList.sublist(1),
+        fallbackLat: userPosition.latitude,
+        fallbackLon: userPosition.longitude,
+      );
     } catch (e) {
       print('Error getting location: $e');
       // mark that location access was denied / failed so UI can prompt
@@ -99,7 +104,7 @@ class MainProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadWeather(
+  Future<Map<String, dynamic>> loadWeather(
     String stationId,
     String locationName, {
     List<Map<String, dynamic>>? fallbackStations,
@@ -116,8 +121,11 @@ class MainProvider extends ChangeNotifier {
     };
     notifyListeners();
 
+    Weather? weather;
+    Forecast? forecast;
+
     try {
-      final weather = await _weatherService.getCurrentDWDWeatherByStationID(
+      weather = await _weatherService.getCurrentDWDWeatherByStationID(
         stationId,
         locationName: locationName,
         fallbackStations: fallbackStations,
@@ -126,31 +134,32 @@ class MainProvider extends ChangeNotifier {
       );
 
       if (weather.stationName != _selectedLocation["name"]) {
-          final oldLocation = _selectedLocation["name"];
-          _locations.remove(oldLocation);
-          if (!_locations.contains(weather.stationName)) {
-            _locations.insert(0, weather.stationName);
-          }
-          _selectedLocation = {
-            "name": weather.stationName,
-            "id": weather.stationId
-          };
-          stationIDs[weather.stationName] = weather.stationId;
-          stationId = weather.stationId;
+        final oldLocation = _selectedLocation["name"];
+        _locations.remove(oldLocation);
+        if (!_locations.contains(weather.stationName)) {
+          _locations.insert(0, weather.stationName);
+        }
+        _selectedLocation = {
+          "name": weather.stationName,
+          "id": weather.stationId,
+        };
+        stationIDs[weather.stationName] = weather.stationId;
+        stationId = weather.stationId;
       }
 
-      final forecast = await _weatherService.getForecastDWDWeatherByStationID(
+      forecast = await _weatherService.getForecastDWDWeatherByStationID(
         stationId,
       );
 
       _currentWeather = weather;
       _forecast = forecast;
-      
     } catch (e) {
       _errorMessage = 'Wetter konnte nicht geladen werden';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+
+    return {'weather': weather, 'forecast': forecast};
   }
 }

@@ -443,6 +443,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     TextField(
                       controller: controller,
                       decoration: const InputDecoration(
+                        filled: false,
                         prefixIcon: Icon(Icons.search),
                         hintText: 'Search categories or subcategories',
                       ),
@@ -1018,6 +1019,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         child: DropdownButtonFormField<int>(
                           initialValue: _selectedWarmth,
                           decoration: const InputDecoration(
+                            filled: false,
                             labelText: 'Warmth',
                           ),
                           items: List.generate(
@@ -1039,7 +1041,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       Expanded(
                         child: DropdownButtonFormField<int>(
                           initialValue: _selectedWater,
-                          decoration: const InputDecoration(labelText: 'Water'),
+                          decoration: const InputDecoration(labelText: 'Water', filled: false),
                           items: List.generate(
                             6,
                             (i) => DropdownMenuItem(
@@ -1064,7 +1066,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       Expanded(
                         child: DropdownButtonFormField<int>(
                           initialValue: _selectedWind,
-                          decoration: const InputDecoration(labelText: 'Wind'),
+                          decoration: const InputDecoration(labelText: 'Wind', filled: false),
                           items: List.generate(
                             6,
                             (i) => DropdownMenuItem(
@@ -1085,6 +1087,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         child: DropdownButtonFormField<int>(
                           initialValue: _selectedBreath,
                           decoration: const InputDecoration(
+                            filled: false,
                             labelText: 'Breathability',
                           ),
                           items: List.generate(
@@ -1108,7 +1111,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<int>(
                     initialValue: _selectedStretch,
-                    decoration: const InputDecoration(labelText: 'Stretch'),
+                    decoration: const InputDecoration(labelText: 'Stretch', filled: false),
                     items: List.generate(
                       6,
                       (i) =>
@@ -1125,7 +1128,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedFit.isNotEmpty ? _selectedFit : null,
-                    decoration: const InputDecoration(labelText: 'Fit'),
+                    decoration: const InputDecoration(labelText: 'Fit', filled: false),
                     items: _fitOptions
                         .map((f) => DropdownMenuItem(value: f, child: Text(f)))
                         .toList(),
@@ -1143,6 +1146,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     initialValue: _selectedFormality,
                     decoration: const InputDecoration(
                       labelText: 'Formality Level',
+                      filled: false
                     ),
                     items: _formalityLevels.map((level) {
                       return DropdownMenuItem<String>(
@@ -1190,6 +1194,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           controller: _minTempController,
                           decoration: const InputDecoration(
                             labelText: 'Min Temp',
+                            filled: false
                           ),
                           keyboardType: TextInputType.number,
                         ),
@@ -1200,6 +1205,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           controller: _maxTempController,
                           decoration: const InputDecoration(
                             labelText: 'Max Temp',
+                            filled: false
                           ),
                           keyboardType: TextInputType.number,
                         ),
@@ -1231,6 +1237,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           controller: _optimalSearchController,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search),
+                            filled: false,
                             hintText: 'Search activities',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1340,6 +1347,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         child: TextField(
                           controller: _unsuitableSearchController,
                           decoration: InputDecoration(
+                            filled: false,
                             prefixIcon: const Icon(Icons.search),
                             hintText: 'Search activities',
                             border: OutlineInputBorder(

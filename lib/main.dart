@@ -19,8 +19,8 @@ class WeatherOrNotApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.light,
+            seedColor: Colors.blueGrey,
+            brightness: Brightness.dark,
           ),
           useMaterial3: true,
           cardTheme: const CardThemeData(

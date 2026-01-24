@@ -521,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final List<Map<String, dynamic>> closestList = await _locationService
           .findClosestLocation(newLocation['lat'], newLocation['lon']);
-      _provider.loadWeather(
+      final newWeather = await _provider.loadWeather(
         newLocation["id"],
         newLocation["name"],
         fallbackStations: closestList
@@ -529,7 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList(),
       );
 
-      _generateOutfit(_currentWeather!);
+      await _generateOutfit(newWeather['weather']);
     }
   }
 
@@ -1750,6 +1750,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             // Search field
                             TextField(
                               decoration: InputDecoration(
+                                filled: false,
                                 hintText: 'Search',
                                 prefixIcon: const Icon(Icons.search, size: 18),
                                 suffixIcon: searchQuery.isNotEmpty
