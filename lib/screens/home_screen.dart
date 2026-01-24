@@ -268,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
 
-      await _generateOutfit(weather);
+      await _generateOutfit(weather, forecast);
     } catch (e) {
       setState(() {
         _errorMessage = 'Wetter konnte nicht geladen werden';
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // If no stored outfit, wait for weather to be loaded then generate one
       if (_currentWeather != null) {
-        await _generateOutfit(_currentWeather!);
+        await _generateOutfit(_currentWeather!, _forecast);
 
         // Save the generated outfit for the display date
         if (_generatedOutfit != null) {
@@ -314,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _generateOutfit(Weather weather) async {
+  Future<void> _generateOutfit(Weather weather, Forecast? forecast) async {
     try {
       // Fetch wardrobe items from storage
       final wardrobeItems = await _wardrobeService.getWardrobeItems();
@@ -344,14 +344,14 @@ class _HomeScreenState extends State<HomeScreen> {
       // Create outfit engine
       final outfitEngine = OutfitEngine(clothingItems);
 
-          // Build activities list from planner (source of truth), default to 'daily'
-          final displayDate = _getDisplayDate();
-          final plannedActivities = await _plannerService.getMergedDayActivities(
-          displayDate,
-          );
-          final activities = plannedActivities.isNotEmpty
-            ? plannedActivities.map(_normalizeActivityKey).toList()
-            : ['daily'];
+      // Build activities list from planner (source of truth), default to 'daily'
+      final displayDate = _getDisplayDate();
+      final plannedActivities = await _plannerService.getMergedDayActivities(
+        displayDate,
+      );
+      final activities = plannedActivities.isNotEmpty
+          ? plannedActivities.map(_normalizeActivityKey).toList()
+          : ['daily'];
 
       // Load user preferences (transportation method and warm/cold thresholds)
       final prefs = PreferencesService();
@@ -368,16 +368,84 @@ class _HomeScreenState extends State<HomeScreen> {
       double rainProbability = 0.0;
       if (weather.precipitation != null) {
         rainProbability = (weather.precipitation! / 5.0).clamp(0.0, 1.0);
+      } else if (forecast != null) {
+        final now = DateTime.now();
+        final hourIndex = forecast.start != null
+            ? now.difference(forecast.start!).inHours
+            : 0;
+        if (hourIndex >= 0 &&
+            forecast.precipitation != null &&
+            hourIndex < forecast.precipitation!.length) {
+          rainProbability = (forecast.precipitation![hourIndex] / 5.0).clamp(
+            0.0,
+            1.0,
+          );
+        } else if (forecast.days != null && forecast.days!.isNotEmpty) {
+          int index =
+              widget.forecastIndex != null &&
+                  widget.forecastIndex! < forecast.days!.length
+              ? widget.forecastIndex!
+              : 0;
+          final dailyPrecipitation =
+              forecast.days![index].precipitation ?? 0.0;
+          rainProbability = (dailyPrecipitation / 5.0).clamp(0.0, 1.0);
+        }
       } else if (weather.condition != null &&
           weather.condition!.toLowerCase().contains('rain')) {
         rainProbability = 0.8;
       }
 
-      final double windSpeed = weather.windSpeed ?? 0.0;
+      double windSpeed = 0.0;
+
+      if (weather.windSpeed != null) {
+        windSpeed = weather.windSpeed!;
+      } else if (forecast != null) {
+        final now = DateTime.now();
+        final hourIndex = forecast.start != null
+            ? now.difference(forecast.start!).inHours
+            : 0;
+        if (hourIndex >= 0 &&
+            forecast.windSpeed != null &&
+            hourIndex < forecast.windSpeed!.length) {
+          windSpeed = forecast.windSpeed![hourIndex];
+        } else if (forecast.days != null && forecast.days!.isNotEmpty) {
+          if (widget.forecastIndex != null &&
+              widget.forecastIndex! < forecast.days!.length) {
+            windSpeed = forecast.days![widget.forecastIndex!].windSpeed ?? 0.0;
+          } else {
+            windSpeed = forecast.days!.first.windSpeed ?? 0.0;
+          }
+        }
+      }
+
+      double temp = 15.0;
+
+      if (weather.temperature != null) {
+        temp = weather.temperature!;
+      } else if (forecast != null) {
+        final now = DateTime.now();
+        final hourIndex = forecast.start != null
+            ? now.difference(forecast.start!).inHours
+            : 0;
+        if (hourIndex >= 0 &&
+            forecast.temperature != null &&
+            hourIndex < forecast.temperature!.length) {
+          temp = forecast.temperature![hourIndex];
+        } else if (forecast.days != null && forecast.days!.isNotEmpty) {
+          int index =
+              widget.forecastIndex != null &&
+                  widget.forecastIndex! < forecast.days!.length
+              ? widget.forecastIndex!
+              : 0;
+          final highTemp = forecast.days![index].maxTemperature ?? 15.0;
+          final lowTemp = forecast.days![index].minTemperature ?? 15.0;
+          temp = (highTemp + lowTemp) / 2.0;
+        }
+      }
 
       // Generate multiple outfits and randomly select from top 5
       final outfits = outfitEngine.generateOutfits(
-        temperature: weather.temperature ?? 20.0,
+        temperature: temp,
         activities: activities,
         rainProbability: rainProbability,
         windSpeed: windSpeed,
@@ -529,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList(),
       );
 
-      await _generateOutfit(newWeather['weather']);
+      await _generateOutfit(newWeather['weather'], newWeather['forecast']);
     }
   }
 
@@ -765,7 +833,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: _currentWeather != null
-                                ? () => _generateOutfit(_currentWeather!)
+                                ? () => _generateOutfit(
+                                    _currentWeather!,
+                                    _forecast,
+                                  )
                                 : null,
                             icon: const Icon(Icons.refresh_rounded),
                             label: const Text('Generate New Outfit'),
@@ -1428,11 +1499,11 @@ class _HomeScreenState extends State<HomeScreen> {
               sub.contains('t-shirt') ||
               sub.contains('tee'));
     if (lc.contains('pullover') ||
-        lc.contains('sweater') ||
+        lc.contains('sweat') ||
         lc.contains('hoodie'))
-      return cat.contains('top') &&
+      return cat.contains("sweat") || cat.contains("knitwear") ||
           (sub.contains('pullover') ||
-              sub.contains('sweater') ||
+              sub.contains('sweat') ||
               sub.contains('hoodie') ||
               sub.contains('jumper'));
     if (lc.contains('outer'))
@@ -1653,7 +1724,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _todayActivities.remove(activity);
                 }),
                 if (_currentWeather != null)
-                  {_generateOutfit(_currentWeather!)},
+                  {_generateOutfit(_currentWeather!, _forecast)},
               },
               child: const Text('Remove from all days'),
             ),
@@ -1669,7 +1740,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _todayActivities.remove(activity);
               }),
               if (_currentWeather != null)
-                  {_generateOutfit(_currentWeather!)},
+                {_generateOutfit(_currentWeather!, _forecast)},
             },
             child: const Text('Remove from this day'),
           ),
@@ -1913,7 +1984,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
 
                           if (_currentWeather != null) {
-                            _generateOutfit(_currentWeather!);
+                            _generateOutfit(_currentWeather!, _forecast);
                           }
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -1980,11 +2051,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _normalizeActivityKey(String key) {
-    return key
-        .replaceFirst('R:', '')
-        .trim()
-        .toLowerCase()
-        .replaceAll(' ', '_');
+    return key.replaceFirst('R:', '').trim().toLowerCase().replaceAll(' ', '_');
   }
 
   /// Map activity category to ActivityType

@@ -121,8 +121,10 @@ class OutfitEngine {
     double windSpeed = 0.0,
     double? coldThreshold,
     double? warmThreshold,
+    double? minScore,
   }) {
     final scores = <ClothingItem, double>{};
+    final tempDiffs = <ClothingItem, double>{};
     final lowerActivities = activities.map((a) => a.toLowerCase()).toList();
     print(
       'ScoreCandidates: activities(raw)=$activities | lower=$lowerActivities',
@@ -131,6 +133,9 @@ class OutfitEngine {
         ? lowerActivities.length
         : 1;
     final double actWeight = 1.0 / actCount;
+
+    ClothingItem? bestItem = null;
+    ClothingItem? bestTempDiff = null;
 
     for (final item in items) {
       double score = 0;
@@ -152,6 +157,12 @@ class OutfitEngine {
           0,
           30 - tempDiff * 2,
         ); // closer outside items still get some points
+      }
+
+      tempDiffs[item] = tempDiff;
+
+      if (bestTempDiff == null || tempDiff < tempDiffs[bestTempDiff]!) {
+        bestTempDiff = item;
       }
 
       // 2) Activities match: support multiple activities with equal weighting
@@ -237,8 +248,20 @@ class OutfitEngine {
       print(
         'ScoreCalc: ${item.subtype} (${item.category}) => score=${score.toStringAsFixed(2)} (tempDiff=${tempDiff.toStringAsFixed(1)}, idealWarmth=${idealWarmth.toStringAsFixed(2)}, warmth=${item.attributes.warmthLevel}, rainProb=${rainProbability.toStringAsFixed(2)})',
       );
+
       scores[item] = score;
+
+      if (bestItem == null || score > scores[bestItem]!) {
+        bestItem = item;
+      }
     }
+
+    /*if (minScore != null &&
+        scores[bestItem]! < minScore &&
+        bestTempDiff != null) {
+      //if no item reaches the minScore, choose the one with the best (lowest) tempDiff to go through (only for low temperatures though)
+      scores[bestTempDiff] = minScore;
+    }*/
 
     return scores;
   }
@@ -682,6 +705,7 @@ class OutfitEngine {
       windSpeed: windSpeed,
       coldThreshold: coldThreshold,
       warmThreshold: warmThreshold,
+      minScore: 25.0,
     );
 
     List<ClothingItem> pickTopNByCategory(
@@ -717,13 +741,33 @@ class OutfitEngine {
 
       // Apply minimum score filter if provided
       if (minScore != null) {
-        final minScorefiltered = filtered.where((e) => e.value >= minScore).toList();
+        final minScorefiltered = filtered
+            .where((e) => e.value >= minScore)
+            .toList();
         if (minScorefiltered.isNotEmpty) {
           filtered = minScorefiltered;
+          filtered.sort((a, b) => b.value.compareTo(a.value));
+        } else {
+          //if no item reaches the minScore, take the ones which best fit the temperature
+          filtered.sort((a, b) {
+            double aTempDiff = 0;
+            double bTempDiff = 0;
+            if (temperature >= 10) {
+              final aMaxTemp = a.key.usageConstraints.weatherMaxTemp;
+
+              final bMaxTemp = b.key.usageConstraints.weatherMaxTemp;
+              aTempDiff = (temperature - aMaxTemp).abs();
+              bTempDiff = (temperature - bMaxTemp).abs();
+            } else {
+              final aMinTemp = a.key.usageConstraints.weatherMinTemp;
+              final bMinTemp = b.key.usageConstraints.weatherMinTemp;
+              aTempDiff = (temperature - aMinTemp).abs();
+              bTempDiff = (temperature - bMinTemp).abs();
+            }
+            return aTempDiff.compareTo(bTempDiff);
+          });
         }
       }
-
-      filtered.sort((a, b) => b.value.compareTo(a.value));
 
       if (filtered.isNotEmpty)
         return filtered.take(n).map((e) => e.key).toList();
@@ -822,30 +866,33 @@ class OutfitEngine {
         'corsage',
       ],
       maxWarmth: 4,
-      minScore: null,
     );
 
+    final bool includePullover =
+        (warmThreshold != null && temperature < warmThreshold);
     // Heavier tops (knitwear, sweat)
-    final pullovers = pickTopNByCategory(
-      ['knitwear', 'knits', 'sweat', 'sweats', 'sweater', 'sweaters'],
-      topNPerCategory,
-      subtypeFilter: [
-        'sweater',
-        'pullover',
-        'turtleneck',
-        'cardigan',
-        'hoodie',
-        'sweatshirt',
-        'fleece',
-        'poncho',
-        'cape',
-        'knit',
-        'crewneck',
-        'vneck',
-        'quarter',
-        'zip',
-      ],
-    );
+    final pullovers = includePullover
+        ? pickTopNByCategory(
+            ['knitwear', 'knits', 'sweat', 'sweats', 'sweater', 'sweaters'],
+            topNPerCategory,
+            subtypeFilter: [
+              'sweater',
+              'pullover',
+              'turtleneck',
+              'cardigan',
+              'hoodie',
+              'sweatshirt',
+              'fleece',
+              'poncho',
+              'cape',
+              'knit',
+              'crewneck',
+              'vneck',
+              'quarter',
+              'zip',
+            ],
+          )
+        : <ClothingItem>[];
 
     // Bottoms - all groups under bottoms category
     final bottoms = pickTopNByCategory([
