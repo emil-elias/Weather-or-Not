@@ -150,14 +150,14 @@ class OutfitEngine {
 
       // 2) Activities match: support multiple activities with equal weighting
       if (c.optimalActivities.isEmpty) {
-        score += 5; // small default boost
+        score += 8; // slightly stronger default boost
       } else {
         for (final act in activities) {
           if (c.optimalActivities.contains(act)) {
-            score += 30 * actWeight;
+            score += 45 * actWeight;
           }
           if (c.unsuitableFor.contains(act)) {
-            score -= 35 * actWeight; // weighted penalty
+            score -= 55 * actWeight; // weighted penalty
           }
         }
       }
@@ -213,10 +213,7 @@ class OutfitEngine {
       final double desiredFormality = _desiredFormalityLevel(activities);
       final double itemFormality = _formalityValue(item.attributes.formality);
       final double formalityDiff = (itemFormality - desiredFormality).abs();
-      score += max(
-        0,
-        12 - formalityDiff * 2.4,
-      ); // tighter curve gives stronger preference
+      score += max(0, 18 - formalityDiff * 3.6); // stronger formality alignment
 
       // 8) Small tie-breakers (optional): metadata tie-breaker slot (unused)
       // Logging to help tuning
@@ -285,13 +282,13 @@ class OutfitEngine {
           s -= 2.0;
       }
       if (c.optimalActivities.isEmpty)
-        s += 5;
+        s += 8;
       else {
         final int actCount = activities.isNotEmpty ? activities.length : 1;
         final double actWeight = 1.0 / actCount;
         for (final act in activities) {
-          if (c.optimalActivities.contains(act)) s += 30 * actWeight;
-          if (c.unsuitableFor.contains(act)) s -= 35 * actWeight;
+          if (c.optimalActivities.contains(act)) s += 45 * actWeight;
+          if (c.unsuitableFor.contains(act)) s -= 55 * actWeight;
         }
       }
 
@@ -308,7 +305,7 @@ class OutfitEngine {
       final double desiredFormality = _desiredFormalityLevel(activities);
       final double itemFormality = _formalityValue(item.attributes.formality);
       final double formalityDiff = (itemFormality - desiredFormality).abs();
-      s += max(0, 12 - formalityDiff * 2.4);
+      s += max(0, 18 - formalityDiff * 3.6);
 
       return s;
     }
@@ -666,6 +663,7 @@ class OutfitEngine {
       int n, {
       List<String>? subtypeFilter,
       int? maxWarmth,
+      double? minScore = 25.0,
     }) {
       var filtered = scores.entries.where((e) {
         final catLower = e.key.category.toLowerCase();
@@ -689,6 +687,11 @@ class OutfitEngine {
         filtered = filtered
             .where((e) => e.key.attributes.warmthLevel <= maxWarmth)
             .toList();
+      }
+
+      // Apply minimum score filter if provided
+      if (minScore != null) {
+        filtered = filtered.where((e) => e.value >= minScore).toList();
       }
 
       filtered.sort((a, b) => b.value.compareTo(a.value));
@@ -738,7 +741,11 @@ class OutfitEngine {
                 .toList()
               ..sort((a, b) => b.value.compareTo(a.value));
 
-        return scoredFallback.take(n).map((e) => e.key).toList();
+        final filteredFallback = minScore == null
+            ? scoredFallback
+            : scoredFallback.where((e) => e.value >= minScore).toList();
+
+        return filteredFallback.take(n).map((e) => e.key).toList();
       }
 
       // No items found for this category
@@ -786,6 +793,7 @@ class OutfitEngine {
         'corsage',
       ],
       maxWarmth: 4,
+      minScore: null,
     );
 
     // Heavier tops (knitwear, sweat)
@@ -998,13 +1006,13 @@ class OutfitEngine {
     }
 
     if (c.optimalActivities.isEmpty) {
-      s += 5;
+      s += 8;
     } else {
       final int actCount = activities.isNotEmpty ? activities.length : 1;
       final double actWeight = 1.0 / actCount;
       for (final act in activities) {
-        if (c.optimalActivities.contains(act)) s += 30 * actWeight;
-        if (c.unsuitableFor.contains(act)) s -= 35 * actWeight;
+        if (c.optimalActivities.contains(act)) s += 45 * actWeight;
+        if (c.unsuitableFor.contains(act)) s -= 55 * actWeight;
       }
     }
 
@@ -1021,7 +1029,7 @@ class OutfitEngine {
     final double desiredFormality = _desiredFormalityLevel(activities);
     final double itemFormality = _formalityValue(item.attributes.formality);
     final double formalityDiff = (itemFormality - desiredFormality).abs();
-    s += max(0, 12 - formalityDiff * 2.4);
+    s += max(0, 18 - formalityDiff * 3.6);
 
     return s;
   }
