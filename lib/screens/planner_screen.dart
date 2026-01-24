@@ -135,7 +135,7 @@ class _PlannerScreenState extends State<PlannerScreen>
   /// Get activities for selected day
   List<String> _getActivitiesForDay(DateTime day) {
     final dateKey = _dateToString(day);
-    return _dayActivitiesMap[dateKey] ?? [];
+    return _dayActivitiesMap[dateKey]?.where((activity) => !activity.startsWith('!R:')).toList() ?? [];
   }
 
   /// Collect IDs of outfit items that are currently in wash
@@ -229,7 +229,7 @@ class _PlannerScreenState extends State<PlannerScreen>
     final double windSpeed =
         dayForecast.windSpeed ?? provider.currentWeather?.windSpeed ?? 0.0;
 
-    final activities = List<String>.from(_getActivitiesForDay(day));
+    final activities = List<String>.from(await _getActivitiesForDay(day));
 
     // Add transportation as an activity so the engine can prefer appropriate items
     final transport = await _preferencesService.getTransportation();
@@ -564,6 +564,7 @@ class _PlannerScreenState extends State<PlannerScreen>
   /// Format activity key to readable string
   String _formatActivityKey(String key) {
     return key
+        .replaceFirst("R:","")
         .split('_')
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
@@ -779,6 +780,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                 ),
                 eventLoader: (day) {
                   return _getActivitiesForDay(day);
+                  //return [];
                 },
               ),
             ),
@@ -805,70 +807,132 @@ class _PlannerScreenState extends State<PlannerScreen>
             ),
             const SizedBox(height: 16),
 
-            // Activities for selected day
-            if (activitiesForSelectedDay.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(
-                    0.3,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.event_available_outlined,
-                        size: 48,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No activities planned for this day',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap "Add" to plan an activity',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: activitiesForSelectedDay.length,
-                itemBuilder: (context, index) {
-                  final activity = activitiesForSelectedDay[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: theme.colorScheme.primaryContainer,
-                        child: Icon(
-                          Icons.show_chart_rounded,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      title: Text(_formatActivityKey(activity)),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _removeActivityFromDay(activity),
+            FutureBuilder<List<String>>(
+              future: _plannerService.getMergedDayActivities(_selectedDay),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error loading activities: ${snapshot.error}'),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.event_available_outlined,
+                            size: 48,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No activities planned for this day',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap "Add" to plan an activity',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
-                },
-              ),
+                } else {
+                  final activitiesForSelectedDay = snapshot.data!;
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: activitiesForSelectedDay.length,
+                    itemBuilder: (context, index) {
+                      String activity = activitiesForSelectedDay[index];
+                      final isWeekly = activity.startsWith('R:');
+                      if (isWeekly) {
+                        activity = activity.substring(2); // Remove 'R:' prefix
+                      }
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: theme.colorScheme.primaryContainer,
+                            child: Icon(
+                              isWeekly
+                                  ? Icons.replay_outlined
+                                  : Icons.show_chart_rounded,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                          title: Text(_formatActivityKey(activity)),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () =>
+                                _deleteActivity(activity, isWeekly),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _deleteActivity(String activity, bool isWeekly) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Remove ${activity.replaceAll("_", " ")}?'),
+        content: isWeekly
+            ? Text(
+                'This is a recurring activity. Choose whether to remove it only from this day or from all future occurrences.',
+              )
+            : Text('This activity will be removed from this day.'),
+        actions: [
+          if (!isWeekly)
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+          if (isWeekly)
+            FilledButton(
+              onPressed: () => {
+                Navigator.pop(context, null),
+                _removeActivityFromDay('R:$activity', false)
+              },
+              child: const Text('Remove from all days'),
+            ),
+          FilledButton(
+            onPressed: () => {
+              Navigator.pop(context, true),
+              _removeActivityFromDay(
+                isWeekly ? 'R:$activity' : activity,
+                true,
+              )
+            },
+            child: const Text('Remove from this day'),
+          ),
+          if (isWeekly)
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+        ],
       ),
     );
   }
@@ -878,6 +942,7 @@ class _PlannerScreenState extends State<PlannerScreen>
     String? selectedActivitySubcategory;
     List<String> selectedActivities = [];
     String searchQuery = '';
+    String recurrenceOption = 'once'; // Default to "Only this day"
 
     showDialog(
       context: context,
@@ -926,98 +991,147 @@ class _PlannerScreenState extends State<PlannerScreen>
               ),
               content: SizedBox(
                 width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Search field
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search',
-                          prefixIcon: const Icon(Icons.search, size: 18),
-                          suffixIcon: searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  onPressed: () {
-                                    setDialogState(() {
-                                      searchQuery = '';
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                        onChanged: (value) {
-                          setDialogState(() {
-                            searchQuery = value.trim().toLowerCase();
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Activities',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Groups as ExpansionTiles
-                      ...sortedGroupKeys.map((groupLabel) {
-                        // Filter activities by search query
-                        final activities = groupedActivities[groupLabel]!.where(
-                          (act) {
-                            final label = _formatActivityKey(act).toLowerCase();
-                            return searchQuery.isEmpty ||
-                                label.contains(searchQuery) ||
-                                act.toLowerCase().contains(searchQuery);
-                          },
-                        ).toList();
-
-                        if (activities.isEmpty) return const SizedBox.shrink();
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: ExpansionTile(
-                            title: Text(
-                              groupLabel,
-                              style: Theme.of(context).textTheme.bodyMedium
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Search field
+                            TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search',
+                                prefixIcon: const Icon(Icons.search, size: 18),
+                                suffixIcon: searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 18),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            searchQuery = '';
+                                          });
+                                        },
+                                      )
+                                    : null,
+                              ),
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  searchQuery = value.trim().toLowerCase();
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Activities',
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 8.0,
+                            const SizedBox(height: 8),
+
+                            // Groups as ExpansionTiles
+                            ...sortedGroupKeys.map((groupLabel) {
+                              // Filter activities by search query
+                              final activities = groupedActivities[groupLabel]!
+                                  .where((act) {
+                                    final label = _formatActivityKey(
+                                      act,
+                                    ).toLowerCase();
+                                    return searchQuery.isEmpty ||
+                                        label.contains(searchQuery) ||
+                                        act.toLowerCase().contains(searchQuery);
+                                  })
+                                  .toList();
+
+                              if (activities.isEmpty)
+                                return const SizedBox.shrink();
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: ExpansionTile(
+                                  title: Text(
+                                    groupLabel,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                        vertical: 8.0,
+                                      ),
+                                      child: Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: activities.map((activity) {
+                                          final isSelected = selectedActivities
+                                              .contains(activity);
+                                          return FilterChip(
+                                            label: Text(
+                                              _formatActivityKey(activity),
+                                            ),
+                                            selected: isSelected,
+                                            onSelected: (selected) {
+                                              setDialogState(() {
+                                                if (selected) {
+                                                  selectedActivities.add(
+                                                    activity,
+                                                  );
+                                                } else {
+                                                  selectedActivities.remove(
+                                                    activity,
+                                                  );
+                                                }
+                                              });
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: activities.map((activity) {
-                                    final isSelected = selectedActivities
-                                        .contains(activity);
-                                    return FilterChip(
-                                      label: Text(_formatActivityKey(activity)),
-                                      selected: isSelected,
-                                      onSelected: (selected) {
-                                        setDialogState(() {
-                                          if (selected) {
-                                            selectedActivities.add(activity);
-                                          } else {
-                                            selectedActivities.remove(activity);
-                                          }
-                                        });
-                                      },
-                                    );
-                                  }).toList(),
-                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Dropdown for activity recurrence
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Do this... ',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        DropdownButton<String>(
+                          value: recurrenceOption,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'once',
+                              child: Text('only this day'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'weekly',
+                              child: Text(
+                                'every ${DateFormat('EEEE').format(_selectedDay)}',
                               ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setDialogState(() {
+                              recurrenceOption = value!;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               actions: [
@@ -1033,6 +1147,7 @@ class _PlannerScreenState extends State<PlannerScreen>
                             await _plannerService.addActivityToDay(
                               _selectedDay,
                               activity,
+                              recurrenceOption,
                             );
                           }
                           // Reload once after all are added
@@ -1059,7 +1174,7 @@ class _PlannerScreenState extends State<PlannerScreen>
   }
 
   /// Add activity to selected day
-  Future<void> _addActivityToDay(String activity) async {
+  /*Future<void> _addActivityToDay(String activity) async {
     print('💾 Saving activity: $activity for date: $_selectedDay'); // Debug
     final success = await _plannerService.addActivityToDay(
       _selectedDay,
@@ -1074,13 +1189,14 @@ class _PlannerScreenState extends State<PlannerScreen>
         );
       }
     }
-  }
+  }*/
 
   /// Remove activity from selected day
-  Future<void> _removeActivityFromDay(String activity) async {
+  Future<void> _removeActivityFromDay(String activity, bool once) async {
     final success = await _plannerService.removeActivityFromDay(
       _selectedDay,
       activity,
+      once
     );
     if (success) {
       await _loadAllDayActivities();

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:weatherornot/models/forecast.dart';
 import 'package:weatherornot/models/wardrobe_item.dart';
 import 'package:weatherornot/screens/weather_screen.dart';
@@ -99,15 +100,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _syncTodayActivitiesWithPlanner() async {
     final displayDate = _getDisplayDate();
-    final planned = await _plannerService.getDayActivities(displayDate);
+    final planned = await _plannerService.getMergedDayActivities(displayDate);
     setState(() {
       _todayActivities.clear();
       for (final activityName in planned) {
+        final isWeekly = activityName.startsWith('R:');
         _todayActivities.add(
           Activity(
             id: activityName,
             name: _formatActivityKey(activityName),
             style: ActivityStyle.casual,
+            isWeekly: isWeekly,
             type: _mapActivityToType(activityName),
           ),
         );
@@ -523,7 +526,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       _generateOutfit(_currentWeather!);
-      
     }
   }
 
@@ -635,23 +637,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Center(child: CircularProgressIndicator())
                     else
                       WeatherCard(
-                      isLoading: _isLoading,
-                      errorMessage: _errorMessage,
-                      currentWeather: widget.live == true
-                          ? _currentWeather
-                          : null,
-                      forecast: _forecast,
-                      forecastIndex: widget.forecastIndex,
-                      onTap: widget.live == true && _currentWeather?.icon != 32
-                          ? () {
-                              homeNavigatorKey.currentState?.push(
-                                MaterialPageRoute(
-                                  builder: (context) => const WeatherScreen(),
-                                ),
-                              );
-                            }
-                          : null,
-                    ),
+                        isLoading: _isLoading,
+                        errorMessage: _errorMessage,
+                        currentWeather: widget.live == true
+                            ? _currentWeather
+                            : null,
+                        forecast: _forecast,
+                        forecastIndex: widget.forecastIndex,
+                        onTap:
+                            widget.live == true && _currentWeather?.icon != 32
+                            ? () {
+                                homeNavigatorKey.currentState?.push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const WeatherScreen(),
+                                  ),
+                                );
+                              }
+                            : null,
+                      ),
 
                     const SizedBox(height: 16),
 
@@ -707,22 +710,31 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: Text(activity.name),
                             deleteIcon: const Icon(Icons.close, size: 18),
                             onDeleted: () async {
-                              setState(() {
-                                _todayActivities.remove(activity);
-                              });
-                              // Remove from planner
                               final displayDate = _getDisplayDate();
-                              await _plannerService.removeActivityFromDay(
+                              await _deleteActivity(
+                                displayDate,
+                                activity,
+                                activity.isWeekly,
+                              );
+
+                              /*setState(() {
+                                _todayActivities.remove(activity);
+                              });*/
+                              // Remove from planner
+
+                              /*await _plannerService.removeActivityFromDay(
                                 displayDate,
                                 activity.name.toLowerCase().replaceAll(
                                   ' ',
                                   '_',
                                 ),
-                              );
+                                false,
+                              );*/
+
                               // Regenerate outfit when activity is removed
-                              if (_currentWeather != null) {
+                              /*if (_currentWeather != null) {
                                 _generateOutfit(_currentWeather!);
-                              }
+                              }*/
                             },
                             backgroundColor: theme.colorScheme.primaryContainer,
                             labelStyle: TextStyle(
@@ -1057,6 +1069,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showItemDetails(BuildContext context, ClothingItem item) {
+    //print("item category ${item.category}");
+    //print("item subtype ${item.subtype}");
+    //print("item attributes ${item.attributes.formality}");
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -1600,11 +1615,78 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<bool> _deleteActivity(
+    DateTime displayDate,
+    Activity activity,
+    bool isWeekly,
+  ) async {
+    final activityName = activity.name.toLowerCase().replaceAll(' ', '_');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Remove ${activity.name}?'),
+        content: isWeekly
+            ? Text(
+                'This is a recurring activity. Choose whether to remove it only from this day or from all future occurrences.',
+              )
+            : Text('This activity will be removed from this day.'),
+        actions: [
+          if (!isWeekly)
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+          if (isWeekly)
+            FilledButton(
+              onPressed: () => {
+                Navigator.pop(context, null),
+                _plannerService.removeActivityFromDay(
+                  displayDate,
+                  'R:$activityName',
+                  false,
+                ),
+                setState(() {
+                  _todayActivities.remove(activity);
+                }),
+                if (_currentWeather != null)
+                  {_generateOutfit(_currentWeather!)},
+              },
+              child: const Text('Remove from all days'),
+            ),
+          FilledButton(
+            onPressed: () => {
+              Navigator.pop(context, true),
+              _plannerService.removeActivityFromDay(
+                displayDate,
+                isWeekly ? 'R:$activityName' : activityName,
+                true,
+              ),
+              setState(() {
+                _todayActivities.remove(activity);
+              }),
+              if (_currentWeather != null)
+                  {_generateOutfit(_currentWeather!)},
+            },
+            child: const Text('Remove from this day'),
+          ),
+          if (isWeekly)
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+        ],
+      ),
+    );
+
+    return confirmed == true;
+  }
+
   void _showAddActivityDialog(BuildContext context) {
     String? selectedActivityCategory;
     String? selectedActivitySubcategory;
     List<String> selectedActivities = [];
     String searchQuery = '';
+    String recurrenceOption = 'once';
 
     showDialog(
       context: context,
@@ -1651,98 +1733,147 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Add activity'),
               content: SizedBox(
                 width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Search field
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search',
-                          prefixIcon: const Icon(Icons.search, size: 18),
-                          suffixIcon: searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  onPressed: () {
-                                    setDialogState(() {
-                                      searchQuery = '';
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                        onChanged: (value) {
-                          setDialogState(() {
-                            searchQuery = value.trim().toLowerCase();
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Activities',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Groups as ExpansionTiles
-                      ...sortedGroupKeys.map((groupLabel) {
-                        // Filter activities by search query
-                        final activities = groupedActivities[groupLabel]!.where(
-                          (act) {
-                            final label = _formatActivityKey(act).toLowerCase();
-                            return searchQuery.isEmpty ||
-                                label.contains(searchQuery) ||
-                                act.toLowerCase().contains(searchQuery);
-                          },
-                        ).toList();
-
-                        if (activities.isEmpty) return const SizedBox.shrink();
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: ExpansionTile(
-                            title: Text(
-                              groupLabel,
-                              style: Theme.of(context).textTheme.bodyMedium
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Search field
+                            TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search',
+                                prefixIcon: const Icon(Icons.search, size: 18),
+                                suffixIcon: searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 18),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            searchQuery = '';
+                                          });
+                                        },
+                                      )
+                                    : null,
+                              ),
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  searchQuery = value.trim().toLowerCase();
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Activities',
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 8.0,
+                            const SizedBox(height: 8),
+
+                            // Groups as ExpansionTiles
+                            ...sortedGroupKeys.map((groupLabel) {
+                              // Filter activities by search query
+                              final activities = groupedActivities[groupLabel]!
+                                  .where((act) {
+                                    final label = _formatActivityKey(
+                                      act,
+                                    ).toLowerCase();
+                                    return searchQuery.isEmpty ||
+                                        label.contains(searchQuery) ||
+                                        act.toLowerCase().contains(searchQuery);
+                                  })
+                                  .toList();
+
+                              if (activities.isEmpty)
+                                return const SizedBox.shrink();
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: ExpansionTile(
+                                  title: Text(
+                                    groupLabel,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                        vertical: 8.0,
+                                      ),
+                                      child: Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: activities.map((activity) {
+                                          final isSelected = selectedActivities
+                                              .contains(activity);
+                                          return FilterChip(
+                                            label: Text(
+                                              _formatActivityKey(activity),
+                                            ),
+                                            selected: isSelected,
+                                            onSelected: (selected) {
+                                              setDialogState(() {
+                                                if (selected) {
+                                                  selectedActivities.add(
+                                                    activity,
+                                                  );
+                                                } else {
+                                                  selectedActivities.remove(
+                                                    activity,
+                                                  );
+                                                }
+                                              });
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: activities.map((activity) {
-                                    final isSelected = selectedActivities
-                                        .contains(activity);
-                                    return FilterChip(
-                                      label: Text(_formatActivityKey(activity)),
-                                      selected: isSelected,
-                                      onSelected: (selected) {
-                                        setDialogState(() {
-                                          if (selected) {
-                                            selectedActivities.add(activity);
-                                          } else {
-                                            selectedActivities.remove(activity);
-                                          }
-                                        });
-                                      },
-                                    );
-                                  }).toList(),
-                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Dropdown for activity recurrence
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Do this... ',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        DropdownButton<String>(
+                          value: recurrenceOption,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'once',
+                              child: Text('only this day'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'weekly',
+                              child: Text(
+                                'every ${DateFormat('EEEE').format(_getDisplayDate())}',
                               ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setDialogState(() {
+                              recurrenceOption = value!;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               actions: [
@@ -1762,6 +1893,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   name: _formatActivityKey(activity),
                                   style: ActivityStyle.casual,
                                   type: _mapActivityToType(activity),
+                                  isWeekly: recurrenceOption == 'weekly',
                                 ),
                               );
                             }
@@ -1771,6 +1903,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             await _plannerService.addActivityToDay(
                               displayDate,
                               activity,
+                              recurrenceOption,
                             );
                           }
 
@@ -1835,6 +1968,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Format activity key to readable string
   String _formatActivityKey(String key) {
     return key
+        .replaceFirst('R:', '')
         .split('_')
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');

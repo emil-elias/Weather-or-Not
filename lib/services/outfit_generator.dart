@@ -333,7 +333,7 @@ class OutfitEngine {
     // Lighter tops (t-shirts, shirts & blouses, sportswear, women specific) - prefer items with lower warmth
     shirt = pickByCategory(
       ['t-shirt', 't-shirts', 'tshirt', 'tshirts', 'shirt', 'shirts', 'blouse', 'blouses', 'shirts & blouses', 'shirts_blouses', 'sportswear', 'women specific', 'women_specific', 'tops'],
-      subtypeFilter: ['tee', 'shirt', 'blouse', 'tank', 'sleeveless', 'crop', 'tunic', 'top', 'performance', 'running', 'training', 'compression', 'bodysuit', 'bralette', 'tube', 'bustier', 'corsage'],
+      subtypeFilter: ['dress shirt', 'tee', 'shirt', 'blouse', 'tank', 'sleeveless', 'crop', 'tunic', 'top', 'performance', 'running', 'training', 'compression', 'bodysuit', 'bralette', 'tube', 'bustier', 'corsage'],
       maxWarmth: 4
     );
     
@@ -583,7 +583,7 @@ class OutfitEngine {
     final shirts = pickTopNByCategory(
       ['t-shirt', 't-shirts', 'tshirt', 'tshirts', 'shirt', 'shirts', 'blouse', 'blouses', 'shirts & blouses', 'shirts_blouses', 'sportswear', 'women specific', 'women_specific', 'tops'],
       topNPerCategory,
-      subtypeFilter: ['tee', 'shirt', 'blouse', 'tank', 'sleeveless', 'crop', 'tunic', 'top', 'performance', 'running', 'training', 'compression', 'bodysuit', 'bralette', 'tube', 'bustier', 'corsage'],
+      subtypeFilter: ["dress shirt", 'tee', 'shirt', 'blouse', 'tank', 'sleeveless', 'crop', 'tunic', 'top', 'performance', 'running', 'training', 'compression', 'bodysuit', 'bralette', 'tube', 'bustier', 'corsage'],
       maxWarmth: 4
     );
     
@@ -717,8 +717,9 @@ class OutfitEngine {
       if (item.attributes.warmthLevel <= idealWarmth) s += 2.0; else s -= 2.0;
     }
 
-    if (c.optimalActivities.isEmpty) s += 5;
-    else {
+    if (c.optimalActivities.isEmpty) {
+      s += 5;
+    }else {
       final int actCount = activities.isNotEmpty ? activities.length : 1;
       final double actWeight = 1.0 / actCount;
       for (final act in activities) {

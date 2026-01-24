@@ -3,12 +3,14 @@ class Activity {
   final String name;
   final ActivityStyle style;
   final ActivityType type;
+  final bool isWeekly;
 
   Activity({
     required this.id,
     required this.name,
     required this.style,
     required this.type,
+    required this.isWeekly,
   });
 
   Map<String, dynamic> toJson() {
@@ -17,6 +19,7 @@ class Activity {
       'name': name,
       'style': style.name,
       'type': type.name,
+      'isWeekly': isWeekly,
     };
   }
 
@@ -32,6 +35,7 @@ class Activity {
         (e) => e.name == json['type'],
         orElse: () => ActivityType.other,
       ),
+      isWeekly: json['isWeekly'] ?? false,
     );
   }
 }
