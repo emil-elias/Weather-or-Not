@@ -344,10 +344,14 @@ class _HomeScreenState extends State<HomeScreen> {
       // Create outfit engine
       final outfitEngine = OutfitEngine(clothingItems);
 
-      // Build activities list (use types, default to 'daily')
-      final activities = _todayActivities.isNotEmpty
-          ? _todayActivities.map((a) => a.type.name.toLowerCase()).toList()
-          : ['daily'];
+          // Build activities list from planner (source of truth), default to 'daily'
+          final displayDate = _getDisplayDate();
+          final plannedActivities = await _plannerService.getMergedDayActivities(
+          displayDate,
+          );
+          final activities = plannedActivities.isNotEmpty
+            ? plannedActivities.map(_normalizeActivityKey).toList()
+            : ['daily'];
 
       // Load user preferences (transportation method and warm/cold thresholds)
       final prefs = PreferencesService();
@@ -1886,14 +1890,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? () async {
                           setState(() {
                             for (final activity in selectedActivities) {
+                              final isWeekly = recurrenceOption == 'weekly';
                               _todayActivities.add(
                                 Activity(
-                                  id: DateTime.now().millisecondsSinceEpoch
-                                      .toString(),
+                                  id: isWeekly ? 'R:$activity' : activity,
                                   name: _formatActivityKey(activity),
                                   style: ActivityStyle.casual,
                                   type: _mapActivityToType(activity),
-                                  isWeekly: recurrenceOption == 'weekly',
+                                  isWeekly: isWeekly,
                                 ),
                               );
                             }
@@ -1972,6 +1976,14 @@ class _HomeScreenState extends State<HomeScreen> {
         .split('_')
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
+  }
+
+  String _normalizeActivityKey(String key) {
+    return key
+        .replaceFirst('R:', '')
+        .trim()
+        .toLowerCase()
+        .replaceAll(' ', '_');
   }
 
   /// Map activity category to ActivityType

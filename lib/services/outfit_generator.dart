@@ -123,7 +123,13 @@ class OutfitEngine {
     double? warmThreshold,
   }) {
     final scores = <ClothingItem, double>{};
-    final int actCount = activities.isNotEmpty ? activities.length : 1;
+    final lowerActivities = activities.map((a) => a.toLowerCase()).toList();
+    print(
+      'ScoreCandidates: activities(raw)=$activities | lower=$lowerActivities',
+    );
+    final int actCount = lowerActivities.isNotEmpty
+        ? lowerActivities.length
+        : 1;
     final double actWeight = 1.0 / actCount;
 
     for (final item in items) {
@@ -149,14 +155,25 @@ class OutfitEngine {
       }
 
       // 2) Activities match: support multiple activities with equal weighting
+      final optimalLower = c.optimalActivities
+          .map((a) => a.toLowerCase())
+          .toSet();
+      final unsuitableLower = c.unsuitableFor
+          .map((a) => a.toLowerCase())
+          .toSet();
+
+      print(
+        'ItemActs: ${item.subtype} (${item.category}) optimal=${c.optimalActivities} unsuitable=${c.unsuitableFor}',
+      );
+
       if (c.optimalActivities.isEmpty) {
         score += 8; // slightly stronger default boost
       } else {
-        for (final act in activities) {
-          if (c.optimalActivities.contains(act)) {
+        for (final act in lowerActivities) {
+          if (optimalLower.contains(act)) {
             score += 45 * actWeight;
           }
-          if (c.unsuitableFor.contains(act)) {
+          if (unsuitableLower.contains(act)) {
             score -= 55 * actWeight; // weighted penalty
           }
         }
@@ -194,7 +211,7 @@ class OutfitEngine {
       }
 
       // 4) Sports-specific properties (if any activity is sports)
-      if (activities.contains("sports")) {
+      if (lowerActivities.contains("sports")) {
         score += item.attributes.breathability * 2;
         score += item.attributes.stretch * 2;
       }
@@ -210,7 +227,7 @@ class OutfitEngine {
       score += windFactor * item.attributes.windResistance * 1.2;
 
       // 7) Formality alignment: match item formality to activity expectations
-      final double desiredFormality = _desiredFormalityLevel(activities);
+      final double desiredFormality = _desiredFormalityLevel(lowerActivities);
       final double itemFormality = _formalityValue(item.attributes.formality);
       final double formalityDiff = (itemFormality - desiredFormality).abs();
       score += max(0, 18 - formalityDiff * 3.6); // stronger formality alignment
@@ -248,6 +265,13 @@ class OutfitEngine {
       double rainProbability,
       double windSpeed,
     ) {
+      final lowerActivities = activities.map((a) => a.toLowerCase()).toList();
+      final optimalLower = item.usageConstraints.optimalActivities
+          .map((a) => a.toLowerCase())
+          .toSet();
+      final unsuitableLower = item.usageConstraints.unsuitableFor
+          .map((a) => a.toLowerCase())
+          .toSet();
       // Keep a fallback heuristic similar to _scoreCandidates (for consistency)
       final c = item.usageConstraints;
       double tempDiff;
@@ -284,15 +308,17 @@ class OutfitEngine {
       if (c.optimalActivities.isEmpty)
         s += 8;
       else {
-        final int actCount = activities.isNotEmpty ? activities.length : 1;
+        final int actCount = lowerActivities.isNotEmpty
+            ? lowerActivities.length
+            : 1;
         final double actWeight = 1.0 / actCount;
-        for (final act in activities) {
-          if (c.optimalActivities.contains(act)) s += 45 * actWeight;
-          if (c.unsuitableFor.contains(act)) s -= 55 * actWeight;
+        for (final act in lowerActivities) {
+          if (optimalLower.contains(act)) s += 45 * actWeight;
+          if (unsuitableLower.contains(act)) s -= 55 * actWeight;
         }
       }
 
-      if (activities.contains("sports")) {
+      if (lowerActivities.contains("sports")) {
         s += item.attributes.breathability * 2;
         s += item.attributes.stretch * 2;
       }
@@ -302,7 +328,7 @@ class OutfitEngine {
       final double windFactor = (windSpeed / 20.0).clamp(0.0, 2.0);
       s += windFactor * item.attributes.windResistance * 1.2;
 
-      final double desiredFormality = _desiredFormalityLevel(activities);
+      final double desiredFormality = _desiredFormalityLevel(lowerActivities);
       final double itemFormality = _formalityValue(item.attributes.formality);
       final double formalityDiff = (itemFormality - desiredFormality).abs();
       s += max(0, 18 - formalityDiff * 3.6);
@@ -971,6 +997,13 @@ class OutfitEngine {
     double? coldThreshold,
     double? warmThreshold,
   }) {
+    final lowerActivities = activities.map((a) => a.toLowerCase()).toList();
+    final optimalLower = item.usageConstraints.optimalActivities
+        .map((a) => a.toLowerCase())
+        .toSet();
+    final unsuitableLower = item.usageConstraints.unsuitableFor
+        .map((a) => a.toLowerCase())
+        .toSet();
     final c = item.usageConstraints;
     double tempDiff;
     if (temp < c.weatherMinTemp) {
@@ -1008,15 +1041,17 @@ class OutfitEngine {
     if (c.optimalActivities.isEmpty) {
       s += 8;
     } else {
-      final int actCount = activities.isNotEmpty ? activities.length : 1;
+      final int actCount = lowerActivities.isNotEmpty
+          ? lowerActivities.length
+          : 1;
       final double actWeight = 1.0 / actCount;
-      for (final act in activities) {
-        if (c.optimalActivities.contains(act)) s += 45 * actWeight;
-        if (c.unsuitableFor.contains(act)) s -= 55 * actWeight;
+      for (final act in lowerActivities) {
+        if (optimalLower.contains(act)) s += 45 * actWeight;
+        if (unsuitableLower.contains(act)) s -= 55 * actWeight;
       }
     }
 
-    if (activities.contains("sports")) {
+    if (lowerActivities.contains("sports")) {
       s += item.attributes.breathability * 2;
       s += item.attributes.stretch * 2;
     }
@@ -1026,7 +1061,7 @@ class OutfitEngine {
     final double windFactor = (windSpeed / 20.0).clamp(0.0, 2.0);
     s += windFactor * item.attributes.windResistance * 1.2;
 
-    final double desiredFormality = _desiredFormalityLevel(activities);
+    final double desiredFormality = _desiredFormalityLevel(lowerActivities);
     final double itemFormality = _formalityValue(item.attributes.formality);
     final double formalityDiff = (itemFormality - desiredFormality).abs();
     s += max(0, 18 - formalityDiff * 3.6);
