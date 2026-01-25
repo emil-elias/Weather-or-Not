@@ -2,6 +2,7 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationService {
   Future<Position> getCurrentLocation() async {
@@ -162,5 +163,37 @@ class LocationService {
     closestLocations.sort((a, b) => a['distance'].compareTo(b['distance']));
 
     return closestLocations;
+  }
+
+  Future<bool> saveLocationToStorage(Map<String,dynamic> location) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = "selected_location";
+      
+      final locationJson = jsonEncode(location);
+      return await prefs.setString(key, locationJson);
+    } catch (e) {
+      print('Error saving selected location: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String,dynamic>?> getLocationFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = "selected_location";
+      
+      final locationJson = prefs.getString(key);
+      if (locationJson != null) {
+        final location = jsonDecode(locationJson);
+        return location;
+      } else {
+        return null;
+      }
+        
+    } catch (e) {
+      print('Error getting selected location: $e');
+      return null;
+    }
   }
 }

@@ -135,6 +135,7 @@ class Outfit {
   final ClothingItem? outerwear;
   final ClothingItem? shoes;
   final List<ClothingItem> accessories;
+  String? stationID;
 
   final double score; // final composite score used for ranking
   final double baseScore; // average of item scores (pre style/color adjustment)
@@ -149,6 +150,7 @@ class Outfit {
     this.outerwear,
     this.shoes,
     this.accessories = const [],
+    this.stationID,
     required this.score,
     required this.baseScore,
     required this.styleScore,
@@ -168,6 +170,7 @@ class Outfit {
         "style_score": styleScore,
         "color_score": colorScore,
         "palette": palette.toJson(),
+        "stationId": stationID
       };
 }
 

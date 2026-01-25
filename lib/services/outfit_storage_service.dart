@@ -17,10 +17,13 @@ class OutfitStorageService {
   }
 
   /// Save an outfit for a specific date
-  Future<bool> saveOutfitForDate(DateTime date, Outfit outfit) async {
+  Future<bool> saveOutfitForDate(DateTime date, Outfit outfit, String? stationId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = _dateToKey(date);
+      if (stationId != null) {
+        outfit.stationID = stationId;
+      }
       final outfitJson = jsonEncode(outfit.toJson());
       return await prefs.setString(key, outfitJson);
     } catch (e) {
@@ -147,6 +150,7 @@ class OutfitStorageService {
                 )
                 .toList()
           : [],
+      stationID: json["stationId"],
       score: (json['score'] as num).toDouble(),
       baseScore: (json['base_score'] as num).toDouble(),
       styleScore: (json['style_score'] as num).toDouble(),

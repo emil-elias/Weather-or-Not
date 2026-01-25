@@ -15,7 +15,7 @@ class MainProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = true;
   Map<String, dynamic> _selectedLocation = {
-    "name": "BREMEN",
+    "name": "...",
     "id": "10224",
     "lat": 53.0451,
     "lon": 8.7981,
@@ -58,10 +58,17 @@ class MainProvider extends ChangeNotifier {
 
   void setSelectedLocation(Map<String, dynamic> location) {
     _selectedLocation = location;
+    _locationService.saveLocationToStorage(location);
     notifyListeners();
   }
 
   Future<void> getClosestLocation() async {
+    final savedLocation = await _locationService.getLocationFromStorage();
+
+    Map<String, dynamic> closest;
+    double fallbackLat;
+    double fallbackLon;
+
     try {
       final geo.Position userPosition = await _locationService
           .getCurrentLocation();
@@ -69,7 +76,16 @@ class MainProvider extends ChangeNotifier {
       final List<Map<String, dynamic>> closestList = await _locationService
           .findClosestLocation(userPosition.latitude, userPosition.longitude);
       //print(closestList);
-      final closest = closestList.first;
+
+      if (savedLocation != null) {
+        closest = savedLocation;
+        fallbackLat = savedLocation["lat"];
+        fallbackLon = savedLocation["lon"];
+      } else {
+        closest = closestList.first;
+        fallbackLat = userPosition.latitude;
+        fallbackLon = userPosition.longitude;
+      }
 
       print(
         'User position: ${userPosition.latitude}, ${userPosition.longitude}',
@@ -85,20 +101,30 @@ class MainProvider extends ChangeNotifier {
         closest['id'],
         closest['name'],
         fallbackStations: closestList.sublist(1),
-        fallbackLat: userPosition.latitude,
-        fallbackLon: userPosition.longitude,
+        fallbackLat: fallbackLat,
+        fallbackLon: fallbackLon,
       );
     } catch (e) {
       print('Error getting location: $e');
       // mark that location access was denied / failed so UI can prompt
       _locationAccessDenied = true;
-      setSelectedLocation({"name": "BREMEN", "id": "10224"});
-      loadWeather(
-        stationIDs['BREMEN']!,
-        'BREMEN',
-        fallbackLat: _locationCoordinates['BREMEN']!['lat'],
-        fallbackLon: _locationCoordinates['BREMEN']!['lon'],
-      );
+      if (savedLocation != null) {
+        setSelectedLocation(savedLocation);
+        loadWeather(
+          savedLocation["id"],
+          savedLocation["name"],
+          fallbackLat: savedLocation["lat"],
+          fallbackLon: savedLocation["lon"],
+        );
+      } else {
+        setSelectedLocation({"name": "BREMEN", "id": "10224"});
+        loadWeather(
+          stationIDs['BREMEN']!,
+          'BREMEN',
+          fallbackLat: _locationCoordinates['BREMEN']!['lat'],
+          fallbackLon: _locationCoordinates['BREMEN']!['lon'],
+        );
+      }
     } finally {
       notifyListeners();
     }

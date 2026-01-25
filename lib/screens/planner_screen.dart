@@ -178,11 +178,13 @@ class _PlannerScreenState extends State<PlannerScreen>
   Future<void> _generateOutfitForIndex(int forecastIndex, DateTime day) async {
     if (!mounted) return;
 
+    final provider = context.read<MainProvider>();
+
     final key = _dateToString(day);
 
     // Check if outfit is already stored for this date
     final storedOutfit = await _outfitStorageService.getOutfitForDate(day);
-    if (storedOutfit != null) {
+    if (storedOutfit != null && storedOutfit.stationID != null && storedOutfit.stationID == provider.selectedLocation["id"]) {
       final inWashIds = await _collectInWashItemIds(storedOutfit);
       if (mounted) {
         setState(() {
@@ -196,7 +198,7 @@ class _PlannerScreenState extends State<PlannerScreen>
 
     if (!mounted) return;
 
-    final provider = context.read<MainProvider>();
+    
 
     final forecast = provider.forecast;
 
@@ -229,7 +231,7 @@ class _PlannerScreenState extends State<PlannerScreen>
     final double windSpeed =
         dayForecast.windSpeed ?? provider.currentWeather?.windSpeed ?? 0.0;
 
-    final activities = List<String>.from(await _getActivitiesForDay(day));
+    final activities = List<String>.from(await _plannerService.getMergedDayActivities(day));
 
     // Add transportation as an activity so the engine can prefer appropriate items
     final transport = await _preferencesService.getTransportation();
@@ -239,7 +241,12 @@ class _PlannerScreenState extends State<PlannerScreen>
     final warmThreshold = await _preferencesService.getWarmThreshold();
 
     // Get wardrobe and convert to ClothingItem
-    final wardrobeItems = await _wardrobeService.getWardrobeItems();
+    final allWardrobeItems = await _wardrobeService.getWardrobeItems();
+
+    final wardrobeItems = allWardrobeItems
+          .where((item) => !item.isInWash)
+          .toList();
+
     final clothingItems = _convertToClothingItemsPlanner(wardrobeItems);
 
     // Debug: list potential outer candidates from wardrobe
@@ -278,7 +285,7 @@ class _PlannerScreenState extends State<PlannerScreen>
       final outfit = outfits[random.nextInt(outfits.length)];
 
       // Save the outfit to storage
-      await _outfitStorageService.saveOutfitForDate(day, outfit);
+      await _outfitStorageService.saveOutfitForDate(day, outfit, forecast.stationId);
 
       // Collect any outfit pieces currently in wash
       final inWashIds = await _collectInWashItemIds(outfit);

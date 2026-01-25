@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Forecast? _forecast;
   Outfit? _generatedOutfit;
   Set<String> _washingItemIds = <String>{};
-  bool _isLoading = true;
+  bool? _isLoading;
   String? _errorMessage;
   Map<String, dynamic> _subtypesAttributesData = {};
   // Activities loaded from JSON
@@ -81,15 +81,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    _isLoading = true;
+    //_isLoading = true;
     super.initState();
-    _loadActivitiesFromAssets();
-    _loadSubtypesAttributesFromAssets();
-    _loadWeather();
-    _syncTodayActivitiesWithPlanner();
-    _loadOrGenerateOutfit();
+    //_provider.addListener(providerCallback);
+    //_provider = context.watch<MainProvider>();
+    _initAsync();
   }
 
+  void providerCallback() {
+    //_loadOrGenerateOutfit();
+    if (_provider.currentWeather != null && !_provider.isLoading) {
+      _loadOrGenerateOutfit();
+    }
+  }
+
+  Future<void> _initAsync() async {
+    await _loadActivitiesFromAssets();
+    await _loadSubtypesAttributesFromAssets();
+    //await _loadWeather();
+    await _syncTodayActivitiesWithPlanner();
+    while (_provider.currentWeather == null && _provider.isLoading) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    await _loadOrGenerateOutfit();
+  }
+
+  @override
+  /*void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    //final provider = context.watch<MainProvider>();
+
+    // Check if provider has loaded and we haven't initialized yet
+    if (_provider.currentWeather != null && !_provider.isLoading) {
+      if (mounted) {
+        _loadOrGenerateOutfit();
+      }
+    }
+  }*/
   /// Get the date for the outfit being displayed
   DateTime _getDisplayDate() {
     if (widget.forecastIndex == null || widget.forecastIndex == 0) {
@@ -233,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadWeather() async {
     setState(() {
-      _isLoading = true;
+      //_isLoading = true;
       _errorMessage = null;
     });
 
@@ -265,14 +294,15 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _currentWeather = weather;
         _forecast = forecast;
-        _isLoading = false;
+        //_isLoading = false;
       });
 
-      await _generateOutfit(weather, forecast);
+      //await _generateOutfit(weather, forecast);
+      await _loadOrGenerateOutfit();
     } catch (e) {
       setState(() {
         _errorMessage = 'Wetter konnte nicht geladen werden';
-        _isLoading = false;
+        //_isLoading = false;
       });
     }
   }
@@ -286,7 +316,9 @@ class _HomeScreenState extends State<HomeScreen> {
         displayDate,
       );
 
-      if (storedOutfit != null) {
+      if (storedOutfit != null &&
+          storedOutfit.stationID != null &&
+          storedOutfit.stationID == _selectedLocation["id"]) {
         // Use stored outfit
         await _hasOutfitItemsInWash(storedOutfit);
         setState(() {
@@ -305,6 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
           await _outfitStorageService.saveOutfitForDate(
             displayDate,
             _generatedOutfit!,
+            _selectedLocation["id"],
           );
           print('HomeScreen: Generated and stored outfit for $displayDate');
         }
@@ -386,8 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   widget.forecastIndex! < forecast.days!.length
               ? widget.forecastIndex!
               : 0;
-          final dailyPrecipitation =
-              forecast.days![index].precipitation ?? 0.0;
+          final dailyPrecipitation = forecast.days![index].precipitation ?? 0.0;
           rainProbability = (dailyPrecipitation / 5.0).clamp(0.0, 1.0);
         }
       } else if (weather.condition != null &&
@@ -471,6 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
         await _outfitStorageService.saveOutfitForDate(
           displayDate,
           selectedOutfit,
+          _selectedLocation["id"],
         );
         print('HomeScreen: Generated and saved outfit for $displayDate');
       }
@@ -611,10 +644,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _currentWeather = context.watch<MainProvider>().currentWeather;
     _forecast = context.watch<MainProvider>().forecast;
-    _isLoading = context.watch<MainProvider>().isLoading;
+    //_isLoading = context.watch<MainProvider>().isLoading;
     _errorMessage = context.watch<MainProvider>().errorMessage;
     _selectedLocation = context.watch<MainProvider>().selectedLocation;
     _locations = context.watch<MainProvider>().locations;
+    /*_currentWeather = _provider.currentWeather;
+    _forecast = _provider.forecast;
+    _isLoading = _provider.isLoading;
+    _errorMessage = _provider.errorMessage;
+    _selectedLocation = _provider.selectedLocation;
+    _locations = _provider.locations;*/
 
     // Determine display title based on date
     final displayDate = _getDisplayDate();
@@ -705,28 +744,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 24),
 
-                    if (_isLoading)
+                    /*if (_provider.isLoading)
                       const Center(child: CircularProgressIndicator())
-                    else
-                      WeatherCard(
-                        isLoading: _isLoading,
-                        errorMessage: _errorMessage,
-                        currentWeather: widget.live == true
-                            ? _currentWeather
-                            : null,
-                        forecast: _forecast,
-                        forecastIndex: widget.forecastIndex,
-                        onTap:
-                            widget.live == true && _currentWeather?.icon != 32
-                            ? () {
-                                homeNavigatorKey.currentState?.push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const WeatherScreen(),
-                                  ),
-                                );
-                              }
-                            : null,
-                      ),
+                    else*/
+                    WeatherCard(
+                      isLoading: _provider.isLoading,
+                      errorMessage: _errorMessage,
+                      currentWeather: widget.live == true
+                          ? _currentWeather
+                          : null,
+                      forecast: _forecast,
+                      forecastIndex: widget.forecastIndex,
+                      onTap: widget.live == true && _currentWeather?.icon != 32
+                          ? () {
+                              homeNavigatorKey.currentState?.push(
+                                MaterialPageRoute(
+                                  builder: (context) => const WeatherScreen(),
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
 
                     const SizedBox(height: 16),
 
@@ -901,6 +939,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             isLarge: true,
                           ),
                         ],
+                      )
+                    else if (!_provider.isLoading)
+                      Center(
+                        child: Text(
+                          "Add Items to your wardrobe to get outfit suggestions",
+                        ),
                       ),
                     const SizedBox(height: 24),
                   ],
@@ -1501,7 +1545,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (lc.contains('pullover') ||
         lc.contains('sweat') ||
         lc.contains('hoodie'))
-      return cat.contains("sweat") || cat.contains("knitwear") ||
+      return cat.contains("sweat") ||
+          cat.contains("knitwear") ||
           (sub.contains('pullover') ||
               sub.contains('sweat') ||
               sub.contains('hoodie') ||
@@ -1652,7 +1697,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _saveModifiedOutfit(Outfit outfit) async {
     try {
       final displayDate = _getDisplayDate();
-      await _outfitStorageService.saveOutfitForDate(displayDate, outfit);
+      await _outfitStorageService.saveOutfitForDate(
+        displayDate,
+        outfit,
+        _selectedLocation["id"],
+      );
       await _hasOutfitItemsInWash(outfit);
 
       print('HomeScreen: Saved modified outfit for $displayDate');

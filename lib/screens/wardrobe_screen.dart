@@ -21,7 +21,8 @@ class _WardrobeScreenState extends State<WardrobeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
+  final ValueNotifier<String> _searchNotifier = ValueNotifier<String>('');
   final WardrobeService _wardrobeService = WardrobeService();
 
   bool _showAddItemScreen = false;
@@ -51,19 +52,20 @@ final FocusNode _searchFocusNode = FocusNode();
       }
     });
 
-    _searchFocusNode.addListener(() {
+    /*_searchFocusNode.addListener(() {
       if (!_searchFocusNode.hasFocus) {
         // Trigger setState only when the keyboard is dismissed
         setState(() {});
       }
-    });
+    });*/
 
-    /*_searchController.addListener(() {
-      if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _searchController.addListener(() {
+      /*if (_debounce?.isActive ?? false) _debounce!.cancel();
       _debounce = Timer(const Duration(milliseconds: 300), () {
         setState(() {});
-      });
-    });*/
+      });*/
+      _searchNotifier.value = _searchController.text;
+    });
     _loadCategoryData();
     _loadWardrobeItems();
     _loadSavedOutfits();
@@ -150,6 +152,7 @@ final FocusNode _searchFocusNode = FocusNode();
     _tabController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _searchNotifier.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -409,13 +412,18 @@ final FocusNode _searchFocusNode = FocusNode();
                   ),
                 ),
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildClothesTab(theme),
-                      _buildPastOutfitsTab(theme),
-                      _buildFavoriteOutfitsTab(theme),
-                    ],
+                  child: ValueListenableBuilder(
+                    valueListenable: _searchNotifier,
+                    builder: (context, searchValue, child) {
+                      return TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildClothesTab(theme),
+                          _buildPastOutfitsTab(theme),
+                          _buildFavoriteOutfitsTab(theme),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -805,7 +813,8 @@ final FocusNode _searchFocusNode = FocusNode();
   List<SavedOutfit> _getFilteredOutfits() {
     var outfits = _savedOutfits;
 
-    final query = _searchController.text.toLowerCase().trim();
+    //final query = _searchController.text.toLowerCase().trim();
+    final query = _searchNotifier.value.toLowerCase().trim();
     if (query.isNotEmpty) {
       outfits = outfits.where((outfit) {
         // Search by outfit name
