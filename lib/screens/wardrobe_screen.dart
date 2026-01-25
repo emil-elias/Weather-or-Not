@@ -338,6 +338,8 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                           ? Badge(
                               label: Text('${_wardrobeItems.length}'),
                               child: const Icon(Icons.checkroom_outlined),
+                              backgroundColor: theme.colorScheme.primary,
+                              textColor: theme.colorScheme.onInverseSurface,
                             )
                           : const Icon(Icons.checkroom_outlined),
                       text: 'Clothes',
@@ -347,18 +349,27 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                           ? Badge(
                               label: Text('${_savedOutfits.length}'),
                               child: const Icon(Icons.watch_later_outlined),
+                              backgroundColor: theme.colorScheme.primary,
+                              textColor: theme.colorScheme.onInverseSurface,
                             )
                           : const Icon(Icons.watch_later_outlined),
                       text: 'Saved outfits',
                     ),
                     Tab(
                       icon: () {
-                        final favCount = _wardrobeItems.where((item) => item.isFavorite).length +
-                                         _savedOutfits.where((outfit) => outfit.isFavorite).length;
+                        final favCount =
+                            _wardrobeItems
+                                .where((item) => item.isFavorite)
+                                .length +
+                            _savedOutfits
+                                .where((outfit) => outfit.isFavorite)
+                                .length;
                         return favCount > 0
                             ? Badge(
                                 label: Text('$favCount'),
                                 child: const Icon(Icons.favorite_outline),
+                                backgroundColor: theme.colorScheme.primary,
+                                textColor: theme.colorScheme.onInverseSurface,
                               )
                             : const Icon(Icons.favorite_outline);
                       }(),
