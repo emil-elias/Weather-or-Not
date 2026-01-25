@@ -518,15 +518,38 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // Show dialog to name the outfit
       final TextEditingController nameController = TextEditingController();
+      final theme = Theme.of(context);
       final outfitName = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Save Outfit'),
           content: TextField(
             controller: nameController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Outfit Name',
               hintText: 'e.g., Casual Monday, Sport Day',
+              filled: true,
+              fillColor: theme.colorScheme.surfaceContainerHighest
+                  .withOpacity(0.3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.primary,
+                  width: 2,
+                ),
+              ),
             ),
             autofocus: true,
           ),

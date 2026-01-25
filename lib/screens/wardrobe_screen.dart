@@ -332,13 +332,38 @@ class _WardrobeScreenState extends State<WardrobeScreen>
                   indicatorColor: theme.colorScheme.primary,
                   labelColor: theme.colorScheme.onSurface,
                   unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.checkroom_outlined), text: 'Clothes'),
+                  tabs: [
                     Tab(
-                      icon: Icon(Icons.watch_later_outlined),
+                      icon: _wardrobeItems.isNotEmpty
+                          ? Badge(
+                              label: Text('${_wardrobeItems.length}'),
+                              child: const Icon(Icons.checkroom_outlined),
+                            )
+                          : const Icon(Icons.checkroom_outlined),
+                      text: 'Clothes',
+                    ),
+                    Tab(
+                      icon: _savedOutfits.isNotEmpty
+                          ? Badge(
+                              label: Text('${_savedOutfits.length}'),
+                              child: const Icon(Icons.watch_later_outlined),
+                            )
+                          : const Icon(Icons.watch_later_outlined),
                       text: 'Saved outfits',
                     ),
-                    Tab(icon: Icon(Icons.favorite_outline), text: 'Favorites'),
+                    Tab(
+                      icon: () {
+                        final favCount = _wardrobeItems.where((item) => item.isFavorite).length +
+                                         _savedOutfits.where((outfit) => outfit.isFavorite).length;
+                        return favCount > 0
+                            ? Badge(
+                                label: Text('$favCount'),
+                                child: const Icon(Icons.favorite_outline),
+                              )
+                            : const Icon(Icons.favorite_outline);
+                      }(),
+                      text: 'Favorites',
+                    ),
                   ],
                 ),
               ),
