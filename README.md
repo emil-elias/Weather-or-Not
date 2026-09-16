@@ -14,7 +14,7 @@ as part of the lecture "Mobile App Development" at the University of Bremen in 2
 
 The app is built with Flutter, any data is only stored locally on the device.
 
-APK can be found in directory "Final Application".
+APK can be found in directory "Final Application" or in the releases.
 
 ## Note:
 
