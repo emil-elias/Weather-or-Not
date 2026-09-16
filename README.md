@@ -9,6 +9,7 @@ This application was developed by
 - Muhammad Ahsan,
 - Maja Holsten
 - Emil Wilde
+
 as part of the lecture "Mobile App Development" at the University of Bremen in 2025/26.
 
 It is built with Flutter, any data is only stored locally on the device.
