@@ -10,9 +10,9 @@ This application was developed by
 - Maja Holsten
 - Emil Wilde
 
-as part of the lecture "Mobile App Development" at the University of Bremen in 2025/26.
+as part of the lecture "Mobile App Development" at the University of Bremen in 2025/26. This repository is a fork from GitLab.
 
-It is built with Flutter, any data is only stored locally on the device.
+The app is built with Flutter, any data is only stored locally on the device.
 
 APK can be found in directory "Final Application".
 
