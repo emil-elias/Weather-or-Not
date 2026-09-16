@@ -9,6 +9,7 @@ Jürgen Till Naumann,
 Muhammad Ahsan,
 Maja Holsten
 & Emil Wilde
+
 as part of the lecture "Mobile App Development" at the University of Bremen in 2025/26.
 
 It is built with Flutter.
@@ -21,6 +22,6 @@ As of Summer 2026, the Weather- and Forecast API Endpoints of the DWD seem to ha
 
 ## Demo:
 
-<video controls>
-  <source src="FINAL/demo.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/400991eb-d3a1-45dd-8451-59dc21a31873
+
+
