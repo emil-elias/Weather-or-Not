@@ -2,23 +2,22 @@
 
 Weather or Not is your forecast-based wardrobe and outfit assistant.
 
-In Germany we say "there is no bad weather, only bad clothing" - Weather or Not helps you avoid the latter, keeping your style!
+In Germany we say "there is no bad weather, only bad clothing" - Weather or Not helps you avoid the latter, using weather and forecast data from Deutscher Wetterdienst (DWD) and keeping to your style with a weather-, color- and preference-based outfit matching algorithm.
 
 This application was developed by 
-Jürgen Till Naumann,
-Muhammad Ahsan,
-Maja Holsten
-& Emil Wilde
-
+- Jürgen Till Naumann,
+- Muhammad Ahsan,
+- Maja Holsten
+- Emil Wilde
 as part of the lecture "Mobile App Development" at the University of Bremen in 2025/26.
 
-It is built with Flutter.
+It is built with Flutter, any data is only stored locally on the device.
 
-APK can be found in directory "FINAL".
+APK can be found in directory "Final Application".
 
 ## Note:
 
-As of Summer 2026, the Weather- and Forecast API Endpoints of the DWD seem to have changed, leaving some functionalities of the app in a broken state. Unfortunately, we did not have the time to fix this, yet.
+As of Summer 2026, the Weather- and Forecast-API Endpoints of the DWD seem to have changed, leaving some functionalities of the app in a broken state. Unfortunately, we did not have the time to fix this, yet.
 
 ## Demo:
 
