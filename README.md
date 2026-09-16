@@ -2,7 +2,7 @@
 
 Weather or Not is your forecast-based wardrobe and outfit assistant.
 
-In Germany we say "there is no bad weather, only bad clothing" - Weather or Not helps you avoid the latter, adhering to your style!
+In Germany we say "there is no bad weather, only bad clothing" - Weather or Not helps you avoid the latter, keeping your style!
 
 This application was developed by 
 Jürgen Till Naumann,
