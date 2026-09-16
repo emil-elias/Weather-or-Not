@@ -15,6 +15,12 @@ It is built with Flutter.
 
 APK can be found in directory "FINAL".
 
-### Note:
+## Note:
 
 As of Summer 2026, the Weather- and Forecast API Endpoints of the DWD seem to have changed, leaving some functionalities of the app in a broken state. Unfortunately, we did not have the time to fix this, yet.
+
+## Demo:
+
+<video controls>
+  <source src="FINAL/demo.mp4" type="video/mp4">
+</video>
