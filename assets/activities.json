@@ -1,0 +1,61 @@
+{
+  "activities": {
+    "home": {
+      "relaxing": ["resting", "lounging", "reading"],
+      "chores": ["cleaning", "cooking"]
+    },
+
+    "casual": {
+      "daily_commute": ["Public Transit", "on Foot", "Car", "E-Scooter", "Bike"],
+      "social": ["meeting_friends", "coffee"],
+      "light_outdoor": ["walk", "park"]
+    },
+
+    "work": {
+      "office": ["business_casual", "business_formal"],
+      "manual": ["workshop", "crafting", "light_construction"],
+      "creative": ["studio_work", "design_work"],
+      "remote": ["home_office"]
+    },
+
+    "events": {
+      "formal": ["wedding", "dinner_event"],
+      "semi_formal": ["dates", "presentations"],
+      "party": ["clubbing", "night_out"]
+    },
+
+    "outdoor": {
+      "light_outdoor": ["walk", "sightseeing", "urban_outdoor"],
+      "hiking": ["trail_hiking", "mountain_hiking"],
+      "adventure": ["camping", "bushcraft", "outdoor_photography"],
+      "beach": ["sunbathing", "boardwalk"]
+    },
+
+    "sports": {
+      "gym": ["strength_training", "cardio"],
+      "team_sports": ["soccer", "basketball", "volleyball"],
+      "running": ["jogging", "long_distance"],
+      "cycling": ["road_cycling", "commuter_cycling"],
+      "winter_sports": ["skiing", "snowboarding"],
+      "water_sports": ["swimming", "surfing"],
+      "yoga": ["studio_yoga", "pilates"]
+    },
+
+    "seasonal": {
+      "summer": ["heat_days", "vacation"],
+      "winter": ["cold_days", "snow_days"],
+      "transitional": ["fall_weather", "spring_weather"]
+    },
+
+    "travel": {
+      "short_travel": ["commuting", "day_trips"],
+      "long_travel": ["air_travel", "train_travel", "road_trip"]
+    },
+
+    "festival": {
+      "music_festival": ["open_air", "crowded_events"],
+      "cultural_events": ["street_fair", "market"]
+    }
+    
+  }
+}

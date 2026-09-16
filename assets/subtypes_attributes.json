@@ -1,0 +1,1903 @@
+{
+  
+  "basic_tee": {
+    "attributes": {
+      "materials": ["cotton"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "park", "coffee", "meeting_friends"],
+      "unsuitable_for": ["skiing", "snowboarding", "mountain_hiking", "cold_days"]
+    }
+  },
+
+  "graphic_tee": {
+    "attributes": {
+      "materials": ["cotton"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Streetwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "coffee", "meeting_friends", "street_fair"],
+      "unsuitable_for": ["trail_hiking", "mountain_hiking", "skiing", "cold_days"]
+    }
+  },
+
+  "oversized_tshirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Streetwear"],
+      "fit": "Oversized"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "park", "urban_outdoor", "open_air"],
+      "unsuitable_for": ["strength_training", "cardio", "mountain_hiking", "snow_days"]
+    }
+  },
+
+  "slim_fit_tshirt": {
+    "attributes": {
+      "materials": ["cotton", "elastane"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 3,
+      "formality": "casual",
+      "style_tags": ["Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "coffee", "meeting_friends", "on Foot"],
+      "unsuitable_for": ["trail_hiking", "mountain_hiking", "skiing", "snowboarding"]
+    }
+  },
+
+  "vneck_tshirt": {
+    "attributes": {
+      "materials": ["cotton"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Minimalist", "Elegant"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["coffee", "meeting_friends", "dates", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "camping"]
+    }
+  },
+
+  "longline_tshirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Streetwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["night_out", "clubbing", "market", "street_fair"],
+      "unsuitable_for": ["mountain_hiking", "bushcraft", "snow_days", "skiing"]
+    }
+  },
+
+  "tank_top": {
+    "attributes": {
+      "materials": ["cotton", "polyester"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Sporty"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 22,
+      "weather_max_temp": 40,
+      "optimal_activities": ["strength_training", "cardio", "jogging", "swimming"],
+      "unsuitable_for": ["cold_days", "snow_days", "skiing", "snowboarding"]
+    }
+  },
+
+  "sleeveless_top": {
+    "attributes": {
+      "materials": ["cotton", "polyester"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "casual",
+      "style_tags": ["Sporty"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 22,
+      "weather_max_temp": 40,
+      "optimal_activities": ["strength_training", "cardio", "pilates", "studio_yoga"],
+      "unsuitable_for": ["cold_days", "snow_days", "skiing", "mountain_hiking"]
+    }
+  },
+
+  "crop_top": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "elastane"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 3,
+      "formality": "casual",
+      "style_tags": ["Streetwear", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 20,
+      "weather_max_temp": 35,
+      "optimal_activities": ["night_out", "dates", "coffee", "meeting_friends"],
+      "unsuitable_for": ["trail_hiking", "mountain_hiking", "snow_days", "cold_days"]
+    }
+  },
+
+  "dress_shirt": {
+    "attributes": {
+      "materials": ["cotton", "linen"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Elegant", "Business"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_formal", "presentations", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "camping"]
+    }
+  },
+
+  "oxford_shirt": {
+    "attributes": {
+      "materials": ["cotton", "oxford_cloth"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Minimalist", "Business"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "office", "presentations", "train_travel"],
+      "unsuitable_for": ["strength_training", "cardio", "mountain_hiking", "bushcraft"]
+    }
+  },
+
+  "flannel_shirt": {
+    "attributes": {
+      "materials": ["cotton", "wool"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 2,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Vintage", "Streetwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 25,
+      "optimal_activities": ["walk", "park", "meeting_friends", "street_fair"],
+      "unsuitable_for": ["strength_training", "cardio", "skiing", "snowboarding"]
+    }
+  },
+
+  "short_sleeve_shirt": {
+    "attributes": {
+      "materials": ["cotton", "linen"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "park", "coffee", "meeting_friends"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking"]
+    }
+  },
+
+  "blouse": {
+    "attributes": {
+      "materials": ["cotton", "silk", "polyester"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "presentations", "coffee"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "tunic": {
+    "attributes": {
+      "materials": ["cotton", "linen"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Vintage"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["walk", "park", "meeting_friends"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
+    }
+  },
+
+  "wrap_blouse": {
+    "attributes": {
+      "materials": ["cotton", "silk"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Business"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "presentations", "dates"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "peplum_blouse": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "silk"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_formal", "presentations", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "sweater": {
+    "attributes": {
+      "materials": ["wool", "cotton"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["walk", "park", "home_office"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
+    }
+  },
+
+  "crewneck_sweater": {
+    "attributes": {
+      "materials": ["wool", "cotton"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["walk", "park", "home_office"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "vneck_pullover": {
+    "attributes": {
+      "materials": ["wool", "cotton"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Business",
+      "style_tags": ["Minimalist", "Business"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["business_casual", "office", "train_travel"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
+    }
+  },
+
+  "turtleneck_pullover": {
+    "attributes": {
+      "materials": ["wool", "cashmere"],
+      "warmth_level": 4,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 18,
+      "optimal_activities": ["business_formal", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "heat_days"]
+    }
+  },
+
+  "turtleneck": {
+    "attributes": {
+      "materials": ["wool", "cashmere"],
+      "warmth_level": 4,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 18,
+      "optimal_activities": ["business_formal", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "heat_days"]
+    }
+  },
+
+  "cardigan": {
+    "attributes": {
+      "materials": ["wool", "cotton"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["home_office", "reading", "walk"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "knit_jacket": {
+    "attributes": {
+      "materials": ["wool", "polyester"],
+      "warmth_level": 3,
+      "water_resistance": 1,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Techwear", "Streetwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 18,
+      "optimal_activities": ["commuting", "train_travel", "urban_outdoor"],
+      "unsuitable_for": ["strength_training", "cardio", "heat_days"]
+    }
+  },
+
+  "poncho": {
+    "attributes": {
+      "materials": ["wool", "cotton", "polyester"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Vintage", "Minimalist"],
+      "fit": "Wide"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 18,
+      "optimal_activities": ["walk", "park", "street_fair", "reading"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "cape": {
+    "attributes": {
+      "materials": ["wool", "polyester"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Vintage"],
+      "fit": "Wide"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 18,
+      "optimal_activities": ["dates", "dinner_event", "urban_outdoor"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling"]
+    }
+  },
+
+  "hoodie": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "fleece"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 25,
+      "optimal_activities": ["commuting", "walk", "meeting_friends", "home_office"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "zip_hoodie": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "fleece"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Techwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 25,
+      "optimal_activities": ["commuting", "train_travel", "urban_outdoor"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "sweatshirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "fleece"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 25,
+      "optimal_activities": ["walk", "park", "reading", "home_office"],
+      "unsuitable_for": ["business_formal", "wedding", "presentations"]
+    }
+  },
+
+  "quarter_zip": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "fleece"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 25,
+      "optimal_activities": ["jogging", "walk", "commuting"],
+      "unsuitable_for": ["business_formal", "wedding"]
+    }
+  },
+
+  "fleece_pullover": {
+    "attributes": {
+      "materials": ["polyester", "fleece"],
+      "warmth_level": 4,
+      "water_resistance": 1,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["trail_hiking", "camping", "outdoor_photography"],
+      "unsuitable_for": ["business_formal", "dinner_event"]
+    }
+  },
+
+  "performance_shirt": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 35,
+      "optimal_activities": ["strength_training", "cardio", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding"]
+    }
+  },
+
+  "running_shirt": {
+    "attributes": {
+      "materials": ["polyester", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 5,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["jogging", "long_distance", "cardio"],
+      "unsuitable_for": ["business_formal", "snow_days"]
+    }
+  },
+
+  "training_top": {
+    "attributes": {
+      "materials": ["polyester", "elastane"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Sporty"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["strength_training", "cardio", "studio_yoga"],
+      "unsuitable_for": ["business_formal", "wedding"]
+    }
+  },
+
+  "compression_shirt": {
+    "attributes": {
+      "materials": ["polyester", "elastane"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 5,
+      "stretch": 5,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["strength_training", "cardio", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding"]
+    }
+  },
+
+  "bodysuit": {
+    "attributes": {
+      "materials": ["cotton", "elastane", "polyester"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Elegant",
+      "style_tags": ["Minimalist", "Elegant"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["dates", "dinner_event", "business_casual"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "bralette": {
+    "attributes": {
+      "materials": ["cotton", "elastane", "lace"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["home_office", "lounging", "studio_yoga"],
+      "unsuitable_for": ["business_formal", "cold_days"]
+    }
+  },
+
+  "tube_top": {
+    "attributes": {
+      "materials": ["cotton", "elastane"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 20,
+      "weather_max_temp": 35,
+      "optimal_activities": ["coffee", "meeting_friends", "walk", "night_out"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "wedding"]
+    }
+  },
+
+  "bustier": {
+    "attributes": {
+      "materials": ["cotton", "elastane", "polyester"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 3,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["clubbing", "night_out", "dates", "dinner_event"],
+      "unsuitable_for": ["cold_days", "snow_days", "strength_training", "cardio"]
+    }
+  },
+
+  "corsage": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "lace"],
+      "warmth_level": 0,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Vintage"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["dinner_event", "dates", "clubbing", "night_out"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "cold_days"]
+    }
+  },
+
+  "jeans": {
+    "attributes": {
+      "materials": ["cotton", "elastane", "denim"],
+      "warmth_level": 4,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Streetwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["walk", "commuting", "workshop", "meeting_friends"],
+      "unsuitable_for": ["swimming", "surfing", "strength_training", "cardio"]
+    }
+  },
+
+  "chinos": {
+    "attributes": {
+      "materials": ["cotton", "stretch_cotton"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Business",
+      "style_tags": ["Minimalist", "Business", "Elegant"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "office", "presentations", "train_travel"],
+      "unsuitable_for": ["swimming", "surfing", "strength_training", "cardio"]
+    }
+  },
+
+  "dress_trousers": {
+    "attributes": {
+      "materials": ["wool", "polyester", "cotton"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Business", "Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 28,
+      "optimal_activities": ["business_formal", "presentations", "dinner_event", "wedding"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
+    }
+  },
+
+  "cargo_pants": {
+    "attributes": {
+      "materials": ["cotton", "polyester"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Techwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 28,
+      "optimal_activities": ["trail_hiking", "camping", "urban_outdoor", "day_trips"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "sweatpants": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "fleece"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist", "Streetwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 25,
+      "optimal_activities": ["lounging", "resting", "home_office", "walk"],
+      "unsuitable_for": ["business_formal", "wedding", "commuter_cycling"]
+    }
+  },
+
+  "joggers": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "elastane"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Streetwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 28,
+      "optimal_activities": ["jogging", "cardio", "strength_training", "walk"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "leggings": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 5,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["studio_yoga", "pilates", "cardio", "strength_training"],
+      "unsuitable_for": ["business_formal", "wedding", "swimming"]
+    }
+  },
+
+  "denim_shorts": {
+    "attributes": {
+      "materials": ["cotton", "elastane", "denim"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Streetwear", "Vintage"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 20,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "park", "market", "street_fair"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "wedding"]
+    }
+  },
+
+  "casual_shorts": {
+    "attributes": {
+      "materials": ["cotton", "linen", "polyester"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Streetwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "coffee", "meeting_friends", "day_trips"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "wedding"]
+    }
+  },
+
+  "sport_shorts": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["strength_training", "cardio", "jogging", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "chino_shorts": {
+    "attributes": {
+      "materials": ["cotton", "stretch_cotton"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Business",
+      "style_tags": ["Business", "Minimalist", "Elegant"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["business_casual", "office", "coffee", "meeting_friends"],
+      "unsuitable_for": ["cold_days", "snow_days", "strength_training", "cardio"]
+    }
+  },
+
+  "bike_shorts": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 5,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["road_cycling", "commuter_cycling", "cardio", "jogging"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "mini_skirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "denim"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Minimalist", "Vintage"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 18,
+      "weather_max_temp": 35,
+      "optimal_activities": ["meeting_friends", "coffee", "night_out", "clubbing"],
+      "unsuitable_for": ["cold_days", "snow_days", "business_formal", "presentations"]
+    }
+  },
+
+  "midi_skirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "linen"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Elegant",
+      "style_tags": ["Minimalist", "Elegant", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["dates", "dinner_event", "presentations", "business_casual"],
+      "unsuitable_for": ["strength_training", "cardio", "road_cycling", "commuter_cycling"]
+    }
+  },
+
+  "maxi_skirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "linen"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Minimalist", "Elegant", "Vintage"],
+      "fit": "Wide"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["walk", "sightseeing", "coffee", "market"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
+    }
+  },
+
+  "pencil_skirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "wool"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Business",
+      "style_tags": ["Business", "Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 28,
+      "optimal_activities": ["business_formal", "presentations", "office", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
+    }
+  },
+
+  "pleated_skirt": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "linen"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Minimalist", "Vintage", "Elegant"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 30,
+      "optimal_activities": ["dates", "dinner_event", "market", "street_fair"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling", "road_cycling"]
+    }
+  },
+
+  "running_tights": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 5,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 35,
+      "optimal_activities": ["jogging", "long_distance", "cardio", "strength_training"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "training_pants": {
+    "attributes": {
+      "materials": ["polyester", "cotton", "elastane"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Streetwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 28,
+      "optimal_activities": ["strength_training", "cardio", "jogging", "walk"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "compression_tights": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 5,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 35,
+      "optimal_activities": ["jogging", "long_distance", "cardio", "road_cycling"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "track_pants": {
+    "attributes": {
+      "materials": ["polyester", "cotton", "elastane"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Streetwear"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 28,
+      "optimal_activities": ["strength_training", "cardio", "walk", "home_office"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "denim_jacket": {
+    "attributes": {
+      "materials": ["cotton", "denim"],
+      "warmth_level": 2,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Streetwear", "Vintage"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 12,
+      "weather_max_temp": 25,
+      "optimal_activities": ["walk", "park", "meeting_friends", "day_trips"],
+      "unsuitable_for": ["cold_days", "snow_days", "swimming", "surfing"]
+    }
+  },
+
+  "bomber_jacket": {
+    "attributes": {
+      "materials": ["polyester", "cotton", "nylon"],
+      "warmth_level": 3,
+      "water_resistance": 1,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Minimalist", "Techwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 8,
+      "weather_max_temp": 20,
+      "optimal_activities": ["commuting", "Public Transit", "on Foot", "walk"],
+      "unsuitable_for": ["heat_days", "sunbathing", "swimming", "surfing"]
+    }
+  },
+
+  "leather_jacket": {
+    "attributes": {
+      "materials": ["leather", "polyester_lining"],
+      "warmth_level": 3,
+      "water_resistance": 1,
+      "wind_resistance": 3,
+      "breathability": 2,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Minimalist", "Vintage"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 22,
+      "optimal_activities": ["meeting_friends", "coffee", "walk", "night_out"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "mountain_hiking"]
+    }
+  },
+
+  "varsity_jacket": {
+    "attributes": {
+      "materials": ["wool", "cotton", "polyester"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 8,
+      "weather_max_temp": 20,
+      "optimal_activities": ["meeting_friends", "coffee", "walk", "park"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "fleece_jacket": {
+    "attributes": {
+      "materials": ["polyester", "fleece"],
+      "warmth_level": 4,
+      "water_resistance": 1,
+      "wind_resistance": 2,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear", "Minimalist"],
+      "fit": "Relaxed"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 18,
+      "optimal_activities": ["trail_hiking", "mountain_hiking", "walk", "camping"],
+      "unsuitable_for": ["business_formal", "wedding", "dinner_event"]
+    }
+  },
+
+  "trench_coat": {
+    "attributes": {
+      "materials": ["cotton", "polyester", "gabardine"],
+      "warmth_level": 2,
+      "water_resistance": 2,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Minimalist", "Elegant", "Business"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 22,
+      "optimal_activities": ["business_casual", "office", "dates", "walk"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking"]
+    }
+  },
+
+  "wool_coat": {
+    "attributes": {
+      "materials": ["wool", "polyester_lining"],
+      "warmth_level": 4,
+      "water_resistance": 1,
+      "wind_resistance": 3,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Elegant",
+      "style_tags": ["Elegant", "Business", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 15,
+      "optimal_activities": ["business_formal", "presentations", "dinner_event", "walk"],
+      "unsuitable_for": ["strength_training", "cardio", "commuter_cycling"]
+    }
+  },
+
+  "puffer_coat": {
+    "attributes": {
+      "materials": ["polyester", "nylon", "down"],
+      "warmth_level": 5,
+      "water_resistance": 2,
+      "wind_resistance": 3,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Techwear", "Sporty"],
+      "fit": "Oversized"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -10,
+      "weather_max_temp": 10,
+      "optimal_activities": ["walk", "commuting", "day_trips", "snow_days"],
+      "unsuitable_for": ["wedding", "business_formal"]
+    }
+  },
+
+  "overcoat": {
+    "attributes": {
+      "materials": ["wool", "cashmere", "polyester_lining"],
+      "warmth_level": 4,
+      "water_resistance": 1,
+      "wind_resistance": 3,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Business", "Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -5,
+      "weather_max_temp": 15,
+      "optimal_activities": ["business_formal", "presentations", "air_travel"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking"]
+    }
+  },
+
+  "rain_jacket": {
+    "attributes": {
+      "materials": ["polyester", "PU_coating", "nylon"],
+      "warmth_level": 2,
+      "water_resistance": 5,
+      "wind_resistance": 3,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Techwear", "Minimalist", "Streetwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 25,
+      "optimal_activities": ["walk", "commuter_cycling", "day_trips"],
+      "unsuitable_for": ["wedding", "business_formal"]
+    }
+  },
+
+  "windbreaker": {
+    "attributes": {
+      "materials": ["nylon", "polyester"],
+      "warmth_level": 1,
+      "water_resistance": 2,
+      "wind_resistance": 5,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 20,
+      "optimal_activities": ["jogging", "commuter_cycling", "walk"],
+      "unsuitable_for": ["business_formal", "cold_days"]
+    }
+  },
+
+  "parka": {
+    "attributes": {
+      "materials": ["polyester", "nylon", "down"],
+      "warmth_level": 5,
+      "water_resistance": 3,
+      "wind_resistance": 4,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Techwear", "Streetwear", "Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -15,
+      "weather_max_temp": 10,
+      "optimal_activities": ["snow_days", "commuting", "walk", "day_trips"],
+      "unsuitable_for": ["wedding", "business_formal"]
+    }
+  },
+
+  "softshell_jacket": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 3,
+      "water_resistance": 3,
+      "wind_resistance": 4,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Techwear", "Sporty", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["trail_hiking", "commuter_cycling", "walk"],
+      "unsuitable_for": ["wedding", "business_formal"]
+    }
+  },
+
+  "hardshell_jacket": {
+    "attributes": {
+      "materials": ["Gore-Tex", "nylon", "polyester"],
+      "warmth_level": 4,
+      "water_resistance": 5,
+      "wind_resistance": 5,
+      "breathability": 4,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Techwear", "Sporty", "Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -10,
+      "weather_max_temp": 15,
+      "optimal_activities": ["mountain_hiking", "camping", "walk"],
+      "unsuitable_for": ["wedding", "business_formal"]
+    }
+  },
+
+  "sneakers": {
+    "attributes": {
+      "materials": ["leather", "synthetic", "mesh"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Streetwear", "Sporty"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "commuting", "day_trips"],
+      "unsuitable_for": ["wedding", "business_formal"]
+    }
+  },
+
+  "slip_ons": {
+    "attributes": {
+      "materials": ["canvas", "leather", "synthetic"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Streetwear", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["meeting_friends", "coffee", "walk"],
+      "unsuitable_for": ["snow_days", "strength_training"]
+    }
+  },
+
+  "canvas_shoes": {
+    "attributes": {
+      "materials": ["canvas", "rubber"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Vintage", "Streetwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 15,
+      "weather_max_temp": 35,
+      "optimal_activities": ["walk", "market", "street_fair"],
+      "unsuitable_for": ["snow_days", "strength_training"]
+    }
+  },
+
+  "oxfords": {
+    "attributes": {
+      "materials": ["leather", "leather_lining"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 0,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Business", "Elegant", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_formal", "presentations", "dinner_event"],
+      "unsuitable_for": ["strength_training", "cardio", "trail_hiking", "mountain_hiking"]
+    }
+  },
+
+  "derbies": {
+    "attributes": {
+      "materials": ["leather", "synthetic"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 0,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Business", "Minimalist", "Elegant"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "business_formal", "presentations"],
+      "unsuitable_for": ["strength_training", "cardio", "soccer"]
+    }
+  },
+
+  "loafers": {
+    "attributes": {
+      "materials": ["leather", "suede"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Business", "Minimalist", "Vintage"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "dates", "dinner_event"],
+      "unsuitable_for": ["trail_hiking", "strength_training"]
+    }
+  },
+
+  "heels": {
+    "attributes": {
+      "materials": ["leather", "synthetic"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 2,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Elegant", "Business", "Minimalist"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["wedding", "dinner_event", "presentations"],
+      "unsuitable_for": ["trail_hiking", "cardio", "long_distance"]
+    }
+  },
+
+  "ballet_flats": {
+    "attributes": {
+      "materials": ["leather", "canvas", "synthetic"],
+      "warmth_level": 1,
+      "water_resistance": 0,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Business",
+      "style_tags": ["Elegant", "Minimalist", "Vintage"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 30,
+      "optimal_activities": ["business_casual", "walk", "dates"],
+      "unsuitable_for": ["trail_hiking", "cardio", "soccer"]
+    }
+  },
+
+  "running_shoes": {
+    "attributes": {
+      "materials": ["mesh", "synthetic", "rubber"],
+      "warmth_level": 1,
+      "water_resistance": 1,
+      "wind_resistance": 0,
+      "breathability": 5,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 35,
+      "optimal_activities": ["jogging", "long_distance", "cardio"],
+      "unsuitable_for": ["business_formal", "wedding"]
+    }
+  },
+
+  "training_shoes": {
+    "attributes": {
+      "materials": ["synthetic", "mesh", "rubber"],
+      "warmth_level": 1,
+      "water_resistance": 1,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Minimalist", "Streetwear"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 35,
+      "optimal_activities": ["strength_training", "cardio", "studio_yoga"],
+      "unsuitable_for": ["business_formal", "wedding"]
+    }
+  },
+
+  "basketball_shoes": {
+    "attributes": {
+      "materials": ["synthetic", "leather", "rubber"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 0,
+      "breathability": 4,
+      "stretch": 3,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Streetwear", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 10,
+      "weather_max_temp": 35,
+      "optimal_activities": ["basketball", "strength_training"],
+      "unsuitable_for": ["business_formal", "dinner_event"]
+    }
+  },
+
+  "football_boots": {
+    "attributes": {
+      "materials": ["leather", "synthetic", "rubber"],
+      "warmth_level": 2,
+      "water_resistance": 2,
+      "wind_resistance": 0,
+      "breathability": 3,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 25,
+      "optimal_activities": ["soccer"],
+      "unsuitable_for": ["business_formal", "walk"]
+    }
+  },
+
+  "chelsea_boots": {
+    "attributes": {
+      "materials": ["leather", "synthetic"],
+      "warmth_level": 2,
+      "water_resistance": 1,
+      "wind_resistance": 1,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Business",
+      "style_tags": ["Business", "Minimalist", "Elegant"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 5,
+      "weather_max_temp": 25,
+      "optimal_activities": ["business_casual", "dates", "walk"],
+      "unsuitable_for": ["trail_hiking", "cardio"]
+    }
+  },
+
+  "combat_boots": {
+    "attributes": {
+      "materials": ["leather", "rubber", "synthetic"],
+      "warmth_level": 3,
+      "water_resistance": 2,
+      "wind_resistance": 2,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Vintage", "Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 20,
+      "optimal_activities": ["urban_outdoor", "walk", "commuting"],
+      "unsuitable_for": ["business_formal", "presentations"]
+    }
+  },
+
+  "winter_boots": {
+    "attributes": {
+      "materials": ["leather", "synthetic", "fur_lining"],
+      "warmth_level": 5,
+      "water_resistance": 3,
+      "wind_resistance": 3,
+      "breathability": 3,
+      "stretch": 1,
+      "formality": "Casual",
+      "style_tags": ["Streetwear", "Techwear", "Sporty"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -20,
+      "weather_max_temp": 10,
+      "optimal_activities": ["snow_days", "commuting", "walk"],
+      "unsuitable_for": ["business_formal"]
+    }
+  },
+
+  "hiking_boots": {
+    "attributes": {
+      "materials": ["leather", "synthetic", "rubber"],
+      "warmth_level": 4,
+      "water_resistance": 3,
+      "wind_resistance": 3,
+      "breathability": 4,
+      "stretch": 2,
+      "formality": "Casual",
+      "style_tags": ["Sporty", "Techwear", "Minimalist"],
+      "fit": "Regular"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -5,
+      "weather_max_temp": 20,
+      "optimal_activities": ["trail_hiking", "mountain_hiking", "camping"],
+      "unsuitable_for": ["business_formal", "dinner_event"]
+    }
+  },
+
+  "thermal_top": {
+    "attributes": {
+      "materials": ["merino_wool", "polyester", "elastane"],
+      "warmth_level": 5,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -20,
+      "weather_max_temp": 10,
+      "optimal_activities": ["skiing", "snowboarding", "mountain_hiking"],
+      "unsuitable_for": ["business_formal"]
+    }
+  },
+
+  "thermal_bottom": {
+    "attributes": {
+      "materials": ["merino_wool", "polyester", "elastane"],
+      "warmth_level": 5,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 4,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": -20,
+      "weather_max_temp": 10,
+      "optimal_activities": ["skiing", "snowboarding", "mountain_hiking"],
+      "unsuitable_for": ["business_formal"]
+    }
+  },
+
+  "base_layer_top": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 20,
+      "optimal_activities": ["jogging", "road_cycling", "trail_hiking"],
+      "unsuitable_for": ["business_formal"]
+    }
+  },
+
+  "base_layer_bottom": {
+    "attributes": {
+      "materials": ["polyester", "elastane", "nylon"],
+      "warmth_level": 3,
+      "water_resistance": 0,
+      "wind_resistance": 1,
+      "breathability": 5,
+      "stretch": 4,
+      "formality": "Casual",
+      "style_tags": ["Minimalist", "Sporty", "Techwear"],
+      "fit": "Slim"
+    },
+    "usage_constraints": {
+      "weather_min_temp": 0,
+      "weather_max_temp": 20,
+      "optimal_activities": ["jogging", "road_cycling", "trail_hiking"],
+      "unsuitable_for": ["business_formal"]
+    }
+  }
+}
+
