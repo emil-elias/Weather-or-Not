@@ -22,7 +22,7 @@ As of Summer 2026, the Weather- and Forecast-API Endpoints of the DWD seem to ha
 
 ## Demo:
 
-https://github.com/user-attachments/assets/400991eb-d3a1-45dd-8451-59dc21a31873
+https://github.com/user-attachments/assets/67f7351a-9b82-49f8-bb50-fa34c3f2ab6c
 
 <img height="500" alt="Screenshot_20260916-180408" src="https://github.com/user-attachments/assets/2e7775ec-1224-4de0-96f1-28bdc2e67d6f" />
 
